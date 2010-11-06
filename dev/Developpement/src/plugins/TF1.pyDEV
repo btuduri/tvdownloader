@@ -1,0 +1,72 @@
+#!/usr/bin/env python
+# -*- coding:Utf-8 -*-
+
+#########################################
+# Licence : GPL2 ; voir fichier LICENSE #
+#########################################
+
+#~ Ce programme est libre, vous pouvez le redistribuer et/ou le modifier selon les termes de la Licence Publique Générale GNU publiée par la Free Software Foundation (version 2 ou bien toute autre version ultérieure choisie par vous).
+#~ Ce programme est distribué car potentiellement utile, mais SANS AUCUNE GARANTIE, ni explicite ni implicite, y compris les garanties de commercialisation ou d'adaptation dans un but spécifique. Reportez-vous à la Licence Publique Générale GNU pour plus de détails.
+#~ Vous devez avoir reçu une copie de la Licence Publique Générale GNU en même temps que ce programme ; si ce n'est pas le cas, écrivez à la Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, États-Unis.
+
+###########
+# Modules #
+###########
+
+import os
+
+from Plugin import Plugin
+from Fichier import Fichier
+import re,unicodedata,datetime
+
+##########
+# Classe #
+##########
+
+class TF1( Plugin ):
+	"""Classe abstraite Plugin dont doit heriter chacun des plugins"""
+	
+	videoBaseUrl = "http://videos.tf1.fr/"
+	listeEmissionBaseUrl = "http://videos.tf1.fr/videos-en-integralite/"
+	listeEmissionPage1Pattern = re.compile("<a onmousedown=\"[^\"]*integralite.([^']*?)@html[^>]*>De A à Z", re.DOTALL)
+	listeEmissionPagePattern = re.compile("<a href=\"/videos-en-integralite/([^\"]*.html)\" class=\"c2 t3\">", re.DOTALL)
+	emissionInfosPattern = re.compile("<a href=\"/([^/]+?)/.*?.html\" class=\"c2\"><strong class=\"t4\">([^<]+)</strong>", re.DOTALL)
+	infosFichierPattern = re.compile("<a href=\"/([^\"]*-\d+.html)\" class=\"t3\">([^<]*)</a></h4>", re.DOTALL)
+	
+	listeEmissions = {}
+	listeFichiers = {}
+	
+	def __init__( self):
+		Plugin.__init__( self, "TF1", "http://www.tf1.fr/")
+		
+	
+	def rafraichir( self ):
+		pass
+	
+	def listerChaines( self ):
+		self.ajouterChaine("TF1")
+	
+	def listerEmissions( self, chaine ):
+		match = re.search(self.listeEmissionPage1Pattern, self.API.getPage(self.listeEmissionBaseUrl))
+		if match == None:
+			return []
+		urls = [self.listeEmissionBaseUrl+match.group(1)+".html"]
+		for index in re.findall(self.listeEmissionPagePattern, self.API.getPage(urls[0])):
+			urls.append(self.listeEmissionBaseUrl+index)
+		for page in self.API.getPages(urls).values():
+			for emission in re.findall(self.emissionInfosPattern, page):
+				if not self.listeEmissions.has_key(emission[1]):
+					self.listeEmissions[emission[1]] = self.videoBaseUrl+emission[0]+"/"
+		liste = self.listeEmissions.keys()
+		liste.sort()
+		for emission in liste:
+			self.ajouterEmission(chaine, emission)
+	
+	def listerFichiers( self, emission ):
+		if not self.listeEmissions.has_key(emission):
+			return
+		#~ print self.listeEmissions[emission]+"video-integrale/"
+		for fichier in re.findall( self.infosFichierPattern, self.API.getPage(self.listeEmissions[emission]+"video-integrale/")):
+			print fichier
+		return
+

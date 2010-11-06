@@ -1,0 +1,43 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Format: 1.8
+Date: Sun, 10 Oct 2010 18:24:26 +0200
+Source: msdl
+Binary: msdl
+Architecture: source
+Version: 1.2.7-r2-0ubuntu2
+Distribution: maverick
+Urgency: low
+Maintainer: Chaoswizard <chaoswizard@gmail.com>
+Changed-By: Chaoswizard <chaoswizard@gmail.com>
+Description: 
+ msdl       - downloader for mms://, rtsp:// etc.
+Changes: 
+ msdl (1.2.7-r2-0ubuntu2) maverick; urgency=low
+ .
+   * Maverick packet
+Checksums-Sha1: 
+ 6e9b396dcd36f19acf46a9e7f2b9a9c55562bb5d 1334 msdl_1.2.7-r2-0ubuntu2.dsc
+ d30a637fc8be4ea80ddd373e428542bef15297fb 207456 msdl_1.2.7-r2.orig.tar.gz
+ e97ea2940d77698cd1f85cd8cd822ba36c257d31 12893 msdl_1.2.7-r2-0ubuntu2.diff.gz
+Checksums-Sha256: 
+ 87967d5383a506e53c564ebed06efb37841d280da83c169491821ba77a121790 1334 msdl_1.2.7-r2-0ubuntu2.dsc
+ 0297e87bafcab885491b44f71476f5d5bfc648557e7d4ef36961d44dd430a3a1 207456 msdl_1.2.7-r2.orig.tar.gz
+ fce1ced644bd9516b0103b6305c8368ce8c2502137b245f76e3aee7793d11ebb 12893 msdl_1.2.7-r2-0ubuntu2.diff.gz
+Files: 
+ ef3c46e261afff1b83dfae82f86d8416 1334 web extra msdl_1.2.7-r2-0ubuntu2.dsc
+ a2b37162115170cc59ff6ace1d9c5ac4 207456 web extra msdl_1.2.7-r2.orig.tar.gz
+ 99230c7506c1b268e200761916512002 12893 web extra msdl_1.2.7-r2-0ubuntu2.diff.gz
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iQEcBAEBAgAGBQJMselDAAoJEE0FlswK0y0US4sH/jMjqn01UUIhdTpELEcgEya9
+aO0wh9+oJIFIocwsoiH6XzWZWf3dsJDzwFEvyST2mYO0fpvaLRLKGrFts9j7eK/a
+owddNhFXn2AAo0bnGhyZG+aStRy3KF8q310bCNsgqGxG9nK91FvxzY2P7XHEETQ/
+o/P3TyM0VgnOKCaRUVAh/HU3doYLAegHoWRmjj1alLarBh0Jmk18qr+TEfFfFATa
+AgB9NyIrm9yZenl/hgMCTnEJMYh70H/6ENsl4ao2zDT233nFd6cpr9XKmD5A+f5I
+p6RI09b9qlf2IvICFWGu8blKPQK9qt6dxNVt64GOWn86RJlum42JCFrLiapHZ0g=
+=N5Vp
+-----END PGP SIGNATURE-----
