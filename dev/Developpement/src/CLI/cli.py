@@ -201,4 +201,5 @@ class cli:
 #			if len(choice)>1:choice=choice[0]
 	#			if choice:print choice[0]
 	#split
-if __name__=="__main__": main()
+if __name__=="__main__": 
+	main()

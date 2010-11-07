@@ -40,7 +40,7 @@ repPlugins = [ os.path.expanduser( "~" ) + "/.tvdownloader/plugins",
 class UpdateManager( object ):
 	
 	# Liste des sites qui disposent des mises a jour
-	listeSites = [ "http://tvdownloader.googlecode.com/svn/branches/MAJ_Plugins" ]
+	listeSites = [ "http://tvdownloader.googlecode.com/hg/plugins" ]
 	
 	# Instance de la classe (singleton)
 	instance = None

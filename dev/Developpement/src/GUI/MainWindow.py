@@ -430,11 +430,11 @@ class MainWindow( QtGui.QMainWindow ):
 		QtCore.QObject.connect( self, QtCore.SIGNAL( "debutActualisation(PyQt_PyObject)" ) , self.fenetreAttenteProgressDialog.ouvrirFenetreAttente )
 		QtCore.QObject.connect( self, QtCore.SIGNAL( "finActualisation()" ) , self.fenetreAttenteProgressDialog.fermerFenetreAttente )		
 		QtCore.QObject.connect( self, QtCore.SIGNAL( "actualiserListesDeroulantes()" ) , self.actualiserListesDeroulantes )
+		QtCore.QObject.connect( self, QtCore.SIGNAL( "debutTelechargement(PyQt_PyObject)" ) , self.debutTelechargement )
+		QtCore.QObject.connect( self, QtCore.SIGNAL( "finTelechargement(PyQt_PyObject,bool)" ) , self.finTelechargement )
+		QtCore.QObject.connect( self, QtCore.SIGNAL( "finDesTelechargements()" ) , self.activerDesactiverInterface )
 		
-		#~ QtCore.QObject.connect( self.signaux, QtCore.SIGNAL( "debutTelechargement(int)" ) , self.debutTelechargement )
-		#~ QtCore.QObject.connect( self.signaux, QtCore.SIGNAL( "finTelechargement(int)" ) , self.finTelechargement )
-		#~ QtCore.QObject.connect( self.signaux, QtCore.SIGNAL( "finDesTelechargements()" ) , self.activerDesactiverInterface )
-		#~ QtCore.QObject.connect( self.signaux, QtCore.SIGNAL( "pourcentageFichier(int)" ) , self.progressBarTelechargementFichier.setValue )		
+		QtCore.QObject.connect( self.downloader, QtCore.SIGNAL( "pourcentageFichier(int)" ) , self.progressBarTelechargementFichier.setValue )
 
 		#########
 		# Début #
@@ -764,24 +764,32 @@ class MainWindow( QtGui.QMainWindow ):
 		
 	## Methode qui lance le telechargement des fichiers	
 	def lancerTelechargement( self ):	
-		# On liste les emissions a telecharger avec leurs numeros de ligne
+		def threadTelechargement( self, listeFichiers ):
+			for fichier in listeFichiers:
+				# On debute un telechargement
+				self.emit( QtCore.SIGNAL( "debutTelechargement(PyQt_PyObject)" ), fichier )
+				# On le lance
+				retour = self.downloader.telecharger( fichier )
+				# On a fini le telechargement
+				self.emit( QtCore.SIGNAL( "finTelechargement(PyQt_PyObject,bool)" ), fichier, retour )
+			# On a fini les telechargements
+			self.emit( QtCore.SIGNAL( "finDesTelechargements()" ) )	
+		
+		# On liste les fichiers a telecharger
 		listeFichiers = []
 		for i in range( self.tableWidgetTelechargement.rowCount() ): # Pour chaque ligne
-			fichier = self.tableWidgetTelechargement.getClasse( i )
-			listeFichiers.append( [ i,
-									getattr( fichier, "lien" ),
-									getattr( fichier, "nomFichierSortie" ) ] )
-				
-		nbATelecharger = len( listeFichiers )
+			listeFichiers.append( self.tableWidgetTelechargement.getClasse( i ) )
+		nbATelecharger = len( listeFichiers )	
+		
 		# Si on a des elements a charger
 		if( nbATelecharger > 0 ):
 			# On met en place la valeur du progressBar
 			self.progressBarTelechargement.setMaximum( nbATelecharger )
 			self.progressBarTelechargement.setValue( 0 )
-			# On lance le telechargement
-			threading.Thread( target = self.downloader.lancerTelechargement, args = ( listeFichiers, ) ).start()
 			# On active/desactive ce qui va bien sur l'interface
 			self.activerDesactiverInterface( True )
+			# On lance le telechargement
+			threading.Thread( target = threadTelechargement, args = ( self, listeFichiers ) ).start()
 			
 	## Methode qui stoppe le telechargement
 	def stopperTelechargement( self ):
@@ -874,22 +882,24 @@ class MainWindow( QtGui.QMainWindow ):
 		self.tableWidgetTelechargement.setEnabled( not telechargementEnCours )
 
 	## Slot appele lors ce qu'un le debut d'un telechargement commence
-	# @param numero Position dans la liste des telechargement du telechargement qui commence
-	def debutTelechargement( self, numero ):
-		self.tableWidgetTelechargement.item( numero, 2 ).setText( stringToQstring( u"Téléchargement en cours..." ) )
+	# @param fichier Fichier dont le telechargement vient de commencer
+	def debutTelechargement( self, fichier ):
+		ligneTelechargement = self.tableWidgetTelechargement.getListeClasse().index( fichier )
+		self.tableWidgetTelechargement.item( ligneTelechargement, 2 ).setText( stringToQstring( u"Téléchargement en cours..." ) )
 		self.tableWidgetTelechargement.adapterColonnes()
 		self.progressBarTelechargementFichier.setValue( 0 )
 
 	## Slot appele lorsqu'un telechargement se finit
-	# @param numero Position dans la liste des telechargement du telechargement qui se finit	
-	def finTelechargement( self, numero ):
-		fichier = self.tableWidgetTelechargement.getClasse( numero )
+	# @param fichier Fichier du telechargement qui vient de se finir
+	# @param reussi  Indique si le telechargement s'est fini sans problemes
+	def finTelechargement( self, fichier, reussi = True ):
+		ligneTelechargement = self.tableWidgetTelechargement.getListeClasse().index( fichier )
 		# On ajoute le fichier a l'historique
 		self.historique.ajouterHistorique( fichier )
 		# On modifie l'icone dans la liste des fichiers
 		self.gererIconeListeFichier( fichier )	
 		# On modifie l'interface
-		self.tableWidgetTelechargement.item( numero, 2 ).setText( stringToQstring( u"Fini !" ) )
+		self.tableWidgetTelechargement.item( ligneTelechargement, 2 ).setText( stringToQstring( u"Fini !" ) )
 		self.progressBarTelechargement.setValue( self.progressBarTelechargement.value() + 1 )
 		self.tableWidgetTelechargement.adapterColonnes()
 		self.progressBarTelechargementFichier.setValue( 100 )

@@ -17,7 +17,6 @@ import os
 import re
 import shlex
 import subprocess
-import sys
 import time
 
 from fonctions.urlToRtmpdump import urlToRtmpdump
@@ -39,11 +38,10 @@ class Downloader( QtCore.QObject ):
 	# Instance de la classe (singleton)
 	instance = None
 	
-	## Surcharge de la methode de construction standard (pour mettre en place le singleton)
-	def __new__( self, *args, **kwargs ):
-		if( self.instance is None ):
-			self.instance = super( Downloader, self ).__new__( self )
-		return self.instance
+	def __new__( cls, *args, **kwargs ):
+		if( cls.instance is None ):
+			cls.instance = super( Downloader, cls ).__new__( cls, *args, **kwargs )
+		return cls.instance
 	
 	## Constructeur
 	def __init__( self ):
@@ -57,9 +55,9 @@ class Downloader( QtCore.QObject ):
 	# @return  Booleen qui indique si le telechargement a reussi
 	def telecharger( self, fichier ):
 		# Chemin complet du fichier de sortie
-		fichierSortie = os.path.join( self.repertoireTelechargement, getattr( fichier, nomFichierSortie ) )
+		fichierSortie = os.path.join( self.repertoireTelechargement, getattr( fichier, "nomFichierSortie" ) )
 		# URL du fichier
-		urlFichier = getattr( fichier, lien )
+		urlFichier = str( getattr( fichier, "lien" ) )
 		logger.info( u"téléchargement de %s" %( urlFichier ) )
 		
 		# On va creer la commande a executer pour telecharger le fichier
