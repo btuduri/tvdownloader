@@ -1,0 +1,108 @@
+#!/usr/bin/env python
+# -*- coding:Utf-8 -*-
+
+#########################################
+# Licence : GPL2 ; voir fichier COPYING #
+#########################################
+
+# Ce programme est libre, vous pouvez le redistribuer et/ou le modifier selon les termes de la Licence Publique Générale GNU publiée par la Free Software Foundation (version 2 ou bien toute autre version ultérieure choisie par vous).
+# Ce programme est distribué car potentiellement utile, mais SANS AUCUNE GARANTIE, ni explicite ni implicite, y compris les garanties de commercialisation ou d'adaptation dans un but spécifique. Reportez-vous à la Licence Publique Générale GNU pour plus de détails.
+# Vous devez avoir reçu une copie de la Licence Publique Générale GNU en même temps que ce programme ; si ce n'est pas le cas, écrivez à la Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, États-Unis.
+
+###########
+# Modules #
+###########
+
+import re
+import os
+
+from Fichier import Fichier
+from Plugin import Plugin
+
+##########
+# Classe #
+##########
+
+class MediciTV( Plugin ):
+	
+	# Liens
+	urlPageEmissions    = "http://www.medici.tv/api/menu/playlist/"
+	urlPageFichiers     = "http://www.medici.tv/api/playlist/_ID_/_PAGE_/"
+	urlPageFichiersLien = "http://www.medici.tv/api/_PATH_"
+	lienRTMPFichier     = "rtmp://fms033.lo1.hwcdn.net/v4m4b2s4/_definst_/mp4:fms/_LIEN_?FLVPlaybackVersion=2.1&doppl=d4b9dc3598d53667&dopsig=400d0e45687214d4f95eaf4be6791054"
+	
+	# RegEx
+	listeEmissionsRegEx            = re.compile( "<id>([^<]+)</id>.*?<title>([^<]+)</title>", re.DOTALL )
+	listeFichiersRegEx             = re.compile( "<path>([^<]+)</path>.*?<title>([^<]+)</title>.*?<line2>([^<]+)</line2>", re.DOTALL )
+	listeFichiersDernierePageRegEx = re.compile( "<last_page>\d</last_page>" )
+	listeFichiersNomFichierRegEx   = re.compile( "<stream>([^<]+)</stream>" )
+	
+	# Listes
+	listeEmissions = {} # Clef = nom emission, Valeur = id de l'emission
+	
+	def __init__( self):
+		Plugin.__init__( self, "Medici TV", "http://www.medici.tv", 30 )
+		
+	def rafraichir( self ):
+		pass
+		
+	def listerChaines( self ):
+		self.ajouterChaine( self.nom )
+		
+	def listerEmissions( self, chaine ):
+		# On recupere la page qui liste les emissions
+		pageEmissions = self.API.getPage( self.urlPageEmissions )
+		# On extrait les emissions
+		resultats = re.findall( self.listeEmissionsRegEx, pageEmissions )
+		for res in resultats:
+			idEmission  = res[ 0 ]
+			nomEmission = res[ 1 ]
+			# On enregistre l'emission et son id
+			self.listeEmissions[ nomEmission ] = idEmission
+			# On ajoute l'emission
+			self.ajouterEmission( chaine, nomEmission )
+		
+	def listerFichiers( self, emission ):
+		# On recupere l'id de l'emission dont on veut les fichiers
+		if( self.listeEmissions.has_key( emission ) ):
+			idEmission = self.listeEmissions[ emission ]
+			
+			# On va commencer a la premier page qui liste les fichiers
+			urlPageCourante = self.urlPageFichiers.replace( "_ID_", idEmission ).replace( "_PAGE_", "0" )
+			dernierePage    = self.extraireFichierPage( emission, urlPageCourante )
+			# On continue sur les autres pages s'il y en a
+			if( dernierePage != 1 ):
+				for page in range( 2, dernierePage + 1 ):
+					urlPageCourante = self.urlPageFichiers.replace( "_ID_", idEmission ).replace( "_PAGE_", str( page ) )
+					self.extraireFichierPage( emission, urlPageCourante )
+					
+	def extraireFichierPage( self, emission, urlPageCourante ):
+		pageCourante = self.API.getPage( urlPageCourante )
+		# On extrait le numero de la derniere page
+		try :
+			dernierePage = int( re.findall( self.listeFichiersDernierePageRegEx )[ 0 ] )
+		except :
+			dernierePage = 1
+		# On extrait les fichiers
+		resultatsFichiers = re.findall( self.listeFichiersRegEx, pageCourante )
+		for resFichiers in resultatsFichiers:
+			pathFichier = resFichiers[ 0 ]
+			nomFichier  = resFichiers[ 1 ]
+			try :
+				dateFichier = resFichiers[ 2 ].split( "-" )[ 1 ]
+			except :
+				dateFichier = "Inconnue"
+			# On doit maintenant recuperer le lien du fichier sur une autre page
+			urlPageLienFichier = self.urlPageFichiersLien.replace( "_PATH_", pathFichier )
+			pageLienFichier    = self.API.getPage( urlPageLienFichier )
+			if( pageLienFichier.find( "Please come back later" ) != -1 ): # S'il y a une erreur sur la page
+				continue
+			lienFichier        = re.findall( self.listeFichiersNomFichierRegEx, pageLienFichier )[ 0 ]
+			lienBonFormat      = self.lienRTMPFichier.replace( "_LIEN_", str( lienFichier.split( "/" )[ -1 ] ) )
+			
+			# On ajoute le fichier
+			self.ajouterFichier( emission, Fichier( nomFichier, dateFichier, lienBonFormat ) )
+		# On renvoit le numero de la derniere page
+		return dernierePage					
+
+#~ rtmp://fms033.lo1.hwcdn.net/v4m4b2s4/_definst_/mp4:fms/VERBIER-1-20100716-combins-medici-hi.mp4?FLVPlaybackVersion=2.1&doppl=d4b9dc3598d53667&dopsig=400d0e45687214d4f95eaf4be6791054
