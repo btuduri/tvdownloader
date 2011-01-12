@@ -7,6 +7,7 @@
 from GUI.AProposDialog import AProposDialog
 from GUI.PreferencesDialog import PreferencesDialog
 from TvDownloaderMainWindowView import Ui_TvDownloaderMainWindow
+from TvDownloaderSitesWidgetController import TvDownloaderSitesWidgetController
 from PyQt4 import QtGui, QtCore
 
 class TvDownloaderMainWindowController(QtGui.QMainWindow):
@@ -28,6 +29,12 @@ class TvDownloaderMainWindowController(QtGui.QMainWindow):
         self.updatePluginsDlg = None
         self.preferencesDlg = None
         self.aboutDlg = None
+        
+        #
+        self.sitesWidget = TvDownloaderSitesWidgetController()
+        
+        # Init the main widget
+        self.setCentralWidget(self.sitesWidget)
     
     def openUpdatePluginsWindow(self):
         print 'openUpdatePluginsWindow'
