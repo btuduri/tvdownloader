@@ -21,6 +21,7 @@ import base64
 from Crypto.Cipher import DES
 import xml.sax
 from xml.sax.handler import ContentHandler
+import unicodedata
 
 from Fichier import Fichier
 from Plugin import Plugin
@@ -58,6 +59,7 @@ class M6Replay( Plugin ):
 		decryptor = DES.new( "ElFsg.Ot", DES.MODE_ECB )
 		# Page des emissions dechiffree
 		pageEmissions = decryptor.decrypt( base64.decodestring( pageEmissionsChiffree ) )
+		
 		# On cherche la fin du fichier XML
 		finXML = pageEmissions.find( "</template_exchange_WEB>" ) + len( "</template_exchange_WEB>" )
 		# On enleve ce qui est apres la fin du fichier XML
@@ -132,6 +134,7 @@ class M6ReplayHandler( ContentHandler ):
 				pass
 		elif( name == "nom" ):
 			# Si on a nom, cela peut etre (toujours dans cet ordre) :
+			# - Le nom de la chaine
 			# - Le nom de l'emission
 			# - Le nom d'un episode de cette emission
 			# - Le nom de la vidéo de cet episode
@@ -156,7 +159,7 @@ class M6ReplayHandler( ContentHandler ):
 	## Methode qui renvoie les donnees d'une balise
 	# @param data Donnees d'une balise
 	def characters( self, data ):
-		#~ data = unicodedata.normalize( 'NFKD', data ).encode( 'ascii','ignore' )
+		data = unicodedata.normalize( 'NFKD', data ).encode( 'ascii','ignore' )
 		if( self.isNomChaine ):
 			self.nomChaine         = data
 			self.nomChaineConnu    = True

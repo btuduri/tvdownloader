@@ -81,7 +81,7 @@ if __name__ == "__main__" :
 	if( options.cli == False and options.dialog == False ):
 		# On importe les fichiers necessaires pour le GUI
 		try:
-			from PyQt4 import QtGui, QtCore
+			from PyQt4 import QtGui
 		except ImportError:
 			logger.critical( "ouuupppss : il vous faut PyQt4 pour pouvoir utiliser ce programme..." )
 			sys.exit( 1 )
