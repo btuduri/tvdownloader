@@ -38,7 +38,7 @@
        <bool>false</bool>
       </property>
       <property name="text">
-       <string notr="true">Arte Live Web</string>
+       <string notr="true">Arte</string>
       </property>
       <property name="icon">
        <iconset>

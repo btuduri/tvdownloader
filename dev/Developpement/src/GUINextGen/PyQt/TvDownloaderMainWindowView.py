@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'TvDownloaderMainWindow.ui'
 #
-# Created: Tue Jan 11 19:47:07 2011
+# Created: Thu Jan 13 22:07:18 2011
 #      by: PyQt4 UI code generator 4.7.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -77,9 +77,12 @@ class Ui_TvDownloaderMainWindow(object):
         self.menuEdition.setTitle(QtGui.QApplication.translate("TvDownloaderMainWindow", "Edition", None, QtGui.QApplication.UnicodeUTF8))
         self.menuAide.setTitle(QtGui.QApplication.translate("TvDownloaderMainWindow", "Aide", None, QtGui.QApplication.UnicodeUTF8))
         self.actionQuit.setText(QtGui.QApplication.translate("TvDownloaderMainWindow", "Quitter", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionQuit.setShortcut(QtGui.QApplication.translate("TvDownloaderMainWindow", "Ctrl+Q", None, QtGui.QApplication.UnicodeUTF8))
         self.actionAbout.setText(QtGui.QApplication.translate("TvDownloaderMainWindow", "A propos", None, QtGui.QApplication.UnicodeUTF8))
         self.actionUpdatePlugins.setText(QtGui.QApplication.translate("TvDownloaderMainWindow", "Mise à jour des plugins", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionUpdatePlugins.setShortcut(QtGui.QApplication.translate("TvDownloaderMainWindow", "Ctrl+U", None, QtGui.QApplication.UnicodeUTF8))
         self.actionPreferences.setText(QtGui.QApplication.translate("TvDownloaderMainWindow", "Préférences", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionPreferences.setShortcut(QtGui.QApplication.translate("TvDownloaderMainWindow", "Ctrl+P", None, QtGui.QApplication.UnicodeUTF8))
 
 
 if __name__ == "__main__":

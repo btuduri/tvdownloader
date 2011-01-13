@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'TvDownloaderPluzzWidget.ui'
 #
-# Created: Tue Jan 11 19:47:07 2011
+# Created: Thu Jan 13 22:07:19 2011
 #      by: PyQt4 UI code generator 4.7.4
 #
 # WARNING! All changes made in this file will be lost!

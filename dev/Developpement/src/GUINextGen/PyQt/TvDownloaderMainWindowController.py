@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 # Last change: 2011/01/11
 #
@@ -6,8 +5,10 @@
 
 from GUI.AProposDialog import AProposDialog
 from GUI.PreferencesDialog import PreferencesDialog
+from GUI.UpdateManagerDialog import UpdateManagerDialog
 from TvDownloaderMainWindowView import Ui_TvDownloaderMainWindow
 from TvDownloaderSitesWidgetController import TvDownloaderSitesWidgetController
+from TvDownloaderPluzzWidgetController import TvDownloaderPluzzWidgetController
 from PyQt4 import QtGui, QtCore
 
 class TvDownloaderMainWindowController(QtGui.QMainWindow):
@@ -25,25 +26,42 @@ class TvDownloaderMainWindowController(QtGui.QMainWindow):
         self.connect(self.ui.actionPreferences, QtCore.SIGNAL('triggered()'), self.openPreferencesWindow)
         self.connect(self.ui.actionAbout, QtCore.SIGNAL('triggered()'), self.openAboutDialog)
         
-        # Define the other widgets
+        # Define the other dialogs
         self.updatePluginsDlg = None
         self.preferencesDlg = None
         self.aboutDlg = None
         
-        #
-        self.sitesWidget = TvDownloaderSitesWidgetController()
-        
         # Init the main widget
-        self.setCentralWidget(self.sitesWidget)
+        self.previousWidgetID = 'main_menu'
+        self.updateCentralWidget(self.previousWidgetID)
+    
+    def updateCentralWidget(self, strWidgetID):
+        
+        if strWidgetID == 'main_menu':
+            self.setCentralWidget(TvDownloaderSitesWidgetController(self))
+        elif strWidgetID == "site_arte":
+            print 'TvDownloaderMainWindowController>> display site Arte'
+        elif strWidgetID == "site_canal":
+            print 'TvDownloaderMainWindowController>> display site Canal+'
+        elif strWidgetID == "site_m6replay":
+            print 'TvDownloaderMainWindowController>> display site M6Replay'
+        elif strWidgetID == "site_pluzz":
+            print 'TvDownloaderMainWindowController>> display site Pluzz'
+            self.setCentralWidget(TvDownloaderPluzzWidgetController(self))
+        elif strWidgetID == "site_w9replay":
+            print 'TvDownloaderMainWindowController>> display site W9'
+        elif strWidgetID == 'back':
+            print 'TvDownloaderMainWindowController>> back'
+            self.updateCentralWidget(self.previousWidgetID)
     
     def openUpdatePluginsWindow(self):
-        print 'openUpdatePluginsWindow'
-#        if self.updatePluginsDlg == None:
-#            self.updatePluginsDlg = None
+        if self.updatePluginsDlg == None:
+            self.updatePluginsDlg = UpdateManagerDialog(self)
+        self.updatePluginsDlg.afficher()
             
     def openPreferencesWindow(self):
         if self.preferencesDlg == None:
-            self.preferencesDlg = PreferencesDialog()
+            self.preferencesDlg = PreferencesDialog(self)
         self.preferencesDlg.afficher()
         
     def openAboutDialog(self):

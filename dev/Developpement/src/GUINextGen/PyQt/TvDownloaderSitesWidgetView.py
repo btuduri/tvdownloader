@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'TvDownloaderSitesWidget.ui'
 #
-# Created: Tue Jan 11 19:47:07 2011
+# Created: Thu Jan 13 22:07:19 2011
 #      by: PyQt4 UI code generator 4.7.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -23,7 +23,7 @@ class Ui_TvDownloaderSitesWidget(object):
         self.pushButton_Arte.setMouseTracking(False)
         self.pushButton_Arte.setFocusPolicy(QtCore.Qt.TabFocus)
         self.pushButton_Arte.setAutoFillBackground(False)
-        self.pushButton_Arte.setText("Arte Live Web")
+        self.pushButton_Arte.setText("Arte")
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap("img/07_ARTE_256x256.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.pushButton_Arte.setIcon(icon)
