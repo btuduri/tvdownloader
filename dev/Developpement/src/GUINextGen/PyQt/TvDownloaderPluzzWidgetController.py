@@ -1,5 +1,4 @@
 from PyQt4 import QtGui, QtCore
-
 from TvDownloaderPluzzWidgetView import Ui_TvDownloaderPluzzWidget
 
 class TvDownloaderPluzzWidgetController(QtGui.QWidget):

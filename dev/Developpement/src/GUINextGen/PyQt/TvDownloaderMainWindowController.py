@@ -1,15 +1,11 @@
-
-# Last change: 2011/01/11
-#
-# Author: psyphi <psyphi@gmail.com>
-
+from PyQt4 import QtGui, QtCore
 from GUI.AProposDialog import AProposDialog
 from GUI.PreferencesDialog import PreferencesDialog
 from GUI.UpdateManagerDialog import UpdateManagerDialog
 from TvDownloaderMainWindowView import Ui_TvDownloaderMainWindow
 from TvDownloaderSitesWidgetController import TvDownloaderSitesWidgetController
 from TvDownloaderPluzzWidgetController import TvDownloaderPluzzWidgetController
-from PyQt4 import QtGui, QtCore
+
 
 class TvDownloaderMainWindowController(QtGui.QMainWindow):
     
