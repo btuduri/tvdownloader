@@ -54,7 +54,7 @@ class Preferences( object ):
 									   "pluginsActifs"            : [],
 									   "pluginParDefaut"          : "",
 									   "tailleFenetre"            : [ 500, 500 ],
-									   "timeOut"                  : 5,
+									   "timeOut"                  : 15,
 									   "nbThreadMax"              : 20
 									 }		
 		

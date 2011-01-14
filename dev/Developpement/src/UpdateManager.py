@@ -41,7 +41,7 @@ class UpdateManager( object ):
 	
 	# Liste des sites qui disposent des mises a jour
 	listeSites = [ "http://tvdownloader.googlecode.com/hg/plugins" ]
-	
+
 	# Instance de la classe (singleton)
 	instance = None
 	

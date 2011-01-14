@@ -36,6 +36,7 @@ Remerciements :
 - wido (packager Archlinux)
 - devil505 (packager Frugalware)
 - paulk (packager Fedora)
+- Thierry Thomas (packager FreeBSD)
 """
 
 ##########

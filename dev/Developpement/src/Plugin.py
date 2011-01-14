@@ -20,6 +20,8 @@ from Option import Option
 import logging
 logger = logging.getLogger( __name__ )
 
+import Constantes
+
 ##########
 # Classe #
 ##########
@@ -71,10 +73,9 @@ class Plugin(object):
 		else:
 			self.url = url
 		
-		self.frequence = frequence
-		path = os.path.expanduser( "~" )
-		self.fichierConfiguration = path+"/.tvdownloader/conf/"+self.nom.replace( " ", "_" )+".conf"
-		self.fichierCache = path+"/.tvdownloader/cache/"+self.nom.replace( " ", "_" )+".cache"
+		self.frequence = frequence		
+		self.fichierConfiguration = os.path.join( Constantes.REPERTOIRE_CONFIGURATION, self.nom.replace( " ", "_" )+ ".conf" )
+		self.fichierCache = os.path.join( Constantes.REPERTOIRE_CACHE, self.nom.replace( " ", "_" ) + ".cache" )
 	
 	## Efface les informations mémorisées.
 	# @param self l'objet courant
