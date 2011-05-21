@@ -23,7 +23,7 @@ class Image( object ):
 	def __init__( self, nom = "", donnees = "", date = int( time.time() ) ):
 		self.nom     = nom
 		self.donnees = donnees
-		self.date    = date
+		self.date    = date # timestamp
 		
 	## Surcharge de la methode ==
 	def __eq__( self, autre ):
@@ -75,7 +75,8 @@ class Gestionnaire( object ):
 	# @return l'image demandee
 	def getImage( self, url ):
 		if( self.cache.has_key( url ) ):
-			return self.cache[ url ]
+			image = self.cache[ url ]
+			image.date = int( time.time() )
 		else:
 			# Telecharge l'image puis la met en cache
 			pass
@@ -85,3 +86,5 @@ class Gestionnaire( object ):
 		if( self.nombreAcces > Constantes.TAILLE_CACHE_IMAGE ):
 			self.nettoieCache()
 			self.nombreAcces = 0
+		
+		return image
