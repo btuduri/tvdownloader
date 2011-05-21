@@ -20,12 +20,17 @@ logger = logging.getLogger( __name__ )
 class Image( object ):
 	
 	## Constructeur
+	# @param nom      Nom de l'image
+	# @param donnees  Donnees de l'image
+	# @param date     Date de derniere utilisation de l'image
 	def __init__( self, nom = "", donnees = "", date = int( time.time() ) ):
 		self.nom     = nom
 		self.donnees = donnees
 		self.date    = date # timestamp
 		
 	## Surcharge de la methode ==
+	# @param autre L'autre image a comparer
+	# @return      Si les 2 images sont egales
 	def __eq__( self, autre ):
 		if( not isinstance( autre, Image ) ):
 			return False
@@ -33,6 +38,8 @@ class Image( object ):
 			return( self.nom == autre.nom )
 	
 	## Surcharge de la methode !=
+	# @param autre L'autre image a comparer
+	# @return      Si les 2 images sont differentes
 	def __ne__( self, autre ):
 		return not self.__eq__( autre )
 		
@@ -72,7 +79,7 @@ class Gestionnaire( object ):
 	
 	## Recupere une image
 	# @param url URL de l'image
-	# @return l'image demandee
+	# @return    L'image demandee
 	def getImage( self, url ):
 		if( self.cache.has_key( url ) ):
 			image = self.cache[ url ]
