@@ -1,5 +1,5 @@
 
-class MsdlDownloader (AbstractDownloader) :
+class MsdlDownloader (DownloaderInterface) :
 	def __init__(self) :
 		pass
 	def MsdlDownloader (self, url) :

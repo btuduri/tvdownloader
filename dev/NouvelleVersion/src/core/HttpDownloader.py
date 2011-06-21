@@ -1,5 +1,5 @@
 
-class HttpDownloader (AbstractDownloader) :
+class HttpDownloader (DownloaderInterface) :
 	def __init__(self) :
 		pass
 	def HttpDownloader (self, url) :
