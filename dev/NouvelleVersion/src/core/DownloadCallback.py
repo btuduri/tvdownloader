@@ -1,3 +1,4 @@
+# -*- coding:Utf-8 -*-
 
 ## Interface des callbacks de DownloaderManager;
 #

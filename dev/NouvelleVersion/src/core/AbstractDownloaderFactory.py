@@ -1,3 +1,4 @@
+# -*- coding:Utf-8 -*-
 
 class AbstractDownloaderFactory :
 	def __init__(self) :

@@ -1,3 +1,4 @@
+# -*- coding:Utf-8 -*-
 
 class PluginCallback :
 	def __init__(self) :

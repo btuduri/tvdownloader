@@ -1,3 +1,4 @@
+# -*- coding:Utf-8 -*-
 
 ## Représente l'état d'un téléchargement
 class DownloadStatus :

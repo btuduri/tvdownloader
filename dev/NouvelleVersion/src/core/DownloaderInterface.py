@@ -1,3 +1,4 @@
+# -*- coding:Utf-8 -*-
 
 ## Interface des classes effectuant le téléchargement de fichiers distant.
 #

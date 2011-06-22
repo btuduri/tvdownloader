@@ -2,8 +2,7 @@
 
 import thread,threading
 
-import logging
-logger = logging.getLogger( __name__ )
+from DownloaderFactory import *
 
 class DownloadManager(threading.Thread):
 	BUFFER_SIZE = 8000
@@ -23,12 +22,12 @@ class DownloadManager(threading.Thread):
 	def run(self):
 		while True:
 			if self.mutex_toDl.locked():
-				logger.warn("Mutex verrouillé, attention au dead lock !")
+				print "Mutex verrouillé, attention au dead lock !"
 			self.mutex_toDl.acquire()
 			while len(self.toDl) <= 0:
 				self.cond_toDl.wait();
 				if self.mutex_toDl.locked():
-					logger.warn("Mutex verrouillé, attention au dead lock !")
+					print "Mutex verrouillé, attention au dead lock !"
 				self.mutex_toDl.acquire()
 			dlParam = self.toDl.pop(0)
 			self.mutex_toDl.release()
@@ -58,9 +57,9 @@ class DownloadManager(threading.Thread):
 	# @return le numéro du téléchargement
 	def download (self, url, outFile, callback) :
 		if self.mutex_toDl.locked():
-			logger.warn("Mutex verrouillé, attention au dead lock !")
+			print "Mutex verrouillé, attention au dead lock !"
 		self.mutex_toDl.acquire()
-		self.toDl.append([url, outFile, callBack])
+		self.toDl.append([url, outFile, callback])
 		self.cond_toDl.notifyAll()
 		self.mutex_toDl.release()
 		pass

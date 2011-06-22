@@ -2,6 +2,8 @@
 
 import urllib
 
+from DownloaderInterface import *
+
 class HttpDownloader (DownloaderInterface) :
 	def __init__(self, url) :
 		DownloaderInterface.__init__(self)

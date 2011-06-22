@@ -1,3 +1,7 @@
+# -*- coding:Utf-8 -*-
+
+from DownloaderInterface import *
+from MsdlDownloader import *
 
 class MsdlDownloader (DownloaderInterface) :
 	def __init__(self) :

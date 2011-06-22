@@ -1,3 +1,4 @@
+# -*- coding:Utf-8 -*-
 
 class PluginManager :
 	def __init__(self) :

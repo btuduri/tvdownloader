@@ -1,3 +1,6 @@
+# -*- coding:Utf-8 -*-
+
+from AbstractDownloaderFactory import *
 
 ## Fabrique concrète des DownloaderInterface
 class DownloaderFactory (AbstractDownloaderFactory) :
