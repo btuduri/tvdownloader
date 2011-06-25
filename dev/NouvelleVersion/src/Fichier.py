@@ -26,7 +26,7 @@ class Fichier:
 	# @param nomFichierSortie Nom du fichier de sortie
 	# @param urlImage         URL de l'image a afficher
 	# @param descriptif       Texte descriptif a afficher
-	def __init__( self, nom = "", date = int( time.time() ), lien = "", nomFichierSortie = "", urlImage = "", descriptif = "" ):
+	def __init__( self, nom, date = int( time.time() ), lien = "", nomFichierSortie = "", urlImage = "", descriptif = "" ):
 		self.nom              = lib.html.supprimeBalisesHTML( nom )
 		self.date             = date
 		self.lien             = lien

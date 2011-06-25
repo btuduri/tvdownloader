@@ -15,7 +15,7 @@ logger = logging.getLogger( __name__ )
 # Fonctions #
 #############
 
-## Creer un repertoire s'il n'existe pas
+## Cree un repertoire s'il n'existe pas
 # @param chemin Chemin du repertoire a creer
 def verifieRepertoire( chemin ):
 	if( not os.path.exists( chemin ) ):

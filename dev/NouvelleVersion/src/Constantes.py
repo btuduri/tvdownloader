@@ -27,15 +27,15 @@ else:
 # des chemins
 if( "TVDOWNLOADER_HOME" in os.environ ):
 	REPERTOIRE_HOME                  = os.path.join( os.environ[ "TVDOWNLOADER_HOME" ] )
-	REPERTOIRE_CACHE                 = os.path.join( REPERTOIRE_HOME, "cache" )
+	FICHIER_CACHE                    = os.path.join( REPERTOIRE_HOME, "cache.db" )
 	REPERTOIRE_CONFIGURATION         = os.path.join( REPERTOIRE_HOME, "config" )	
 elif( "APPDATA" in os.environ ):
 	REPERTOIRE_HOME                  = os.path.join( os.environ[ "APPDATA" ], "tvdownloader" )
-	REPERTOIRE_CACHE                 = os.path.join( REPERTOIRE_HOME, "cache" )
+	FICHIER_CACHE                    = os.path.join( REPERTOIRE_HOME, "cache.db" )
 	REPERTOIRE_CONFIGURATION         = os.path.join( REPERTOIRE_HOME, "config" )
 else:
 	REPERTOIRE_HOME                  = os.path.expanduser( "~" )
-	REPERTOIRE_CACHE                 = os.path.join( REPERTOIRE_HOME, ".cache", "tvdownloader" )
+	FICHIER_CACHE                    = os.path.join( REPERTOIRE_HOME, ".cache", "tvdownloader.db" )
 	REPERTOIRE_CONFIGURATION         = os.path.join( REPERTOIRE_HOME, ".config", "tvdownloader" )
 REPERTOIRE_LOGS                      = os.path.join( REPERTOIRE_CONFIGURATION, "logs" )
 REPERTOIRE_PLUGIN_PERSO              = os.path.join( REPERTOIRE_CONFIGURATION, "plugins" )		

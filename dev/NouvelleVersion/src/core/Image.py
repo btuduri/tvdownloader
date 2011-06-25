@@ -23,7 +23,7 @@ class Image( object ):
 	# @param nom      Nom de l'image
 	# @param donnees  Donnees de l'image
 	# @param date     Date de derniere utilisation de l'image
-	def __init__( self, nom = "", donnees = "", date = int( time.time() ) ):
+	def __init__( self, nom, donnees = "", date = int( time.time() ) ):
 		self.nom     = nom
 		self.donnees = donnees
 		self.date    = date # timestamp
