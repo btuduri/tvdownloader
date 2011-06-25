@@ -2,7 +2,7 @@
 
 ## Représente l'état d'un téléchargement
 class DownloadStatus :
-	QUEUE = 0
+	QUEUED = 0
 	PAUSED = 1
 	DOWN = 2
 	STOPPED = 3
@@ -17,7 +17,7 @@ class DownloadStatus :
 		self.status = s
 	
 	## Renvoie la progression du téléchargement en %
-	# @return un nombre entre 0 et 100
+	# @return un nombre entre 0 et 100 ou None si inconnue
 	def getProgression(self):
 		return self.progress
 	
