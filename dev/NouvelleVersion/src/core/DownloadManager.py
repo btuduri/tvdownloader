@@ -20,10 +20,13 @@ class DownloadManager(threading.Thread):
 		self.mutex_toDl = thread.allocate_lock()
 		self.cond_toDl = threading.Condition(self.mutex_toDl)
 		
-		self.stopped = False
-		
+		self.stopped = True
 		if start:
 			self.start()
+	
+	def start(self):
+		self.stopped = False
+		threading.Thread.start(self)
 	
 	def stop(self):
 		self.mutex_toDl.acquire()
@@ -36,10 +39,14 @@ class DownloadManager(threading.Thread):
 	
 	def stopDownload(self, num):
 		self.mutex_toDl.acquire()
-		self.stopped = True
+		found = False
 		for dlParam in self.toDl:
 			if dlParam[3] == num:
 				dlParam[2].downloadStatus(dlParam[3], DownloadStatus(0, DownloadStatus.STOPPED))
+				found = True
+				break
+		if not(found):
+			self.stpDl.append(num)
 		self.mutex_toDl.release()
 	
 	def run(self):
@@ -48,8 +55,14 @@ class DownloadManager(threading.Thread):
 				print "run: Mutex verrouillé, attention au dead lock !"
 			self.mutex_toDl.acquire()
 			while len(self.toDl) <= 0:
+				if len(self.stpDl) > 0:
+					for dlParam in self.stpDl:
+						if dlParam[3] == num:
+							dlParam[2].downloadStatus(dlParam[3], DownloadStatus(0, DownloadStatus.STOPPED))
+					self.stpDl = []
 				if self.stopped:
 					print "Arrêt!"
+					self.mutex_toDl.release()
 					return
 				print "En attente..."
 				self.cond_toDl.wait();
@@ -67,6 +80,9 @@ class DownloadManager(threading.Thread):
 					dled = len(carac)
 					last_perc = 0
 					while len(carac) > 0:
+						if dlParam[3] in self.stpDl:
+							dlParam[2].downloadStatus(dlParam[3], DownloadStatus(last_perc, DownloadStatus.STOPPED))
+							break
 						if self.stopped:
 							dlParam[2].downloadStatus(dlParam[3], DownloadStatus(last_perc, DownloadStatus.STOPPED))
 							print "Arrêt!"
@@ -84,7 +100,7 @@ class DownloadManager(threading.Thread):
 						last_perc = new_perc
 					outfile.close()
 					dler.stop()
-					if not(self.stopped):
+					if not(self.stopped) and not(dlParam[3] in self.stpDl):
 						dlParam[2].downloadStatus(dlParam[3], DownloadStatus(last_perc, DownloadStatus.COMPLETED))
 				else:
 					print "Echec de téléchargement !"
@@ -93,6 +109,7 @@ class DownloadManager(threading.Thread):
 				print "Erreur de téléchargement !"
 				dlParam[2].downloadStatus(dlParam[3], DownloadStatus(0, DownloadStatus.FAILED))
 				traceback.print_exc(e)
+		print "Arrêt anormal!"
 	
 	def getDownloader(self, url):
 		#return self.dlFactory.create(....)
