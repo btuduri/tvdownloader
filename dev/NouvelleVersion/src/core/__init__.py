@@ -9,8 +9,8 @@ from DownloadManager import *
 from DownloadStatus import *
 from HttpDownloader import *
 from MsdlDownloader import *
+from PluginCache import *
 from PluginCallback import *
-from PluginManager import *
 from Plugin import *
+from PluginManager import *
 from PluginStatus import *
-
