@@ -8,6 +8,7 @@ from DownloaderInterface import *
 from DownloadManager import *
 from DownloadStatus import *
 from HttpDownloader import *
+from FtpDownloader import *
 from MsdlDownloader import *
 from PluginCache import *
 from PluginCallback import *
