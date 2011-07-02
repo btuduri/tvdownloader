@@ -9,9 +9,14 @@ import unittest
 
 from core import PluginCache
 
-##########
-# Classe #
-##########
+###########
+# Classes #
+###########
+
+class FichierTest:
+	def __init__( self, a, b ):
+		self.a = a
+		self.b = b
 
 class PluginCacheTest( unittest.TestCase ):
 	
@@ -84,3 +89,17 @@ class PluginCacheTest( unittest.TestCase ):
 		self.assertEqual( self.pc.listerEmissions( "France 5", "France Tele" ), listeEmissionsFrance5 )
 		self.assertEqual( self.pc.listerEmissions( "France Inter", "Radio France" ), listeEmissionsFranceInter )
 		self.assertEqual( self.pc.listerEmissions( "France Bleu", "Radio France" ), [] )
+
+	def testSerializationFichiers( self ):
+		self.pc.ajouterPlugin( "plugin" )
+		self.pc.ajouterChaine( "chaine", "plugin" )
+		self.pc.ajouterEmission( "emission", "chaine", "plugin" )
+		
+		a = [ 2, 3, 5, 7, 11, 13 ]
+		b = "test"
+		f = FichierTest( a, b )
+		self.pc.ajouterFichier( f, "emission", "chaine", "plugin" )
+
+		f2 = self.pc.listerFichiers( "emission", "chaine", "plugin" )[ 0 ]
+		self.assertEqual( f2.a, a )
+		self.assertEqual( f2.b, b )
