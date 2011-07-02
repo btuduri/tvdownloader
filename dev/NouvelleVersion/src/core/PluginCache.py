@@ -5,9 +5,11 @@
 # Modules #
 ###########
 
+import cPickle as pickle
 import sqlite3 as sqlite
 
 import Constantes
+import Fichier
 
 import logging
 logger = logging.getLogger( __name__ )
@@ -31,8 +33,8 @@ class PluginCache( object ):
 		self.connexion              = sqlite.connect( Constantes.FICHIER_CACHE )
 		self.connexion.text_factory = str
 		self.curseur                = self.connexion.cursor()
-		# Creation des tables si necessaire
-		self.creerTables()
+		# Nettoyage
+		self.clear()
 	
 	def __del__( self ):
 		self.curseur.close()
@@ -75,7 +77,10 @@ class PluginCache( object ):
 	
 	def listerFichiers( self, nomEmission, nomChaine, nomPlugin ):
 		self.curseur.execute( "SELECT fichiers.donnees FROM fichiers, emissions, chaines, plugins WHERE fichiers.idEmission = emissions.id AND emissions.nom = ? AND emissions.idChaine = chaines.id AND chaines.nom = ? AND chaines.idPlugin = plugins.id AND plugins.nom = ?;", ( nomEmission, nomChaine, nomPlugin ) )
-		return self.miseEnFormeUnElement()
+		ret = []
+		for res in self.curseur.fetchall():
+			ret.append( pickle.loads( res[ 0 ] ) )
+		return ret
 		
 	def ajouterPlugin( self, nom ):
 		self.curseur.execute( "INSERT INTO plugins ( nom ) VALUES ( ? );", ( nom, ) )
@@ -90,5 +95,5 @@ class PluginCache( object ):
 		self.connexion.commit()
 
 	def ajouterFichier( self, donnees, nomEmission, nomChaine, nomPlugin ):
-		self.curseur.execute( "INSERT INTO fichiers ( donnees, idEmission ) VALUES ( ?, ( SELECT emissions.id FROM emissions, chaines, plugins WHERE emissions.idChaine = chaines.id AND emissions.nom = ? AND chaines.idPlugin = plugins.id AND chaines.nom = ? AND plugins.nom = ? ) );", ( donnees, nomEmission, nomChaine, nomPlugin ) )
+		self.curseur.execute( "INSERT INTO fichiers ( donnees, idEmission ) VALUES ( ?, ( SELECT emissions.id FROM emissions, chaines, plugins WHERE emissions.idChaine = chaines.id AND emissions.nom = ? AND chaines.idPlugin = plugins.id AND chaines.nom = ? AND plugins.nom = ? ) );", ( pickle.dumps( donnees ), nomEmission, nomChaine, nomPlugin ) )
 		self.connexion.commit()
