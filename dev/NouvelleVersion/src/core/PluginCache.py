@@ -77,10 +77,7 @@ class PluginCache( object ):
 	
 	def listerFichiers( self, nomEmission, nomChaine, nomPlugin ):
 		self.curseur.execute( "SELECT fichiers.donnees FROM fichiers, emissions, chaines, plugins WHERE fichiers.idEmission = emissions.id AND emissions.nom = ? AND emissions.idChaine = chaines.id AND chaines.nom = ? AND chaines.idPlugin = plugins.id AND plugins.nom = ?;", ( nomEmission, nomChaine, nomPlugin ) )
-		ret = []
-		for res in self.curseur.fetchall():
-			ret.append( pickle.loads( res[ 0 ] ) )
-		return ret
+		return map( pickle.loads, self.miseEnFormeUnElement() )
 		
 	def ajouterPlugin( self, nom ):
 		self.curseur.execute( "INSERT INTO plugins ( nom ) VALUES ( ? );", ( nom, ) )
