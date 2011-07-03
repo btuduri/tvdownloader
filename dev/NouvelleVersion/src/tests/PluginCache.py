@@ -24,7 +24,7 @@ class PluginCacheTest( unittest.TestCase ):
 		self.pc = PluginCache()
 		self.pc.clear()
 		
-	def testListesVides( self ):
+	def testListesVideos( self ):
 		"""
 		Les methodes de listage doivent retourner des listes vides si la BDD est vide
 		"""
@@ -91,6 +91,9 @@ class PluginCacheTest( unittest.TestCase ):
 		self.assertEqual( self.pc.listerEmissions( "France Bleu", "Radio France" ), [] )
 
 	def testSerializationFichiers( self ):
+		"""
+		Les fichiers sont bien serializes dans la BDD
+		"""
 		self.pc.ajouterPlugin( "plugin" )
 		self.pc.ajouterChaine( "chaine", "plugin" )
 		self.pc.ajouterEmission( "emission", "chaine", "plugin" )

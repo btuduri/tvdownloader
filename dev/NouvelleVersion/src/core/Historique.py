@@ -5,8 +5,8 @@
 # Modules #
 ###########
 
+import cPickle as pickle
 import os
-import pickle
 
 import Constantes
 from Fichier import Fichier
