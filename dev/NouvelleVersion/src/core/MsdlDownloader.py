@@ -20,14 +20,15 @@ class MsdlDownloader (DownloaderInterface) :
 			self.process = subprocess.Popen( arguments, stdout = subprocess.PIPE, stderr = subprocess.PIPE )
 			self.stream = self.process.stdout
 			line = self.process.stderr.readline()
+			print ">>\n",line
 			tries = 10
 			while line != "" and tries > 0:
-				print line
 				found = pourcentListe = re.findall( "DL: [0-9]+/([0-9]+) B[^%]+?%", line)
 				if len(found) > 0:
 					self.size = int(found[0])
 					break;
 				line = self.process.stderr.readline()
+				print ">>\n",line
 				tries = tries-1
 			if self.size == None:
 				self.process.kill()
