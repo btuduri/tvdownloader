@@ -40,6 +40,6 @@ class FtpDownloader (DownloaderInterface) :
 		self.stream.close()
 		self.ftpconn.close()
 	
-	def canDownload (self, url) :
-		# returns bool
-		pass
+	@staticmethod
+	def canDownload (url) :
+		return url[:4] == "ftp:"

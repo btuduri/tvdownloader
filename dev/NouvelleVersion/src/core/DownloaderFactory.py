@@ -4,6 +4,7 @@ from AbstractDownloaderFactory import *
 from HttpDownloader import *
 from FtpDownloader import *
 from MsdlDownloader import *
+from DownloaderInterface import *
 
 ## Fabrique concrète des DownloaderInterface
 class DownloaderFactory (AbstractDownloaderFactory) :
@@ -14,11 +15,11 @@ class DownloaderFactory (AbstractDownloaderFactory) :
 	# @param url l'url du fichier à télécharger
 	# @return un DownloaderInterface permettant le téléchargement du fichier distant ou None si aucun compatible
 	def create (self, url) :
-		if url[:4] == "ftp:":
+		if FtpDownloader.canDownload(url):
 			return FtpDownloader(url)
-		elif url[:5] == "http:":
+		elif HttpDownloader.canDownload(url):
 			return HttpDownloader(url)
-		elif url[:4] == "mms:":
+		elif MsdlDownloader.canDownload(url):
 			return MsdlDownloader(url)
 		else:
 			return None

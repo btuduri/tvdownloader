@@ -1,56 +1,42 @@
 # -*- coding:Utf-8 -*-
 
-import subprocess,shlex,re
+import subprocess,shlex,re,ctypes
+
+libmms = ctypes.cdll.LoadLibrary("libmms.so.0")
 
 from DownloaderInterface import *
 
 class MsdlDownloader (DownloaderInterface) :
+	
 	def __init__(self, url) :
 		DownloaderInterface.__init__(self)
 		self.url = url
 		self.size = None
-		self.stream = None
-		self.process = None
 	
 	def start(self):
-		commande = "msdl \"" + self.url + "\" -o -"
-		arguments = shlex.split( commande )
-		
 		try:
-			self.process = subprocess.Popen( arguments, stdout = subprocess.PIPE, stderr = subprocess.PIPE )
-			self.stream = self.process.stdout
-			line = self.process.stderr.readline()
-			print ">>\n",line
-			tries = 10
-			while line != "" and tries > 0:
-				found = pourcentListe = re.findall( "DL: [0-9]+/([0-9]+) B[^%]+?%", line)
-				if len(found) > 0:
-					self.size = int(found[0])
-					break;
-				line = self.process.stderr.readline()
-				print ">>\n",line
-				tries = tries-1
-			if self.size == None:
-				self.process.kill()
+			self.mmscon = libmms.mmsx_connect(None, None, self.url, int(5000))
+			if self.mmscon == 0:
 				return False
+			self.size = libmms.mmsx_get_length(self.mmscon)
 		except Exception as e:
 			import traceback
 			traceback.print_exc(e)
-			if self.process != None:
-				self.process.kill()
 			return False
 		return True
 	
-	def read (self, n) :
-		return self.process.stdout.read(n)
+	def read (self, n):
+		buffer = ctypes.create_string_buffer(n)
+		libmms.mmsx_read(0, self.mmscon, buffer, n)
+		return buffer.value
 	
 	def stop(self):
-		self.process.kill()
+		libmms.mmsx_close(self.mmscon)
 	
 	def getSize(self):
 		return self.size
 	
-	def canDownload (self, url) :
-		# returns bool
-		pass
+	@staticmethod
+	def canDownload (url) :
+		return url[:4] == "mms:"
 

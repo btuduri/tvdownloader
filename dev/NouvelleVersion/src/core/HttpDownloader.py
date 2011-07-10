@@ -37,7 +37,7 @@ class HttpDownloader (DownloaderInterface) :
 	def stop(self):
 		self.stream.close()
 	
-	def canDownload (self, url) :
-		# returns bool
-		pass
+	@staticmethod
+	def canDownload (url) :
+		return url[:5] == "http:"
 
