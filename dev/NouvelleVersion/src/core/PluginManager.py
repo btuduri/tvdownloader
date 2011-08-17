@@ -5,6 +5,9 @@
 # Modules #
 ###########
 
+import httplib,re,zlib, os.path, time, pickle
+from random import choice
+from traceback import print_exc
 import os
 import sys
 
@@ -18,7 +21,8 @@ logger = logging.getLogger( __name__ )
 ##########
 # Classe #
 ##########
-
+#TODO Fusion imcomplette, utiliser les setters dans le constructeur, gérer la liste
+# des plugins présents, actifs et inactifs.
 ## Classe qui gere les plugins
 class PluginManager( object ):
 	
@@ -47,6 +51,10 @@ class PluginManager( object ):
 			self.importerPlugins( rep )
 		# Instancie les plugins
 		self.instancierPlugins()
+		
+		#Code venant de APIPrive
+		self.listePluginActif = {}
+		self.listePlugin = {}
 		
 	## Methode qui importe les plugins
 	# @param rep Repertoire dans lequel se trouvent les plugins a importer
@@ -84,7 +92,7 @@ class PluginManager( object ):
 				logger.error( "impossible d'instancier le plugin %s" %( plugin ) )
 				continue
 			# Nom du plugin
-			nom = inst.nomComplet
+			nom = inst.nom#FIXME Utiliser le nom de la classe
 			# Ajout du plugin
 			self.listeInstances[ nom ] = inst
 	
@@ -105,3 +113,265 @@ class PluginManager( object ):
 	
 	def removeCallback( self, callback ) :
 		pass
+	
+	###################################################
+	############# Code venant de APIPrive #############
+	###################################################
+	
+	## Active un plugin (il faut qu'il ait déjà été ajouté).
+	# @param self l'objet courant
+	# @param nomPlugin le nom du plugin
+	# @return Rien
+	def activerPlugin(self, nomPlugin):
+		if self.listePlugin.has_key(nomPlugin):
+			self.listePluginActif[nomPlugin] = self.listePlugin[nomPlugin]
+	
+	## Désactive un plugin (il faut qu'il ait déjà été ajouté).
+	# @param self l'objet courant
+	# @param nomPlugin le nom du plugin
+	# @return Rien
+	def desactiverPlugin(self, nomPlugin):
+		if self.listePluginActif.has_key(nomPlugin):
+			self.listePluginActif.pop(nomPlugin)
+	
+	## Ajoute un plugin.
+	# @param self l'objet courant
+	# @param instance l'instance du plugin
+	# @return Rien
+	def ajouterPlugin(self, instance):
+		if not self.listePlugin.has_key(instance.nom):
+			self.listePluginActif[instance.nom] = instance
+			self.listePlugin[instance.nom] = instance
+	
+	## Spécifie la liste des instances des plugins.
+	# @param self l'objet courant
+	# @param liste la liste des instances
+	# @return Rien
+	# @deprecated Utiliser #ajouterPlugin à la place.
+	def setListeInstance(self, liste):
+		logger.warn("DEPRECATED: APIPrive.setListeInstance: utilisez #ajouterPlugin")
+		self.listePluginActif = {}
+		for instance in liste:
+			self.ajouterPlugin(instance)
+	
+	#/*******************
+	# *	CONSTANTES *
+	# *******************/
+	DATA_CHAINE = "chaines"
+	DATA_EMISSION = "emissions"
+	DATA_FICHIER = "fichiers"
+	
+	#/**************
+	# *	GETTERS *
+	# **************/
+	
+	## Renvoie la liste des plugins (leur nom)
+	# @param self l'objet courant
+	# @return la liste des noms des plugins
+	def getPluginListe(self):
+		return self.listePluginActif.keys()
+	
+	## Renvoie la liste des chaînes.
+	#
+	# Si nomPlugin est égal à None, la liste des chaînes de tout les plugins est renvoyée, sinon c'est celle du plugin portant le nom passé en paramètre.
+	# @param self l'objet courant
+	# @param nomPlugin le nom du plugin
+	# @return la liste des chaînes du plugin
+	def getPluginListeChaines(self, nomPlugin=None):
+		if nomPlugin != None and not self.listePluginActif.has_key(nomPlugin):
+			return []
+			
+		liste = []
+		if nomPlugin == None:
+			for nom in self.listePluginActif.keys():
+				plugin = self.listePluginActif[nom]
+				if len(plugin.pluginDatas[APIPrive.DATA_CHAINE]) == 0:
+					plugin.listerChaines()
+				liste+=plugin.pluginDatas[APIPrive.DATA_CHAINE]
+		else:
+			plugin = self.listePluginActif[nomPlugin]
+			if len(plugin.pluginDatas[APIPrive.DATA_CHAINE]) == 0:
+				plugin.listerChaines()
+			liste+=plugin.pluginDatas[APIPrive.DATA_CHAINE]
+		return liste
+
+	## Renvoie la liste des émissions pour un plugin et une chaîne donné.
+	#
+	# Si nomPlugin est égal à None, la liste des émissions de tout les plugins est renvoyée, sinon c'est celle du plugin portant le nom passé en paramètre. Si chaine est égal à None, la liste des émissions de toute les chaines du plugin est renvoyée.
+	# @param self l'objet courant
+	# @param nomPlugin le nom du plugin
+	# @param chaine le nom de la chaîne
+	# @return la liste des émissions
+	def getPluginListeEmissions(self, nomPlugin=None, chaine=None):
+		if nomPlugin != None and not self.listePluginActif.has_key(nomPlugin):
+			return []
+		
+		liste= []
+		if nomPlugin == None:
+			for nom in self.listePluginActif.keys():
+				plugin = self.listePluginActif[nom]
+				for chaine in self.getPluginListeChaines(nom):
+					if not plugin.pluginDatas[APIPrive.DATA_EMISSION].has_key(chaine):
+						plugin.pluginDatas[APIPrive.DATA_EMISSION][chaine] = []
+						plugin.listerEmissions(chaine)
+					liste+=plugin.pluginDatas[APIPrive.DATA_EMISSION][chaine]
+		elif chaine == None:
+			plugin = self.listePluginActif[nomPlugin]
+			for chaine in self.getPluginListeChaines(nomPlugin):
+				if not plugin.pluginDatas[APIPrive.DATA_EMISSION].has_key(chaine):
+					plugin.pluginDatas[APIPrive.DATA_EMISSION][chaine] = []
+					plugin.listerEmissions(chaine)
+				liste+=plugin.pluginDatas[APIPrive.DATA_EMISSION][chaine]
+		else:
+			plugin = self.listePluginActif[nomPlugin]
+			if not plugin.pluginDatas[APIPrive.DATA_EMISSION].has_key(chaine):
+				plugin.pluginDatas[APIPrive.DATA_EMISSION][chaine] = []
+				plugin.listerEmissions(chaine)
+			liste+=plugin.pluginDatas[APIPrive.DATA_EMISSION][chaine]
+		return liste
+
+	## Renvoie la liste des fichiers pour un plugin et une émission donné
+	#
+	# Si nomPlugin est égal à None, la liste des fichiers de tout les plugins est renvoyée, sinon c'est celle du plugin portant le nom passé en paramètre. Si emission est égal à None, la liste des fichiers de toute les émissions du plugin est renvoyée.
+	# @param self l'objet courant
+	# @param nomPlugin le nom du plugin
+	# @param emission le nom de l'émission
+	# @return la liste des fichiers
+	def getPluginListeFichiers(self, nomPlugin=None, emission=None):
+		if nomPlugin != None and not self.listePluginActif.has_key(nomPlugin):
+			return []
+		
+		liste= []
+		if nomPlugin == None:
+			for nom in self.listePluginActif.keys():
+				plugin = self.listePluginActif[nom]
+				for emission in self.getPluginListeEmissions(nom):
+					if not plugin.pluginDatas[APIPrive.DATA_FICHIER].has_key(emission):
+						plugin.pluginDatas[APIPrive.DATA_FICHIER][emission] = []
+						plugin.listerFichiers(emission)
+					liste+=plugin.pluginDatas[APIPrive.DATA_FICHIER][emission]
+		elif emission == None:
+			plugin = self.listePluginActif[nomPlugin]
+			for emission in self.getPluginListeEmissions(nomPlugin):
+				if not plugin.pluginDatas[APIPrive.DATA_FICHIER].has_key(emission):
+					plugin.pluginDatas[APIPrive.DATA_FICHIER][emission] = []
+					plugin.listerFichiers(emission)
+				liste+=plugin.pluginDatas[APIPrive.DATA_FICHIER][emission]
+		else:
+			plugin = self.listePluginActif[nomPlugin]
+			if not plugin.pluginDatas[APIPrive.DATA_FICHIER].has_key(emission):
+				plugin.pluginDatas[APIPrive.DATA_FICHIER][emission] = []
+				plugin.listerFichiers(emission)
+			liste+=plugin.pluginDatas[APIPrive.DATA_FICHIER][emission]
+		return liste
+			
+
+	## Renvoie la liste des options pour un plugin donné
+	# @param self l'objet courant
+	# @param nomPlugin le nom du plugin
+	# @return la liste des options
+	def getPluginListeOptions(self, nomPlugin):
+		if not self.listePluginActif.has_key(nomPlugin):
+			return []
+		
+		return self.listePluginActif[nomPlugin].pluginOptions
+
+	## Renvoie l'option d'un plugin
+	# @param self l'objet courant
+	# @param nomPlugin le nom du plugin
+	# @param nomOption le nom de l'option
+	# @return la valeur de l'option, None en cas d'échec
+	def getPluginOption(self, nomPlugin, nomOption):
+		if nomPlugin != None and not self.listePluginActif.has_key(nomPlugin):
+			return None
+		plugin = self.listePluginActif[nomPlugin]
+		
+		for option in plugin.pluginOptions:
+			if option.getNom() == nomOption:
+				return option
+		return None
+
+	#/**************
+	# *	SETTERS *
+	# **************/
+		
+	## Change la valeur d'une option d'un plugin.
+	# @param self l'objet courant
+	# @param nomPlugin le nom du plugin
+	# @param valeur la valeur de l'option
+	# @return Rien
+	def setPluginOption(self, nomPlugin, nomOption, valeur):
+		if nomPlugin != None and not self.listePluginActif.has_key(nomPlugin):
+			return None
+		plugin = self.listePluginActif[nomPlugin]
+		
+		plugin.pluginDatas = {"chaines":[],
+			"emissions":{},
+			"fichiers":{}}
+		for option in plugin.pluginOptions:
+			if option.getNom() == nomOption:
+				option.setValeur(valeur)
+
+	
+	#/************
+	# *	DIVERS *
+	# ************/
+	## Rafraichie un plugin (appel à Plugin.rafraichir)
+	# @param self l'objet courant
+	# @param nomPlugin le nom du plugin
+	# @return Rien
+	def pluginRafraichir(self, nomPlugin):
+		try:
+			if self.listePluginActif.has_key(nomPlugin):
+				self.listePluginActif[nomPlugin].vider()
+				self.listePluginActif[nomPlugin].rafraichir()
+		except Exception, ex:
+			logger.error("Erreur lors du rafraichissement du plugin",self.listePlugin[nomPlugin].nom+":"+str(ex))
+			print_exc()
+	
+	## Rafraichie tous les plugins qui ont besoin de l'être.
+	#
+	# Doit être appelé obligatoirement après l'ajout des plugins.
+	# @param self l'objet courant
+	# @return Rien
+	def pluginRafraichirAuto(self):
+		t = time.time()
+		for instance in self.listePlugin.values():
+			if instance.frequence >= 0:
+				if os.path.isfile(instance.fichierCache):
+					delta = t-os.path.getmtime(instance.fichierCache)
+					if delta > instance.frequence*86400:
+						self.pluginRafraichir(instance.nom)
+				else:
+					self.pluginRafraichir(instance.nom)
+			#~ instance.chargerPreference()
+			#~ if len(instance.pluginOptions) == 0:
+				#~ instance.listerOptions()
+			instance.listerOptions()
+			if os.path.exists(instance.fichierConfiguration):
+				try:
+					file = open(instance.fichierConfiguration, "r")
+					tmp = pickle.load(file)
+					file.close()
+					for k in tmp.keys():
+						self.setPluginOption(instance.nom, k, tmp[k])
+				except:
+					logger.error( u"impossible de charger les préférences de %s" %( instance.nom ) )
+	
+	## Effectue les tâches de sauvegarde avant la fermeture.
+	#
+	# Doit être absolument appelé avant la fermeture.
+	# @param self l'objet courant
+	def fermeture(self):
+		for instance in self.listePluginActif.values():
+			if len(instance.pluginOptions) > 0:
+				try:
+					pref = {}
+					for o in instance.pluginOptions:
+						pref[o.getNom()] = o.getValeur()
+					file = open(instance.fichierConfiguration, "w")
+					pickle.dump(pref, file)
+					file.close()
+				except:
+					logger.error("Erreur de sauvegarde des préférences de"+instance.nom)
+

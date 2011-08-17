@@ -2,6 +2,7 @@
 # -*- coding:Utf-8 -*-
 
 from AbstractDownloaderFactory import *
+from Constantes                import *
 from DownloadCallback          import *
 from DownloaderFactory         import *
 from DownloaderInterface       import *
@@ -11,6 +12,7 @@ from HttpDownloader            import *
 from Fichier                   import *
 from FtpDownloader             import *
 from MsdlDownloader            import *
+from Navigateur                import *
 from PluginCache               import *
 from PluginCallback            import *
 from Plugin                    import *
