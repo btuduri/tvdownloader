@@ -12,6 +12,7 @@ import os
 import sys
 
 from Plugin import Plugin
+from PluginStatus import PluginStatus
 
 import Constantes
 
@@ -37,7 +38,9 @@ class PluginManager( object ):
 	
 	## Constructeur
 	def __init__( self ):
-		self.listeInstances = {} # nomPlugin : son instance
+		#Code venant de APIPrive
+		self.listePluginActif = {}
+		self.listePlugin = {}
 		
 		# Import de tous les plugins
 		for rep in Constantes.REPERTOIRES_PLUGINS:
@@ -52,9 +55,7 @@ class PluginManager( object ):
 		# Instancie les plugins
 		self.instancierPlugins()
 		
-		#Code venant de APIPrive
-		self.listePluginActif = {}
-		self.listePlugin = {}
+		self.callbacks = []
 		
 	## Methode qui importe les plugins
 	# @param rep Repertoire dans lequel se trouvent les plugins a importer
@@ -92,15 +93,16 @@ class PluginManager( object ):
 				logger.error( "impossible d'instancier le plugin %s" %( plugin ) )
 				continue
 			# Nom du plugin
-			nom = inst.nom#FIXME Utiliser le nom de la classe
+#			nom = inst.nom#FIXME Utiliser le nom de la classe
 			# Ajout du plugin
-			self.listeInstances[ nom ] = inst
+#			self.listeInstances[ nom ] = inst
+			self.ajouterPlugin(inst)
 	
 	## Methode qui retourne la liste des sites/plugins
 	# N.B. : doit etre lancee apres listerPlugins
 	# @return La liste des noms des plugins
-	def getListeSites( self ):
-		return self.listeInstances.keys()
+#	def getListeSites( self ):
+#		return self.listeInstances.keys()
 	
 	## Methode qui retourne l'instance d'un plugin
 	# @param nom Nom du plugin dont il faut recuperer l'instance
@@ -108,11 +110,11 @@ class PluginManager( object ):
 	def getInstance( self, nom ):
 		return self.listeInstances.get( nom, None )
 
-	def addCallback( self, callback ) :
-		pass
+	def addCallback( self, callback ):
+		self.callbacks.append(callback)
 	
-	def removeCallback( self, callback ) :
-		pass
+	def removeCallback( self, callback ):
+		self.callbacks.remove(callback)
 	
 	###################################################
 	############# Code venant de APIPrive #############
@@ -125,6 +127,8 @@ class PluginManager( object ):
 	def activerPlugin(self, nomPlugin):
 		if self.listePlugin.has_key(nomPlugin):
 			self.listePluginActif[nomPlugin] = self.listePlugin[nomPlugin]
+			for cback in self.callbacks:
+				cback.pluginStatus(nomPlugin, PluginStatus(PluginStatus.ENABLED))
 	
 	## Désactive un plugin (il faut qu'il ait déjà été ajouté).
 	# @param self l'objet courant
@@ -133,15 +137,17 @@ class PluginManager( object ):
 	def desactiverPlugin(self, nomPlugin):
 		if self.listePluginActif.has_key(nomPlugin):
 			self.listePluginActif.pop(nomPlugin)
+			for cback in self.callbacks:
+				cback.pluginStatus(nomPlugin, PluginStatus(PluginStatus.DISABLED))
 	
 	## Ajoute un plugin.
 	# @param self l'objet courant
 	# @param instance l'instance du plugin
 	# @return Rien
 	def ajouterPlugin(self, instance):
-		if not self.listePlugin.has_key(instance.nom):
-			self.listePluginActif[instance.nom] = instance
-			self.listePlugin[instance.nom] = instance
+		if not self.listePlugin.has_key(instance.nom):#FIXME Utiliser le nom de la classe
+#			self.listePluginActif[instance.nom] = instance
+			self.listePlugin[instance.nom] = instance#FIXME Utiliser le nom de la classe
 	
 	## Spécifie la liste des instances des plugins.
 	# @param self l'objet courant
@@ -169,7 +175,24 @@ class PluginManager( object ):
 	# @param self l'objet courant
 	# @return la liste des noms des plugins
 	def getPluginListe(self):
+		return self.listePlugin.keys()
+	
+	## Renvoie la liste des plugins actifs (leur nom)
+	# @param self l'objet courant
+	# @return la liste des noms des plugins actifs
+	def getPluginActifListe(self):
 		return self.listePluginActif.keys()
+	
+	## Renvoie la liste des plugins inactifs (leur nom)
+	# @param self l'objet courant
+	# @return la liste des noms des plugins inactifs
+	def getPluginInactifListe(self):
+		res = []
+		actifs = self.listePluginActif.keys()
+		for plugin in self.listePlugin.keys():
+			if not(plugin in actifs):
+				res.append(plugin)
+		return res
 	
 	## Renvoie la liste des chaînes.
 	#
@@ -185,14 +208,14 @@ class PluginManager( object ):
 		if nomPlugin == None:
 			for nom in self.listePluginActif.keys():
 				plugin = self.listePluginActif[nom]
-				if len(plugin.pluginDatas[APIPrive.DATA_CHAINE]) == 0:
+				if len(plugin.pluginDatas[self.DATA_CHAINE]) == 0:
 					plugin.listerChaines()
-				liste+=plugin.pluginDatas[APIPrive.DATA_CHAINE]
+				liste+=plugin.pluginDatas[self.DATA_CHAINE]
 		else:
 			plugin = self.listePluginActif[nomPlugin]
-			if len(plugin.pluginDatas[APIPrive.DATA_CHAINE]) == 0:
+			if len(plugin.pluginDatas[self.DATA_CHAINE]) == 0:
 				plugin.listerChaines()
-			liste+=plugin.pluginDatas[APIPrive.DATA_CHAINE]
+			liste+=plugin.pluginDatas[self.DATA_CHAINE]
 		return liste
 
 	## Renvoie la liste des émissions pour un plugin et une chaîne donné.
@@ -211,23 +234,23 @@ class PluginManager( object ):
 			for nom in self.listePluginActif.keys():
 				plugin = self.listePluginActif[nom]
 				for chaine in self.getPluginListeChaines(nom):
-					if not plugin.pluginDatas[APIPrive.DATA_EMISSION].has_key(chaine):
-						plugin.pluginDatas[APIPrive.DATA_EMISSION][chaine] = []
+					if not plugin.pluginDatas[self.DATA_EMISSION].has_key(chaine):
+						plugin.pluginDatas[self.DATA_EMISSION][chaine] = []
 						plugin.listerEmissions(chaine)
-					liste+=plugin.pluginDatas[APIPrive.DATA_EMISSION][chaine]
+					liste+=plugin.pluginDatas[self.DATA_EMISSION][chaine]
 		elif chaine == None:
 			plugin = self.listePluginActif[nomPlugin]
 			for chaine in self.getPluginListeChaines(nomPlugin):
-				if not plugin.pluginDatas[APIPrive.DATA_EMISSION].has_key(chaine):
-					plugin.pluginDatas[APIPrive.DATA_EMISSION][chaine] = []
+				if not plugin.pluginDatas[self.DATA_EMISSION].has_key(chaine):
+					plugin.pluginDatas[self.DATA_EMISSION][chaine] = []
 					plugin.listerEmissions(chaine)
-				liste+=plugin.pluginDatas[APIPrive.DATA_EMISSION][chaine]
+				liste+=plugin.pluginDatas[self.DATA_EMISSION][chaine]
 		else:
 			plugin = self.listePluginActif[nomPlugin]
-			if not plugin.pluginDatas[APIPrive.DATA_EMISSION].has_key(chaine):
-				plugin.pluginDatas[APIPrive.DATA_EMISSION][chaine] = []
+			if not plugin.pluginDatas[self.DATA_EMISSION].has_key(chaine):
+				plugin.pluginDatas[self.DATA_EMISSION][chaine] = []
 				plugin.listerEmissions(chaine)
-			liste+=plugin.pluginDatas[APIPrive.DATA_EMISSION][chaine]
+			liste+=plugin.pluginDatas[self.DATA_EMISSION][chaine]
 		return liste
 
 	## Renvoie la liste des fichiers pour un plugin et une émission donné
@@ -246,23 +269,23 @@ class PluginManager( object ):
 			for nom in self.listePluginActif.keys():
 				plugin = self.listePluginActif[nom]
 				for emission in self.getPluginListeEmissions(nom):
-					if not plugin.pluginDatas[APIPrive.DATA_FICHIER].has_key(emission):
-						plugin.pluginDatas[APIPrive.DATA_FICHIER][emission] = []
+					if not plugin.pluginDatas[self.DATA_FICHIER].has_key(emission):
+						plugin.pluginDatas[self.DATA_FICHIER][emission] = []
 						plugin.listerFichiers(emission)
-					liste+=plugin.pluginDatas[APIPrive.DATA_FICHIER][emission]
+					liste+=plugin.pluginDatas[self.DATA_FICHIER][emission]
 		elif emission == None:
 			plugin = self.listePluginActif[nomPlugin]
 			for emission in self.getPluginListeEmissions(nomPlugin):
-				if not plugin.pluginDatas[APIPrive.DATA_FICHIER].has_key(emission):
-					plugin.pluginDatas[APIPrive.DATA_FICHIER][emission] = []
+				if not plugin.pluginDatas[self.DATA_FICHIER].has_key(emission):
+					plugin.pluginDatas[self.DATA_FICHIER][emission] = []
 					plugin.listerFichiers(emission)
-				liste+=plugin.pluginDatas[APIPrive.DATA_FICHIER][emission]
+				liste+=plugin.pluginDatas[self.DATA_FICHIER][emission]
 		else:
 			plugin = self.listePluginActif[nomPlugin]
-			if not plugin.pluginDatas[APIPrive.DATA_FICHIER].has_key(emission):
-				plugin.pluginDatas[APIPrive.DATA_FICHIER][emission] = []
+			if not plugin.pluginDatas[self.DATA_FICHIER].has_key(emission):
+				plugin.pluginDatas[self.DATA_FICHIER][emission] = []
 				plugin.listerFichiers(emission)
-			liste+=plugin.pluginDatas[APIPrive.DATA_FICHIER][emission]
+			liste+=plugin.pluginDatas[self.DATA_FICHIER][emission]
 		return liste
 			
 
@@ -323,8 +346,12 @@ class PluginManager( object ):
 	def pluginRafraichir(self, nomPlugin):
 		try:
 			if self.listePluginActif.has_key(nomPlugin):
+				for cback in self.callbacks:
+					cback.pluginStatus(nomPlugin, PluginStatus(PluginStatus.REFRESHING))
 				self.listePluginActif[nomPlugin].vider()
 				self.listePluginActif[nomPlugin].rafraichir()
+				for cback in self.callbacks:
+					cback.pluginStatus(nomPlugin, PluginStatus(PluginStatus.REFRESHED))
 		except Exception, ex:
 			logger.error("Erreur lors du rafraichissement du plugin",self.listePlugin[nomPlugin].nom+":"+str(ex))
 			print_exc()
