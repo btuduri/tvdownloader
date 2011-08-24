@@ -355,6 +355,9 @@ class PluginManager( object ):
 		except Exception, ex:
 			logger.error("Erreur lors du rafraichissement du plugin",self.listePlugin[nomPlugin].nom+":"+str(ex))
 			print_exc()
+		except Error, er:
+			logger.error("Erreur lors du rafraichissement du plugin",self.listePlugin[nomPlugin].nom+":"+str(ex))
+			print_exc()
 	
 	## Rafraichie tous les plugins qui ont besoin de l'être.
 	#

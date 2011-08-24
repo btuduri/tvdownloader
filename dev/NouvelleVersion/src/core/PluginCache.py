@@ -9,7 +9,6 @@ import cPickle as pickle
 import sqlite3 as sqlite
 
 import Constantes
-import Fichier
 
 import logging
 logger = logging.getLogger( __name__ )

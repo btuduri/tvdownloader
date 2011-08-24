@@ -13,6 +13,7 @@ from Fichier                   import *
 from FtpDownloader             import *
 from MsdlDownloader            import *
 from Navigateur                import *
+from Option                    import *
 from PluginCache               import *
 from PluginCallback            import *
 from Plugin                    import *

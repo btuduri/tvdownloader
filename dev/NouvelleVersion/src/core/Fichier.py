@@ -18,7 +18,7 @@ logger = logging.getLogger( __name__ )
 ##########
 
 ## Classe qui contient les informations d'un fichier
-class Fichier:
+class Fichier(object):
 	
 	## Contructeur
 	# @param nom              Le nom du fichier (tel qu'affiché à l'utilisateur)
