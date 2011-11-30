@@ -49,7 +49,7 @@ class Plugin(object):
 	# @param nom le nom du plugin
 	# @param url l'url du site internet
 	# @param frequence la fréquence (en jour) de rafraichissement, 0 pour ne jamais rafraichir
-	def __init__(self, nom=None, url=None, frequence=7):
+	def __init__(self, nom=None, url=None, frequence=7, logo = None):
 		self.pluginDatas = {"chaines":[],
 			"emissions":{},
 			"fichiers":{}}
@@ -68,6 +68,7 @@ class Plugin(object):
 		self.frequence = frequence		
 		self.fichierConfiguration = os.path.join( Constantes.REPERTOIRE_CONFIGURATION, self.nom.replace( " ", "_" )+ ".conf" )
 		self.fichierCache = os.path.join( Constantes.REPERTOIRE_CACHE, self.nom.replace( " ", "_" ) + ".cache" )
+		self.logo = os.path.join( "plugins", "img", logo )
 	
 	## Efface les informations mémorisées.
 	# @param self l'objet courant

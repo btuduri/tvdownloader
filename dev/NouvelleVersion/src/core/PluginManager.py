@@ -108,7 +108,7 @@ class PluginManager( object ):
 	# @param nom Nom du plugin dont il faut recuperer l'instance
 	# @return    Instance du plugin ou None s'il n'existe pas
 	def getInstance( self, nom ):
-		return self.listeInstances.get( nom, None )
+		return self.listePlugin.get( nom, None )
 
 	def addCallback( self, callback ):
 		self.callbacks.append(callback)
@@ -176,6 +176,11 @@ class PluginManager( object ):
 	# @return la liste des noms des plugins
 	def getPluginListe(self):
 		return self.listePlugin.keys()
+	
+	## Renvoie la liste des plugins (leur instance)
+	# @return Liste des instances des plugins
+	def getPluginListeInstances( self ):
+		return self.listePlugin.values()
 	
 	## Renvoie la liste des plugins actifs (leur nom)
 	# @param self l'objet courant

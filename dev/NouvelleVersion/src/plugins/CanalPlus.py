@@ -38,7 +38,7 @@ class CanalPlus( Plugin ):
 	urlFichierXMLFichiers        = "http://www.canalplus.fr/rest/bootstrap.php?/bigplayer/getVideos/"
 	
 	def __init__( self ):
-		Plugin.__init__( self, "Canal+", "http://www.canalplus.fr/", 7 )
+		Plugin.__init__( self, "Canal+", "http://www.canalplus.fr/", 7, "CanalPlus.jpg" )
 		
 		self.listeProgrammes          = {} # { Nom chaine : { Nom emission : ID emission } }
 		self.derniereChaine           = ""
