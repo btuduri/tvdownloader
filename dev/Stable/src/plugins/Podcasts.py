@@ -91,7 +91,49 @@ class Podcasts( Plugin ):
 											u"Votre Auto" : "http://podcast.rmc.fr/channel50/RMCInfochannel50.xml",
 											u"Votre Jardin" : "http://podcast.rmc.fr/channel52/RMCInfochannel52.xml",
 											u"Votre Maison" : "http://podcast.rmc.fr/channel54/RMCInfochannel54.xml"
-										}
+										},
+							"RTL"     : { u"Grosse Tetes" : "http://www.rtl.fr/podcast/les-grosses-tetes.xml",
+										  u"Laurent Gerra"        : 
+										  "http://www.rtl.fr/podcast/laurent-gerra.xml",
+										  u"A la bonne heure"           : 
+										  "http://www.rtl.fr/podcast/a-la-bonne-heure.xml",
+										  u"l heure du crime"               :
+										  "http://www.rtl.fr/podcast/l-heure-du-crime.xml", 
+										  u"l invite de rtl"           : 
+										  "http://www.rtl.fr/podcast/linvite-de-rtl.xml",
+										  u"z comme zemmour"           : 
+										  "http://www.rtl.fr/podcast/z-comme-zemmour.xml",
+										  u"Ca peut vous arriver"           : 
+										  "http://www.rtl.fr/podcast/ca-peut-vous-arriver.xml",
+										  u"le club liza.xml"           : 
+										  "http://www.rtl.fr/podcast/le-club-liza.xml",
+										  u"face a face aphatie duhamel en video"           : 
+										  "http://www.rtl.fr/podcast/face-a-face-aphatie-duhamel-en-video.xml.xml",
+										  u"La marque du mailhot"           : 
+										  "http://www.rtl.fr/podcast/la-marque-du-mailhot.xml",
+										  u"Le choix de yves calvi"           : 
+										  "http://www.rtl.fr/podcast/le-choix-de-yves-calvi.xml",
+										  u"Le choix de yves calvi en video"           : 
+										  "http://www.rtl.fr/podcast/le-choix-de-yves-calvi-en-video.xml",
+										  u"le grand jury"           : 
+										  "http://www.rtl.fr/podcast/le-grand-jury.xml",
+										  u"le journal inattendu"           : 
+										  "http://www.rtl.fr/podcast/le-journal-inattendu.xml",
+										  u"le fait politique"           : 
+										  "http://www.rtl.fr/podcast/le-fait-politique.xml",
+										  u"on est fait pour s entendre"           : 
+										  "http://www.rtl.fr/podcast/on-est-fait-pour-s-entendre.xml",
+										  u"a-la-bonne-heure didier porte"           : 
+										  "http://www.rtl.fr/podcast/a-la-bonne-heure-didier-porte.xml",
+										  u"on refait le match - Christophe Pacaud"           : 
+										  "http://www.rtl.fr/podcast/on-refait-le-match-avec-christophe-pacaud.xml",
+										  u"on refait le match - Eugene Saccomano"        : 
+										  "http://www.rtl.fr/podcast/on-refait-le-match-avec-eugene-saccomano.xml",
+										  u"a-la-bonne-heure Eric Naulleau"           : 
+										  "http://www.rtl.fr/podcast/a-la-bonne-heure-eric-naulleau.xml",
+										  u"a-la-bonne-heure Eric Naulleau en video"           : 
+										  "http://www.rtl.fr/podcast/a-la-bonne-heure-eric-naulleau-en-video.xml",
+										  }
 					 }
 	derniereChaine = ""
 	listeFichiers  = []
