@@ -31,7 +31,7 @@ from Plugin import Plugin
 
 class W9Replay( Plugin ):
 	
-	urlFichierXML = "http://data.w9replay.fr/catalogue/120-w9.xml"
+	urlFichierXML = "http://www.w9replay.fr/catalogue/3637.xml"
 	listeFichiers = {} # Clefs = nomChaine, Valeurs = { nomEmission, [ [ Episode 1, Date1, URL1 ], ... ] }
 	
 	def __init__( self ):

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugins>
-	<plugin nom="Podcasts.py" dateModification="1287158552.0" sha1="f5aa96df71b9b9176f3c9f4f4a735cd182413159"></plugin>
+	<plugin nom="Podcasts.py" dateModification="1322647976.0" sha1="aff7853c7b8ae0c106bd702472a4f242ef469642"></plugin>
 	<plugin nom="W9Replay.py" dateModification="1322647621.0" sha1="04a7419cfa6e99b798a974b11cb572d657b3cca2"></plugin>
 	<plugin nom="Arte.py" dateModification="1287160358.0" sha1="e3c5b8d0190390e0ff65f49f492f69eab30bbf18"></plugin>
 	<plugin nom="Europe1.py" dateModification="1286722967.0" sha1="f5849590cadef58467bffad289952ba0269b909f"></plugin>
 	<plugin nom="RadioFrance.py" dateModification="1286722967.0" sha1="7a3dbf95765686bca03a5c90a8fb6a7a55ad9439"></plugin>
 	<plugin nom="Pluzz.py" dateModification="1286553363.0" sha1="d92b8c27b5a88874ced06d07ea341db2cf2ed6a8"></plugin>
-	<plugin nom="FranceInter.py" dateModification="1286722967.0" sha1="73d415c268f83a839b1fd0742370f78e26b27627"></plugin>
+	<plugin nom="FranceInter.py" dateModification="1322651123.0" sha1="8b0fc2a492ad57d1a642b9bc787bb41fa61a82e0"></plugin>
 	<plugin nom="CanalPlus.py" dateModification="1287241930.0" sha1="7346ac4d6c8942fc3d6b01710bb2d1fb6644b1b7"></plugin>
 	<plugin nom="M6Replay.py" dateModification="1286553363.0" sha1="d955301ea8dfb03d2477cd6b3678c40702093309"></plugin>
 </plugins>
