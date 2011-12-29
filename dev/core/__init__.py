@@ -8,6 +8,7 @@ from DownloaderFactory         import *
 from DownloaderInterface       import *
 from DownloadManager           import *
 from DownloadStatus            import *
+from Historique                import *
 from HttpDownloader            import *
 from Fichier                   import *
 from FtpDownloader             import *
@@ -41,7 +42,7 @@ def initialiser():
 	else:
 		PLUGIN_MANAGER = PluginManager()
 		DOWNLOAD_MANAGER = DownloadManager()
-		HISTORIQUE = Historique()
+		#TODO FICHIER_HISTORIQUE_TVD -> HISTORIQUE = Historique()
 		#TODO Instancier les classes
 		
 		STATUS = STATUS_INITIALIZED

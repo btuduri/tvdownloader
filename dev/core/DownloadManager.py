@@ -11,7 +11,7 @@ from DownloadStatus import *
 class DownloadManager(threading.Thread):
 	BUFFER_SIZE = 8000
 	
-	def __init__(self, start=True) :
+	def __init__(self, start=False) :
 		threading.Thread.__init__(self)
 		self.nextNumDownload = 0 # int
 		
