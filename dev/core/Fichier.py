@@ -8,7 +8,7 @@
 import os.path
 import time
 
-import lib
+import core.util as lib
 
 import logging
 logger = logging.getLogger( __name__ )

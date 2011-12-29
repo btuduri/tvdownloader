@@ -19,3 +19,32 @@ from PluginCallback            import *
 from Plugin                    import *
 from PluginManager             import *
 from PluginStatus              import *
+
+import sys
+
+STATUS_NOT_INITIALIZED = "non initialisé"
+STATUS_INITIALIZED = "initialisé"
+STATUS_DAEMON_NOT_FOUND = "démon introuvable"
+
+STATUS = STATUS_NOT_INITIALIZED
+
+ARG_SHARED_OBJECT = "--client"
+
+PLUGIN_MANAGER = None
+DOWNLOAD_MANAGER = None
+HISTORIQUE = None
+
+def initialiser():
+	if ARG_SHARED_OBJECT in sys.argv[1:]:
+		#TODO Récupérer les stubs
+		a = 0
+	else:
+		PLUGIN_MANAGER = PluginManager()
+		DOWNLOAD_MANAGER = DownloadManager()
+		HISTORIQUE = Historique()
+		#TODO Instancier les classes
+		
+		STATUS = STATUS_INITIALIZED
+	return STATUS
+
+

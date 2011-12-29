@@ -46,9 +46,7 @@ class MainWindow(QtGui.QMainWindow):
 		rightAreaLayout.addWidget(self.fichierArea, 1, 0, 1, 2)
 		
 		###
-		self.pluginArea.layout().addWidget(QtGui.QLabel( "file:///usr/share/icons/Faenza/apps/22/access.png"))
 		self.pluginArea.layout().addWidget(PluginWidget(None, "file:///usr/share/icons/Faenza/apps/22/access.png"))
-		self.pluginArea.layout().addWidget(QtGui.QLabel( "file:///usr/share/icons/Faenza/apps/22/access.png"))
 
 
 from urlparse import urlparse
