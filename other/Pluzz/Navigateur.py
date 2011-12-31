@@ -7,7 +7,6 @@
 #
 
 import cookielib
-import mechanize
 import random
 import sys
 import urllib2
@@ -42,32 +41,22 @@ class Navigateur:
 	
 	def __init__( self ):
 		
-		# Navigateur
-		self.navigateur = mechanize.Browser()
-		
-		#
-		# Options du Navigateur
-		#
-		
-		# Cookie jar
-		self.cookiejar             = cookielib.CookieJar()
-		self.navigateur.set_cookiejar( self.cookiejar )
-		# User Agent
-		self.navigateur.addheaders = [ ( 'User-agent', random.choice( listeUserAgents ) ) ]
-		# N'ajoute pas le referer a l'en-tete
-		self.navigateur.set_handle_referer( True )
-		# Ne prend pas en compte les robots.txt
-		self.navigateur.set_handle_robots( False )
+		# Cookiejar + urlopener
+		self.cookiejar            = cookielib.CookieJar()
+		self.urlOpener            = urllib2.build_opener( urllib2.HTTPCookieProcessor( self.cookiejar ) )
+		# Spoof de l'user-agent
+		self.urlOpener.addheaders = [ ( 'User-agent', random.choice( listeUserAgents ) ) ]		
 
 	def getFichier( self, url ):
 		try:
 			print "--> Recuperation de la page %s" %( url )
-			page    = self.navigateur.open( url, timeout = self.timeOut )
+		
+			requete = urllib2.Request( url )
+			page    = self.urlOpener.open( requete, timeout = self.timeOut )
 			donnees = page.read()
 			
 			for co in self.cookiejar:
 				print "Cookie : nom = %s ; valeur = %s" %( co.name, co.value )
-			
 			
 			return donnees
 		except urllib2.URLError, erreur:
@@ -77,3 +66,11 @@ class Navigateur:
 				pass
 			print "!!! Erreur lors de la recuperation de la page %s !!!" %( url )
 			sys.exit( 1 )
+	
+	# def has_cookie( self, name ):
+		# has = False
+		# for c in self.cookiejar:
+			# if( c.name == name ):
+				# has = True
+				# break
+		# return has

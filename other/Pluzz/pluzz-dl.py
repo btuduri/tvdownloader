@@ -62,11 +62,14 @@ class PluzzDL( object ):
 		self.fichierVideo.write( self.flvHeader )
 		self.fichierVideo.write( binascii.a2b_hex( "00000000" ) ) # Padding pour avoir des blocs de 8
 		
+		# print len( self.flvHeader)
+		# print len( self.bootstrapInfo )
+		
 		# Ajout des fragments
 		for i in xrange( 1, 100 ):
 			print "Frag %d" % ( i )
 			frag = self.navigateur.getFichier( "%s%d" %( self.urlFrag, i ) )
-			self.fichierVideo.write( frag[ len( self.bootstrapInfo ) + 60 : ] )
+			self.fichierVideo.write( frag[ len( self.bootstrapInfo ) + 58 : ] )
 		
 		# Fermeture du fichier
 		self.fichierVideo.close()
