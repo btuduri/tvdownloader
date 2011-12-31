@@ -24,12 +24,15 @@ class PluzzDL( object ):
 		
 		# Recupere l'ID de l'emission
 		self.id                 = self.getID()
+		print "--> ID : %s" %( self.id )
 		# Recupere l'URL du manifest
 		self.manifestURL        = self.getManifestURL()
+		print "--> URL manifest %s" %( self.manifestURL )
 		# Lien reduit du manifest
 		self.manifestURLReduite = self.manifestURL[ self.manifestURL.find( "/z/" ) : ]
 		# Recupere le manifest
 		self.manifest           = self.getManifest()
+		print "--> Manifest recupere"
 		
 		#
 		# Extrait les infos du manifest
@@ -44,6 +47,8 @@ class PluzzDL( object ):
 		self.urlFrag = "%s%sSeg1-Frag" %( self.manifestURL[ : -12 ], urlbootstrap )
 		# Header du fichier final
 		self.flvHeader = base64.b64decode( media.find( "{http://ns.adobe.com/f4m/1.0}metadata" ).text )
+		
+		print "--> Infos extraites du manifest"
 		
 		#
 		# Creation de la video
@@ -65,7 +70,6 @@ class PluzzDL( object ):
 		
 		# Fermeture du fichier
 		self.fichierVideo.close()
-		
 		
 	def getID( self ):
 		page = self.navigateur.getFichier( self.url )

@@ -65,6 +65,7 @@ class Navigateur:
 
 	def getFichier( self, url ):
 		try:
+			print "--> Recuperation de la page %s" %( url )
 			page    = self.navigateur.open( url, timeout = self.timeOut )
 			donnees = page.read()
 			return donnees
@@ -73,4 +74,5 @@ class Navigateur:
 				print erreur.reason
 			except :
 				pass
+			print "!!! Erreur lors de la recuperation de la page %s !!!" %( url )
 			sys.exit( 1 )
