@@ -6,10 +6,11 @@
 # Modules
 #
 
+import cookielib
 import mechanize
 import random
-import urllib2
 import sys
+import urllib2
 
 
 #
@@ -47,27 +48,27 @@ class Navigateur:
 		#
 		# Options du Navigateur
 		#
-
+		
+		# Cookie jar
+		self.cookiejar             = cookielib.CookieJar()
+		self.navigateur.set_cookiejar( self.cookiejar )
 		# User Agent
 		self.navigateur.addheaders = [ ( 'User-agent', random.choice( listeUserAgents ) ) ]
-		# 
-		self.navigateur.set_handle_equiv( True )
-		# Active compression gzip
-		# self.navigateur.set_handle_gzip( True )
-		# 
-		self.navigateur.set_handle_redirect( True )
 		# N'ajoute pas le referer a l'en-tete
 		self.navigateur.set_handle_referer( True )
 		# Ne prend pas en compte les robots.txt
 		self.navigateur.set_handle_robots( False )
-		# Utilise un proxy
-		# self.navigateur.set_proxies( { 'http' : 'http://127.0.0.1:8000/' } )
 
 	def getFichier( self, url ):
 		try:
 			print "--> Recuperation de la page %s" %( url )
 			page    = self.navigateur.open( url, timeout = self.timeOut )
 			donnees = page.read()
+			
+			for co in self.cookiejar:
+				print "Cookie : nom = %s ; valeur = %s" %( co.name, co.value )
+			
+			
 			return donnees
 		except urllib2.URLError, erreur:
 			try:
