@@ -48,7 +48,7 @@ class Navigateur:
 		# Options du Navigateur
 		#
 
-		# User Agent + cookie connexion proxy
+		# User Agent
 		self.navigateur.addheaders = [ ( 'User-agent', random.choice( listeUserAgents ) ) ]
 		# 
 		self.navigateur.set_handle_equiv( True )
@@ -60,9 +60,7 @@ class Navigateur:
 		self.navigateur.set_handle_referer( True )
 		# Ne prend pas en compte les robots.txt
 		self.navigateur.set_handle_robots( False )
-		# Ne doit pas gerer les cookies
-		self.navigateur.set_cookiejar( None )
-		# Utilise le proxy
+		# Utilise un proxy
 		# self.navigateur.set_proxies( { 'http' : 'http://127.0.0.1:8000/' } )
 
 	def getFichier( self, url ):
