@@ -1,0 +1,110 @@
+# -*- coding: utf-8 -*-
+
+# Form implementation generated from reading ui file 'TvDownloaderPluzzWidget.ui'
+#
+# Created: Thu Jan 13 22:07:19 2011
+#      by: PyQt4 UI code generator 4.7.4
+#
+# WARNING! All changes made in this file will be lost!
+
+from PyQt4 import QtCore, QtGui
+
+class Ui_TvDownloaderPluzzWidget(object):
+    def setupUi(self, TvDownloaderPluzzWidget):
+        TvDownloaderPluzzWidget.setObjectName("TvDownloaderPluzzWidget")
+        TvDownloaderPluzzWidget.resize(760, 540)
+        self.gridLayoutWidget = QtGui.QWidget(TvDownloaderPluzzWidget)
+        self.gridLayoutWidget.setGeometry(QtCore.QRect(10, 10, 741, 521))
+        self.gridLayoutWidget.setObjectName("gridLayoutWidget")
+        self.gridLayout_TV = QtGui.QGridLayout(self.gridLayoutWidget)
+        self.gridLayout_TV.setObjectName("gridLayout_TV")
+        self.pushButton_France2 = QtGui.QPushButton(self.gridLayoutWidget)
+        self.pushButton_France2.setCursor(QtCore.Qt.PointingHandCursor)
+        self.pushButton_France2.setMouseTracking(False)
+        self.pushButton_France2.setFocusPolicy(QtCore.Qt.TabFocus)
+        self.pushButton_France2.setAutoFillBackground(False)
+        self.pushButton_France2.setText("France 2")
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap("img/02_France2_256x256.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.pushButton_France2.setIcon(icon)
+        self.pushButton_France2.setIconSize(QtCore.QSize(128, 128))
+        self.pushButton_France2.setObjectName("pushButton_France2")
+        self.gridLayout_TV.addWidget(self.pushButton_France2, 0, 0, 1, 1)
+        self.pushButton_France3 = QtGui.QPushButton(self.gridLayoutWidget)
+        self.pushButton_France3.setCursor(QtCore.Qt.PointingHandCursor)
+        self.pushButton_France3.setMouseTracking(False)
+        self.pushButton_France3.setFocusPolicy(QtCore.Qt.TabFocus)
+        self.pushButton_France3.setAutoFillBackground(False)
+        self.pushButton_France3.setText("France 3")
+        icon1 = QtGui.QIcon()
+        icon1.addPixmap(QtGui.QPixmap("img/03_France3_256x256.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.pushButton_France3.setIcon(icon1)
+        self.pushButton_France3.setIconSize(QtCore.QSize(128, 128))
+        self.pushButton_France3.setObjectName("pushButton_France3")
+        self.gridLayout_TV.addWidget(self.pushButton_France3, 0, 1, 1, 1)
+        self.pushButton_France5 = QtGui.QPushButton(self.gridLayoutWidget)
+        self.pushButton_France5.setCursor(QtCore.Qt.PointingHandCursor)
+        self.pushButton_France5.setMouseTracking(False)
+        self.pushButton_France5.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.pushButton_France5.setAutoFillBackground(False)
+        self.pushButton_France5.setText("France 5")
+        icon2 = QtGui.QIcon()
+        icon2.addPixmap(QtGui.QPixmap("img/05_France5_256x256.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.pushButton_France5.setIcon(icon2)
+        self.pushButton_France5.setIconSize(QtCore.QSize(128, 128))
+        self.pushButton_France5.setObjectName("pushButton_France5")
+        self.gridLayout_TV.addWidget(self.pushButton_France5, 1, 0, 1, 1)
+        self.pushButton_FranceO = QtGui.QPushButton(self.gridLayoutWidget)
+        self.pushButton_FranceO.setCursor(QtCore.Qt.PointingHandCursor)
+        self.pushButton_FranceO.setMouseTracking(False)
+        self.pushButton_FranceO.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.pushButton_FranceO.setAutoFillBackground(False)
+        self.pushButton_FranceO.setText("France O")
+        icon3 = QtGui.QIcon()
+        icon3.addPixmap(QtGui.QPixmap("img/19_FranceO_256x256.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.pushButton_FranceO.setIcon(icon3)
+        self.pushButton_FranceO.setIconSize(QtCore.QSize(128, 128))
+        self.pushButton_FranceO.setObjectName("pushButton_FranceO")
+        self.gridLayout_TV.addWidget(self.pushButton_FranceO, 1, 1, 1, 1)
+        self.pushButton_France4 = QtGui.QPushButton(self.gridLayoutWidget)
+        self.pushButton_France4.setCursor(QtCore.Qt.PointingHandCursor)
+        self.pushButton_France4.setMouseTracking(False)
+        self.pushButton_France4.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.pushButton_France4.setAutoFillBackground(False)
+        self.pushButton_France4.setText("France 4")
+        icon4 = QtGui.QIcon()
+        icon4.addPixmap(QtGui.QPixmap("img/14_France4_256x256.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.pushButton_France4.setIcon(icon4)
+        self.pushButton_France4.setIconSize(QtCore.QSize(128, 128))
+        self.pushButton_France4.setObjectName("pushButton_France4")
+        self.gridLayout_TV.addWidget(self.pushButton_France4, 0, 2, 1, 1)
+        self.pushButton_Back = QtGui.QPushButton(self.gridLayoutWidget)
+        self.pushButton_Back.setCursor(QtCore.Qt.PointingHandCursor)
+        self.pushButton_Back.setMouseTracking(False)
+        self.pushButton_Back.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.pushButton_Back.setAutoFillBackground(False)
+        self.pushButton_Back.setText("Retour")
+        icon5 = QtGui.QIcon()
+        icon5.addPixmap(QtGui.QPixmap("ico/gtk-go-back.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.pushButton_Back.setIcon(icon5)
+        self.pushButton_Back.setIconSize(QtCore.QSize(128, 128))
+        self.pushButton_Back.setObjectName("pushButton_Back")
+        self.gridLayout_TV.addWidget(self.pushButton_Back, 1, 2, 1, 1)
+
+        self.retranslateUi(TvDownloaderPluzzWidget)
+        QtCore.QObject.connect(self.pushButton_Back, QtCore.SIGNAL("clicked()"), TvDownloaderPluzzWidget.close)
+        QtCore.QMetaObject.connectSlotsByName(TvDownloaderPluzzWidget)
+
+    def retranslateUi(self, TvDownloaderPluzzWidget):
+        TvDownloaderPluzzWidget.setWindowTitle(QtGui.QApplication.translate("TvDownloaderPluzzWidget", "Form", None, QtGui.QApplication.UnicodeUTF8))
+
+
+if __name__ == "__main__":
+    import sys
+    app = QtGui.QApplication(sys.argv)
+    TvDownloaderPluzzWidget = QtGui.QWidget()
+    ui = Ui_TvDownloaderPluzzWidget()
+    ui.setupUi(TvDownloaderPluzzWidget)
+    TvDownloaderPluzzWidget.show()
+    sys.exit(app.exec_())
+
