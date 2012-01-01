@@ -9,6 +9,7 @@ import base64
 import binascii
 import os
 import re
+import sys
 import xml.etree.ElementTree as xml
 
 from Navigateur import Navigateur

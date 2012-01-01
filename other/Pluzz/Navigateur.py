@@ -8,7 +8,6 @@
 
 import cookielib
 import random
-import sys
 import urllib2
 
 import logging
