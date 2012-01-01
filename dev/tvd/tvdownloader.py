@@ -81,11 +81,11 @@ if __name__ == "__main__" :
 	uiname = "qt"
 	for arg in sys.argv:
 		if arg.find(UI_ARG) == 0:
-			uiname = arg[len(UI_ARG):]
+			uiname = arg[len(UI_ARG)+1:]
 			break
 	path = "./uis/"+uiname+"/main.py"
 	if not(os.path.isfile(path)):
-		print "L'ui "+path+" est introuvable"
+		print "L'ui "+uiname+" est introuvable"
 		sys.exit(1)
 	
 	if isLaunched():
