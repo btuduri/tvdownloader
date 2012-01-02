@@ -73,7 +73,7 @@ class PluzzDL( object ):
 		self.fichierVideo.write( binascii.a2b_hex( "00000000" ) ) # Padding pour avoir des blocs de 8
 		# Ajout des fragments
 		try :
-			frag = self.navigateur.getFichier( "%s2" %( self.urlFrag ) )
+			frag = self.navigateur.getFichier( "%s1" %( self.urlFrag ) )
 			self.fichierVideo.write( frag[ frag.find( "mdat" ) + 4 : ] )
 			for i in xrange( 2, 9999 ):
 				frag = self.navigateur.getFichier( "%s%d" %( self.urlFrag, i ) )
