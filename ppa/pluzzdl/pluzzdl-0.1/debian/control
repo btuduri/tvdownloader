@@ -1,0 +1,12 @@
+Source: pluzzdl
+Section: net
+Priority: extra
+Maintainer: Chaoswizard <chaoswizard@gmail.com>
+Build-Depends: debhelper (>= 8.0.0), bash, python2.7
+Standards-Version: 3.9.2
+Homepage: http://code.google.com/p/tvdownloader/
+
+Package: pluzzdl
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, python2.7
+Description: Permet de récupérer les vidéos f4m sur Pluzz

@@ -1,0 +1,46 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Format: 1.8
+Date: Sun, 03 Oct 2010 14:18:36 +0200
+Source: tvdownloader
+Binary: tvdownloader
+Architecture: source
+Version: 0.6-0ubuntu1
+Distribution: lucid
+Urgency: low
+Maintainer: Chaoswizard <chaoswizard@gmail.com>
+Changed-By: Chaoswizard <chaoswizard@gmail.com>
+Description: 
+ tvdownloader - TVDownloader est un programme sous licence GPL qui permet d'enreg
+Changes: 
+ tvdownloader (0.6-0ubuntu1) lucid; urgency=low
+ .
+   * Nouveaux plugins
+   * Gestion descriptif + image
+   * Historique
+   * ...
+Checksums-Sha1: 
+ f6667fc5532d1c9415f967d6a3774cbbeea4e125 1377 tvdownloader_0.6-0ubuntu1.dsc
+ 380ea261d2a566e13eab40f7b0432ab430babd61 167573 tvdownloader_0.6.orig.tar.gz
+ 83696b0993321ba88215e78c8fd4b686f06113d3 12589 tvdownloader_0.6-0ubuntu1.diff.gz
+Checksums-Sha256: 
+ 34f3b8d8387a91d0e9664e0ed88d85fd664c0f5432d2cc0c57625c274f8be874 1377 tvdownloader_0.6-0ubuntu1.dsc
+ ab7d31dc67a95dd27007600ed470357d401e05be98b60b5b0e5f202546f07e2f 167573 tvdownloader_0.6.orig.tar.gz
+ 8a263522bc53d6f8e20778a01bbba402288ce535854266d420821de07ddf0712 12589 tvdownloader_0.6-0ubuntu1.diff.gz
+Files: 
+ 01bc84faaf0aebddea5bcae623431424 1377 net extra tvdownloader_0.6-0ubuntu1.dsc
+ 5d9ab0c898a329f30846952161f212cc 167573 net extra tvdownloader_0.6.orig.tar.gz
+ 9b23057e05cc0e28a42d1e885daab3c3 12589 net extra tvdownloader_0.6-0ubuntu1.diff.gz
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iQEcBAEBAgAGBQJMqHVKAAoJEE0FlswK0y0Un2QH/0Ud/n8NsIBD6LduPHmGtWjE
+RMC3RlcAtEBHvRTqzFUqn1oxvswVGtNmj07HBmvR+jpcCk6OeOqKFp/K6UDejKqE
+Bc+ZMusenKcIR9JRAUTkN6FDeZyC1ZpbC+imhvfOkBnoHnMxsiG6CAJukQDHuRKs
+zeYt3xihFrAh6jPMM187ItySd6fz+JXDAhefM/r0XItlOZNF6X2lZh8A1Slcms8W
+n3db6LwyIwn3XEdm20Ad9qnDD5UDIWPoG6qBWePTWDJCdLTSjZKU9MvABkCo/Qrf
+ca+TMcZUUk5cJVHq3Rd5c03AQ0KIA+CHaLQTUoJTrjHZ7iWScbV4+TRaFbp2u1Y=
+=WKtS
+-----END PGP SIGNATURE-----

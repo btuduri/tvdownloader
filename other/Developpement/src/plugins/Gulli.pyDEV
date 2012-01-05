@@ -1,0 +1,86 @@
+#!/usr/bin/env python
+# -*- coding:Utf-8 -*-
+
+#########################################
+# Licence : GPL2 ; voir fichier COPYING #
+#########################################
+
+# Ce programme est libre, vous pouvez le redistribuer et/ou le modifier selon les termes de la Licence Publique Générale GNU publiée par la Free Software Foundation (version 2 ou bien toute autre version ultérieure choisie par vous).
+# Ce programme est distribué car potentiellement utile, mais SANS AUCUNE GARANTIE, ni explicite ni implicite, y compris les garanties de commercialisation ou d'adaptation dans un but spécifique. Reportez-vous à la Licence Publique Générale GNU pour plus de détails.
+# Vous devez avoir reçu une copie de la Licence Publique Générale GNU en même temps que ce programme ; si ce n'est pas le cas, écrivez à la Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, États-Unis.
+
+###########
+# Modules #
+###########
+
+import re
+import os
+
+from Fichier import Fichier
+from Plugin import Plugin
+
+##########
+# Classe #
+##########
+
+class Gulli( Plugin ):
+		
+	urlListeProgrammes  = "http://replay.gulli.fr/"
+	listeEmissionsRegEx = re.compile( '<a href="([^<]+?)".*?alt="([^<]+?)"' )
+	lienVideoRegEx      = re.compile( "URL_RTMP[^,]+?'([^,]+?)'," )
+		
+	def __init__( self ):
+		Plugin.__init__( self, "Gulli", "http://www.gulli.fr", 1 )
+		
+		# Liste des programmes sous la forme
+		# { Chaine : [ Nom, Lien ] }
+		self.listeProgrammes = {} 
+
+		if os.path.exists( self.fichierCache ):
+			self.listeProgrammes = self.chargerCache()
+		
+	def rafraichir( self ):
+		self.afficher( u"Récupération de la liste des émissions..." )
+		
+		# On remet a 0 la liste des programmes
+		self.listeProgrammes.clear()
+		
+		# On recupere la page qui contient toutes les informations
+		pageProgrammes = self.API.getPage( self.urlListeProgrammes )
+		
+		# On decoupe la page selon les chaines ( Dessins Animes, ... )
+		resultats = re.split( "<h2>([^<]+)</h2>", pageProgrammes )[ 1 : ]
+		for ( chaine, texteChaine ) in ( zip( resultats[ 0::2 ], resultats[ 1::2 ] ) ):
+			# On ajoute la chaine
+			chaine = chaine.title()
+			self.listeProgrammes[ chaine ] = []
+			# On extrait les noms des programmes avec le lien vers la page qui contient la video
+			resultatsEmissions = re.findall( self.listeEmissionsRegEx, texteChaine )
+			for res in resultatsEmissions:
+				lienPage = self.url + res[ 0 ]
+				nom      = res[ 1 ]
+				# On va recuperer la page qui contient le lien vers la video
+				pageVideo = self.API.getPage( lienPage )
+				# On en extrait le lien de la video
+				lienVideo = re.findall( self.lienVideoRegEx, pageVideo )[ 0 ]
+				# On l'ajoute a la liste
+				self.listeProgrammes[ chaine ].append( [ nom, lienVideo ] )
+			
+		self.sauvegarderCache( self.listeProgrammes )
+		self.afficher( u"Liste sauvegardée" )
+	
+	def listerChaines( self ):
+		for chaine in self.listeProgrammes.keys():
+			self.ajouterChaine( chaine )
+
+	def listerEmissions( self, chaine ):
+		self.chaineCourante = chaine
+		self.ajouterEmission( chaine, chaine )
+	
+	def listerFichiers( self, emission ):
+		if( self.listeProgrammes.has_key( self.chaineCourante ) ):
+			for( nom, lien ) in self.listeProgrammes[ self.chaineCourante ]:
+				# On extrait l'extension du fichier
+				basename, extension = os.path.splitext( lien )
+				self.ajouterFichier( self.chaineCourante, Fichier( nom, "Inconnue", lien, nom + extension ) )
+	
