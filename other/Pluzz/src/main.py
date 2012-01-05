@@ -29,8 +29,8 @@ from PluzzDL        import PluzzDL
 if( __name__ == "__main__" ) :
 	
 	# Options de la ligne de commande
-	usage   = "usage: pluzz-dl [options] <url de l'emission>"
-	version = "pluzz-dl %s" %( __version__ )
+	usage   = "usage: pluzzdl [options] <url de l'emission>"
+	version = "pluzzdl %s" %( __version__ )
 	parser  = optparse.OptionParser( usage = usage, version = version )
 	parser.add_option( "--nocolor",       action = 'store_true', default = False, help = 'desactive la couleur' )
 	parser.add_option( "-v", "--verbose", action = "store_true", default = False, help = 'affiche des informations supplementaires' )
