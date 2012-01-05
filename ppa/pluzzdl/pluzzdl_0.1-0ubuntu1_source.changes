@@ -18,26 +18,26 @@ Changes:
  .
    * Initial release
 Checksums-Sha1: 
- ef0f2c4a09514e59f5adc8deeeff380b8461d90b 1340 pluzzdl_0.1-0ubuntu1.dsc
- db5e065d63a68eb463a053315e63ae099b51af48 4007 pluzzdl_0.1.orig.tar.gz
- 398eb08a96dc5250d92c5254ce80cf28de8a25b2 1926 pluzzdl_0.1-0ubuntu1.debian.tar.gz
+ 7dcfc437fc5afc81a6f90da6daaff7c8b22536d0 1340 pluzzdl_0.1-0ubuntu1.dsc
+ 0110bf129597d5aab6d3be7d6529b65daef30d85 4006 pluzzdl_0.1.orig.tar.gz
+ 8f108871f5a420319f3121565ecc1c5ffced5620 2452 pluzzdl_0.1-0ubuntu1.debian.tar.gz
 Checksums-Sha256: 
- 0ee426702af6deff141ce54d1dcc6ce267422f41464222639be0e35eb25bfb81 1340 pluzzdl_0.1-0ubuntu1.dsc
- 9f78883704491e6756717e092353a17701e1b78b8070ffafd93d1bbc8616708f 4007 pluzzdl_0.1.orig.tar.gz
- e0601c0ec15fb0330479905244b46d856add551a30fc51913e4bba20298395d2 1926 pluzzdl_0.1-0ubuntu1.debian.tar.gz
+ 1cffa2c6bc696846b9721cf77c450f87fcd68ae39bca9361ba0ee2678ae91fe4 1340 pluzzdl_0.1-0ubuntu1.dsc
+ 03343c2e036acb465515ef7aa44082f4e668a63266c4c3c4e97ef872dd52dd86 4006 pluzzdl_0.1.orig.tar.gz
+ c5fe1e712701a1609b3d7b67f91fffeb60e415c7b9b19329441118e9cef29f5c 2452 pluzzdl_0.1-0ubuntu1.debian.tar.gz
 Files: 
- 8aa5f415746799995b32355b2d10a9f2 1340 net extra pluzzdl_0.1-0ubuntu1.dsc
- f8851ee92fc298e083307b5eb453c2e2 4007 net extra pluzzdl_0.1.orig.tar.gz
- 9353f0c6110b849347c2b61ebf3f443b 1926 net extra pluzzdl_0.1-0ubuntu1.debian.tar.gz
+ 6eff0aa05d44f7a0ed34e06ec951126d 1340 net extra pluzzdl_0.1-0ubuntu1.dsc
+ 3d47ea20f9fefe367cc76f870d821d13 4006 net extra pluzzdl_0.1.orig.tar.gz
+ c24fb4cb4b2203ff2d281732253f4e06 2452 net extra pluzzdl_0.1-0ubuntu1.debian.tar.gz
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQEcBAEBAgAGBQJPBcD4AAoJEBScl0K1J+PeolMH/iznC72YV0miWyA69aKar+ZS
-FMjdPCAJpWzfkitWkfqkCh2HE6kXO54jgWdHyisskZD/AKrn6CaDbI7R340kPcxH
-t+5Rn44x7vkMnhlT5Wihk9Vp9mftSt09+GzlfpuZ7FvO9KZZbLzlzfVptHQzyN6G
-2VjVhz3RkQDWkcGUOR5KhwzRcA71+f1x4wSscz8vGQv164ZLDmbDhrAB/AUWX+Lm
-G9QEuiiG7HZK1Hjv6jA1fnQewuU0dvnbuwUQrmCu0ro5aq4aVjNrogF1Nm4lF4MY
-T9/TAw80+cq066F+QF8jiY+WhIR/RKd/Vhowf25MfVpIO0s354+QGFBOdyfzbDA=
-=Ik4K
+iQEcBAEBAgAGBQJPBdIVAAoJEBScl0K1J+PeaZYIAKCxF4Y1kPSfEq3L0yWfWofK
+19bJ8p21qGLBAgGLXfLgTDHPbpNNa0cIdCdnW4MJMNSulfo9Spv0f5jiiOc9T7eS
+udBOWIO0LTQdFF2D/2YTO4TQqUvUQb54Os48r/+ttojf2NPDxUp9uXaruqMGmTkO
+dUsbG8MCVnqm4K8bcsPZpik94kYIyJ4h4P5JzWU1OKYxF2z/APN4lBa8vvOgrfPh
+rPxIeNh2icOI+BOG/WxDPjKdNoQsbXmK9MRqhrSFbRUuNmVrOhHneNr2ObKcm6tY
+07YibAoi4vhlfXnENDXKTGo6NSycwEnsi9tJ9cbpXkgrgfSvb5jI5Vonv4OvxXc=
+=TgPv
 -----END PGP SIGNATURE-----

@@ -11,23 +11,23 @@ Homepage: http://code.google.com/p/tvdownloader/
 Standards-Version: 3.9.2
 Build-Depends: debhelper (>= 8.0.0), bash, python2.7
 Checksums-Sha1: 
- db5e065d63a68eb463a053315e63ae099b51af48 4007 pluzzdl_0.1.orig.tar.gz
- 398eb08a96dc5250d92c5254ce80cf28de8a25b2 1926 pluzzdl_0.1-0ubuntu1.debian.tar.gz
+ 0110bf129597d5aab6d3be7d6529b65daef30d85 4006 pluzzdl_0.1.orig.tar.gz
+ 8f108871f5a420319f3121565ecc1c5ffced5620 2452 pluzzdl_0.1-0ubuntu1.debian.tar.gz
 Checksums-Sha256: 
- 9f78883704491e6756717e092353a17701e1b78b8070ffafd93d1bbc8616708f 4007 pluzzdl_0.1.orig.tar.gz
- e0601c0ec15fb0330479905244b46d856add551a30fc51913e4bba20298395d2 1926 pluzzdl_0.1-0ubuntu1.debian.tar.gz
+ 03343c2e036acb465515ef7aa44082f4e668a63266c4c3c4e97ef872dd52dd86 4006 pluzzdl_0.1.orig.tar.gz
+ c5fe1e712701a1609b3d7b67f91fffeb60e415c7b9b19329441118e9cef29f5c 2452 pluzzdl_0.1-0ubuntu1.debian.tar.gz
 Files: 
- f8851ee92fc298e083307b5eb453c2e2 4007 pluzzdl_0.1.orig.tar.gz
- 9353f0c6110b849347c2b61ebf3f443b 1926 pluzzdl_0.1-0ubuntu1.debian.tar.gz
+ 3d47ea20f9fefe367cc76f870d821d13 4006 pluzzdl_0.1.orig.tar.gz
+ c24fb4cb4b2203ff2d281732253f4e06 2452 pluzzdl_0.1-0ubuntu1.debian.tar.gz
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQEcBAEBAgAGBQJPBcD4AAoJEBScl0K1J+PehTYH/1Jqa24WJ+Zw8RsGO9pScgyl
-3XU9si15MkBcJJyRIxsXNxPSXwA4Dz0+q4JZ2ExqiHk0vKP8kmwY8CXrb/FU4sUH
-Pqr7MZwqzlhTnFfIVWW+gJrv1NYistJxIf7YZQy/r+zMWRmCVAGn+YcrnAfuff+0
-LmgxWS/h+lhCSF3OkvtzZRDNKGUzU0imfqW//7cO7RZ+dwk99xSQMLb94rAA+bj0
-mWoSPRuEIV4/Ko+A3hIifyXeA7j4yDlqFoN07PxwxaBMFD4+WaLfKxYInuMfTckJ
-8jZEvqZzLRbQRL550Y6M8XDkyaMYpKSbxShRda6LUHeWyKhTqzetsxv28FoVJhY=
-=8NMz
+iQEcBAEBAgAGBQJPBdIVAAoJEBScl0K1J+PeC8cH/0qhp5tHTxbE3TLgQbqab8aA
+IEUhrsOZk8Y+DiVFVwGhUmiZBFd0O6yREqKXANe1cq72R70/axBG5xR+A+YocWAU
+/7N3bBo9Htb5bYbsa6IU6bPEhXlnqnY/K/SutivGf2kJOQFozUMUm6ViLMRoGI1t
+O9dDXPCJQezS3XXxPshnoT0ZGv9a96u1LRhPCiZrYBOLtRLer8ei1O20DMm9Dek5
+Q6q2WMm3Dv/AVGpd+zRJjApIoKr/pkwPx2kpsjdUyy7voRwLaMz3yx7O1JOgvz+3
+UGBsY3F7xXbJ0uEXAiakgYeg9zuicATJt8FSDrvEDMC+Mi2ZBj68XoL/bf/0o+w=
+=g1um
 -----END PGP SIGNATURE-----

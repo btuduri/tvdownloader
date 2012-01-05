@@ -1,0 +1,40 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Format: 1.8
+Date: Thu, 05 Jan 2012 17:38:49 +0100
+Source: pluzzdl
+Binary: pluzzdl
+Architecture: source
+Version: 0.1-0ubuntu2
+Distribution: oneiric
+Urgency: low
+Maintainer: Chaoswizard <chaoswizard@gmail.com>
+Changed-By: Chaoswizard <chaoswizard@gmail.com>
+Description: 
+ pluzzdl    - Permet de récupérer les vidéos f4m sur Pluzz
+Changes: 
+ pluzzdl (0.1-0ubuntu2) oneiric; urgency=low
+ .
+   * Fix launcher bugs
+Checksums-Sha1: 
+ a42475ffd37fc6f718f0165b02cede8180d23333 1340 pluzzdl_0.1-0ubuntu2.dsc
+ cc79a72351bb5f868e003acdb21c37d2804bd968 2504 pluzzdl_0.1-0ubuntu2.debian.tar.gz
+Checksums-Sha256: 
+ 5b3900249f926d2830c8b7d91e25f85c2dce5237b5540e58a568c6e4b144ee04 1340 pluzzdl_0.1-0ubuntu2.dsc
+ e879a90f2c673ffd5dccf9892482ceb6ac8950ef4d7955049862a23c2fea58eb 2504 pluzzdl_0.1-0ubuntu2.debian.tar.gz
+Files: 
+ 39166558162d27fddff6c28cfb4a5ce9 1340 net extra pluzzdl_0.1-0ubuntu2.dsc
+ ad4cdb33a62af00a9add1e2063fe8b41 2504 net extra pluzzdl_0.1-0ubuntu2.debian.tar.gz
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQEcBAEBAgAGBQJPBdKDAAoJEBScl0K1J+Pee8cH/RwZWvukEDeoYQ+jHw+aMCmu
+tAomVhgZXpVE4POEMXuNYFvzPpb56cGSjqw4ApZCLVXn07t7aCriU+Pq5ZmDfj48
+ITNntOkDW4oKy3YtMD/RJkZQaXAsSJoUX5wjUbuFV6yzrxAPgqIpiRPjPIvsI99S
+cdqRZK3negpZe/vrXWN2qRvMt5W/FLjsBnOJlNnntDRaNzrITiSTcZFj9Vbvmcua
+OSWLKHgwCMMe1AdR88GbIpw8eUxwD8doiqx1FSMjOV6d/JNk0hVCuVjoCS1owVl2
+Z9Aq2C66brC2tIu6SHQbP8dcQK59mM0gTcqJ9dYPwGjHUaw6Y2brR8omoiwHxpc=
+=9n4J
+-----END PGP SIGNATURE-----

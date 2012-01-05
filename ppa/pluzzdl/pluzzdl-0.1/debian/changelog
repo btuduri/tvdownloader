@@ -1,3 +1,9 @@
+pluzzdl (0.1-0ubuntu2) oneiric; urgency=low
+
+  * Fix launcher bugs
+
+ -- Chaoswizard <chaoswizard@gmail.com>  Thu, 05 Jan 2012 17:38:49 +0100
+
 pluzzdl (0.1-0ubuntu1) oneiric; urgency=low
 
   * Initial release

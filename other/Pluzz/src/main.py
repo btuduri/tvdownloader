@@ -37,7 +37,7 @@ if( __name__ == "__main__" ) :
 	( options, args ) = parser.parse_args()
 	
 	# Verification du nombre d'arguments
-	if( len( args ) != 1 ):
+	if( len( args ) != 1 or args[ 0 ] == "" ):
 		parser.print_help()
 		parser.exit( 1 )
 	
