@@ -27,7 +27,6 @@ class DownloadManager(threading.Thread):
 			return
 		threading.Thread.__init__(self)
 		DownloadManager.__instance = self
-		self.RLOCK = threading.RLock()
 		
 		self.RLOCK = threading.RLock()
 		

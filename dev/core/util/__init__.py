@@ -8,10 +8,10 @@
 import logging
 logger = logging.getLogger( __name__ )
 
-## Fonction qui permet d'assurer la synchronisation des méthodes, une
+## Décorateur qui permet d'assurer la synchronisation des méthodes, une
 # thread à la fois travaille sur l'instance avec les méthodes marquées.
-# La classe doit posséder un attribut RLOCK affecté à une instance de
-# threading.RLock.
+# L'instance doit posséder un attribut RLOCK affecté à une instance de
+# threading.RLock. Ne peut décorer les méthodes __new__ ou __init__.
 def SynchronizedMethod(meth):
 	def local(self, *arg):
 		if hasattr(self, "LOCK"):
