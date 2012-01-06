@@ -1,6 +1,7 @@
 # -*- coding:Utf-8 -*-
 
 import thread,threading,traceback
+from util import SynchronizedMethod
 
 from DownloaderFactory import *
 from HttpDownloader import *
@@ -11,8 +12,25 @@ from DownloadStatus import *
 class DownloadManager(threading.Thread):
 	BUFFER_SIZE = 8000
 	
+	# Instance de la classe (singleton)
+	__instance = None
+	
+	## Surcharge de la methode de construction standard (pour mettre en place le singleton)
+	def __new__(typ, *args, **kwargs):
+		if DownloadManager.__instance == None:
+			return super(DownloadManager, typ).__new__(typ, *args, **kwargs)
+		else:
+			return DownloadManager.__instance
+	
 	def __init__(self, start=False) :
+		if DownloadManager.__instance != None:
+			return
 		threading.Thread.__init__(self)
+		DownloadManager.__instance = self
+		self.RLOCK = threading.RLock()
+		
+		self.RLOCK = threading.RLock()
+		
 		self.nextNumDownload = 0 # int
 		
 		self.dlFactory = DownloaderFactory();
@@ -26,10 +44,12 @@ class DownloadManager(threading.Thread):
 		if start:
 			self.start()
 	
+	@SynchronizedMethod
 	def start(self):
 		self.stopped = False
 		threading.Thread.start(self)
 	
+	@SynchronizedMethod
 	def stop(self):
 		self.mutex_toDl.acquire()
 		self.stopped = True
@@ -39,6 +59,7 @@ class DownloadManager(threading.Thread):
 		self.cond_toDl.notifyAll()
 		self.mutex_toDl.release()
 	
+	@SynchronizedMethod
 	def stopDownload(self, num):
 		self.mutex_toDl.acquire()
 		found = False
@@ -123,6 +144,7 @@ class DownloadManager(threading.Thread):
 	# @param outfile le chemin du fichier de sauvegarde
 	# @param callback le DownloadCallback à tenir informé de l'état du téléchargement
 	# @return le numéro du téléchargement
+	@SynchronizedMethod
 	def download (self, url, outFile, callback) :
 		if self.mutex_toDl.locked():
 			print "down: Mutex verrouillé, attention au dead lock !"
