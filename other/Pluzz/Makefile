@@ -15,7 +15,7 @@ PYTHON_VERSION ?= python
 build :
 	# ByteCode
 	@$(PYTHON_VERSION) -c "import compileall ; compileall.compile_dir( 'src' )"
-	# On modifie le lanceur
+	# Modifie le lanceur
 	sed -i 's|__DATADIR__|$(DESTDIR)$(DATADIR)|g' pluzzdl.sh
 
 # Installation
