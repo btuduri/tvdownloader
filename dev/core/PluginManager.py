@@ -19,6 +19,9 @@ import Constantes
 import logging
 logger = logging.getLogger( __name__ )
 
+from util import SynchronizedMethod
+import threading
+
 ##########
 # Classe #
 ##########
@@ -28,16 +31,23 @@ logger = logging.getLogger( __name__ )
 class PluginManager( object ):
 	
 	# Instance de la classe (singleton)
-	instance = None
+	__instance = None
 	
 	## Surcharge de la methode de construction standard (pour mettre en place le singleton)
-	def __new__( self, *args, **kwargs ):
-		if( self.instance is None ):
-			self.instance = super( PluginManager, self ).__new__( self )
-		return self.instance
+	def __new__(typ, *args, **kwargs):
+		if PluginManager.__instance == None:
+			return super(PluginManager, typ).__new__(typ, *args, **kwargs)
+		else:
+			return PluginManager.__instance
 	
 	## Constructeur
 	def __init__( self ):
+		if PluginManager.__instance != None:
+			return
+		PluginManager.__instance = self
+		
+		self.RLOCK = threading.RLock()
+		
 		#Code venant de APIPrive
 		self.listePluginActif = {}
 		self.listePlugin = {}
@@ -60,6 +70,7 @@ class PluginManager( object ):
 		
 	## Methode qui importe les plugins
 	# @param rep Repertoire dans lequel se trouvent les plugins a importer
+	@SynchronizedMethod
 	def importerPlugins( self, rep ):
 		for fichier in os.listdir( rep ): 
 			# Tous les fichiers py autre que __init__.py sont des plugins a ajouter au programme
@@ -85,6 +96,7 @@ class PluginManager( object ):
 
 	## Methode qui instancie les plugins
 	# N.B. : doit etre lancee apres importerPlugins
+	@SynchronizedMethod
 	def instancierPlugins( self ):
 		for plugin in Plugin.__subclasses__(): # Pour tous les plugins
 			try:
@@ -108,12 +120,15 @@ class PluginManager( object ):
 	## Methode qui retourne l'instance d'un plugin
 	# @param nom Nom du plugin dont il faut recuperer l'instance
 	# @return    Instance du plugin ou None s'il n'existe pas
+	@SynchronizedMethod
 	def getInstance( self, nom ):
 		return self.listePlugin.get( nom, None )
 
+	@SynchronizedMethod
 	def addCallback( self, callback ):
 		self.callbacks.append(callback)
 	
+	@SynchronizedMethod
 	def removeCallback( self, callback ):
 		self.callbacks.remove(callback)
 	
@@ -125,6 +140,7 @@ class PluginManager( object ):
 	# @param self l'objet courant
 	# @param nomPlugin le nom du plugin
 	# @return Rien
+	@SynchronizedMethod
 	def activerPlugin(self, nomPlugin):
 		if self.listePlugin.has_key(nomPlugin):
 			self.listePluginActif[nomPlugin] = self.listePlugin[nomPlugin]
@@ -135,6 +151,7 @@ class PluginManager( object ):
 	# @param self l'objet courant
 	# @param nomPlugin le nom du plugin
 	# @return Rien
+	@SynchronizedMethod
 	def desactiverPlugin(self, nomPlugin):
 		if self.listePluginActif.has_key(nomPlugin):
 			self.listePluginActif.pop(nomPlugin)
@@ -145,16 +162,19 @@ class PluginManager( object ):
 	# @param self l'objet courant
 	# @param instance l'instance du plugin
 	# @return Rien
+	@SynchronizedMethod
 	def ajouterPlugin(self, instance):
 		if not self.listePlugin.has_key(instance.nom):#FIXME Utiliser le nom de la classe
-#			self.listePluginActif[instance.nom] = instance
+			self.listePluginActif[instance.nom] = instance
 			self.listePlugin[instance.nom] = instance#FIXME Utiliser le nom de la classe
+			instance.chargerCache()
 	
 	## Spécifie la liste des instances des plugins.
 	# @param self l'objet courant
 	# @param liste la liste des instances
 	# @return Rien
 	# @deprecated Utiliser #ajouterPlugin à la place.
+	@SynchronizedMethod
 	def setListeInstance(self, liste):
 		logger.warn("DEPRECATED: APIPrive.setListeInstance: utilisez #ajouterPlugin")
 		self.listePluginActif = {}
@@ -175,23 +195,27 @@ class PluginManager( object ):
 	## Renvoie la liste des plugins (leur nom)
 	# @param self l'objet courant
 	# @return la liste des noms des plugins
+	@SynchronizedMethod
 	def getPluginListe(self):
 		return self.listePlugin.keys()
 	
 	## Renvoie la liste des plugins (leur instance)
 	# @return Liste des instances des plugins
+	@SynchronizedMethod
 	def getPluginListeInstances( self ):
 		return self.listePlugin.values()
 	
 	## Renvoie la liste des plugins actifs (leur nom)
 	# @param self l'objet courant
 	# @return la liste des noms des plugins actifs
+	@SynchronizedMethod
 	def getPluginActifListe(self):
 		return self.listePluginActif.keys()
 	
 	## Renvoie la liste des plugins inactifs (leur nom)
 	# @param self l'objet courant
 	# @return la liste des noms des plugins inactifs
+	@SynchronizedMethod
 	def getPluginInactifListe(self):
 		res = []
 		actifs = self.listePluginActif.keys()
@@ -206,6 +230,7 @@ class PluginManager( object ):
 	# @param self l'objet courant
 	# @param nomPlugin le nom du plugin
 	# @return la liste des chaînes du plugin
+	@SynchronizedMethod
 	def getPluginListeChaines(self, nomPlugin=None):
 		if nomPlugin != None and not self.listePluginActif.has_key(nomPlugin):
 			return []
@@ -231,6 +256,7 @@ class PluginManager( object ):
 	# @param nomPlugin le nom du plugin
 	# @param chaine le nom de la chaîne
 	# @return la liste des émissions
+	@SynchronizedMethod
 	def getPluginListeEmissions(self, nomPlugin=None, chaine=None):
 		if nomPlugin != None and not self.listePluginActif.has_key(nomPlugin):
 			return []
@@ -266,6 +292,7 @@ class PluginManager( object ):
 	# @param nomPlugin le nom du plugin
 	# @param emission le nom de l'émission
 	# @return la liste des fichiers
+	@SynchronizedMethod
 	def getPluginListeFichiers(self, nomPlugin=None, emission=None):
 		if nomPlugin != None and not self.listePluginActif.has_key(nomPlugin):
 			return []
@@ -299,6 +326,7 @@ class PluginManager( object ):
 	# @param self l'objet courant
 	# @param nomPlugin le nom du plugin
 	# @return la liste des options
+	@SynchronizedMethod
 	def getPluginListeOptions(self, nomPlugin):
 		if not self.listePluginActif.has_key(nomPlugin):
 			return []
@@ -310,6 +338,7 @@ class PluginManager( object ):
 	# @param nomPlugin le nom du plugin
 	# @param nomOption le nom de l'option
 	# @return la valeur de l'option, None en cas d'échec
+	@SynchronizedMethod
 	def getPluginOption(self, nomPlugin, nomOption):
 		if nomPlugin != None and not self.listePluginActif.has_key(nomPlugin):
 			return None
@@ -329,6 +358,7 @@ class PluginManager( object ):
 	# @param nomPlugin le nom du plugin
 	# @param valeur la valeur de l'option
 	# @return Rien
+	@SynchronizedMethod
 	def setPluginOption(self, nomPlugin, nomOption, valeur):
 		if nomPlugin != None and not self.listePluginActif.has_key(nomPlugin):
 			return None
@@ -349,6 +379,7 @@ class PluginManager( object ):
 	# @param self l'objet courant
 	# @param nomPlugin le nom du plugin
 	# @return Rien
+	@SynchronizedMethod
 	def pluginRafraichir(self, nomPlugin):
 		try:
 			if self.listePluginActif.has_key(nomPlugin):
@@ -370,6 +401,7 @@ class PluginManager( object ):
 	# Doit être appelé obligatoirement après l'ajout des plugins.
 	# @param self l'objet courant
 	# @return Rien
+	@SynchronizedMethod
 	def pluginRafraichirAuto(self):
 		t = time.time()
 		for instance in self.listePlugin.values():
@@ -398,8 +430,9 @@ class PluginManager( object ):
 	#
 	# Doit être absolument appelé avant la fermeture.
 	# @param self l'objet courant
+	@SynchronizedMethod
 	def fermeture(self):
-		for instance in self.listePluginActif.values():
+		for instance in self.listePlugin.values():
 			if len(instance.pluginOptions) > 0:
 				try:
 					pref = {}
