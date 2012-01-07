@@ -76,6 +76,10 @@ class MainWindow(QtGui.QMainWindow):
 		rightAreaLayout.addWidget(self.fichierArea, 1, 0, 1, 2)
 		
 		###
+		self.connect(self.chaineArea, QtCore.SIGNAL('currentItemChanged(QListWidgetItem&)'),
+			self, QtCore.SLOT("selectChaine(QListWidgetItem&)"))
+		
+		###
 		self.pluginManager = PluginManager()
 		for name in self.pluginManager.getPluginListe():
 			plugin = self.pluginManager.getInstance(name)
@@ -98,8 +102,13 @@ class MainWindow(QtGui.QMainWindow):
 		else:
 			print "Le plugin "+name+"n'existe pas"
 	
-	def changeChaine(self):
-		pass
+	@QtCore.pyqtSlot("QListWidgetItem&")
+	def selectChaine(self, item):
+		print "ok"
+		name = item
+		if isinstance(name, QtGui.QListWidgetItem):
+			name = item.text()
+		print name
 		
 
 class AutoLoadImage(QtGui.QLabel):
