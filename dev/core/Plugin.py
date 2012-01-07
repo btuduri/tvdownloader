@@ -217,6 +217,7 @@ class Plugin(object):
 				file.close()
 				return tmp
 			except:
+				logger.error("Plugin.chargerCache(): Erreur de chargement")
 				return None
 		else:
 			return None

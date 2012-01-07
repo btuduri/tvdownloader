@@ -165,8 +165,9 @@ class PluginManager( object ):
 	@SynchronizedMethod
 	def ajouterPlugin(self, instance):
 		if not self.listePlugin.has_key(instance.nom):#FIXME Utiliser le nom de la classe
-#			self.listePluginActif[instance.nom] = instance
+			self.listePluginActif[instance.nom] = instance
 			self.listePlugin[instance.nom] = instance#FIXME Utiliser le nom de la classe
+			instance.chargerCache()
 	
 	## Spécifie la liste des instances des plugins.
 	# @param self l'objet courant
@@ -431,7 +432,7 @@ class PluginManager( object ):
 	# @param self l'objet courant
 	@SynchronizedMethod
 	def fermeture(self):
-		for instance in self.listePluginActif.values():
+		for instance in self.listePlugin.values():
 			if len(instance.pluginOptions) > 0:
 				try:
 					pref = {}

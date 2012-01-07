@@ -14,10 +14,14 @@ UI_RUN__NAME__ = "__tvdui__"
 LAUNCHER_ADDRESS = ('', 5096)
 LAUNCHER_AUTHKEY = "tvdkey"
 LOCK_FILE_PATH = tvdcore.REPERTOIRE_CONFIGURATION+"/LOCK"
+UNLOCK_ARG = "--unlock"
 
 flock = FileLock(tvdcore.REPERTOIRE_CONFIGURATION)
-#flock.break_lock()
-#sys.exit(0)
+
+if UNLOCK_ARG in sys.argv:
+	flock.break_lock()
+	sys.exit(0)
+
 def isLaunched():
 	return flock.is_locked()
 
@@ -107,9 +111,13 @@ if __name__ == "__main__" :
 		
 		manager.start()
 		
+		pluginMan = tvdcore.PluginManager()
+		pluginMan.pluginRafraichirAuto()
+		
 		import time
 		while launcher.hasActiveUI():
 			time.sleep(0.1)
 		manager.shutdown()
+		pluginMan.fermeture()
 		unlockLaunch()
 
