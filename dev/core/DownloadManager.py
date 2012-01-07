@@ -9,6 +9,7 @@ from FtpDownloader import *
 from MsdlDownloader import *
 from DownloadStatus import *
 
+#TODO Possibilité de récupérer les téléchargements en cours
 class DownloadManager(threading.Thread):
 	BUFFER_SIZE = 8000
 	
