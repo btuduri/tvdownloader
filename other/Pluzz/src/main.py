@@ -61,7 +61,7 @@ if( __name__ == "__main__" ) :
 		sys.exit( -1 )
 	
 	# Verification du proxy
-	if( options.proxy != None and re.match( "http://[^:]+?:\d+", options.proxy ) is None ):
+	if( options.proxy is not None and re.match( "http://[^:]+?:\d+", options.proxy ) is None ):
 		logger.error( "Le proxy \"%s\" n'est pas valide" %( options.proxy ) )
 		sys.exit( -1 )
 	

@@ -58,4 +58,4 @@ class Navigateur:
 				print erreur.reason
 			except :
 				pass
-			logger.warning( "Impossible de recuperer la page %s" %( url ) )
+			logger.warning( "Impossible de récupérer la page %s" %( url ) )

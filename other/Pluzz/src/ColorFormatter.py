@@ -9,7 +9,8 @@ import logging
 
 class ColorFormatter( logging.Formatter ):
 	
-	FORMAT    = ( "[%(levelname)-18s]  " "($BOLD%(filename)s$RESET:%(lineno)d)  " "%(message)s"  )
+	FORMAT    = ( "[%(levelname)-18s]  " "($BOLD%(filename)s$RESET)  " "%(message)s"  )
+	# FORMAT    = ( "[%(levelname)-18s]  " "($BOLD%(filename)s$RESET:%(lineno)d)  " "%(message)s"  )
 
 	BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
 

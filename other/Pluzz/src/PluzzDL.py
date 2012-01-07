@@ -25,38 +25,34 @@ class PluzzDL( object ):
 	
 	def __init__( self, url, useFragments, proxy ):
 		self.url          = url
+		self.useFragments = useFragments
 		self.proxy        = proxy
 		self.navigateur   = Navigateur( self.proxy )
-		self.useFragments = useFragments
 		
 		# Recupere l'ID de l'emission
 		self.id = self.getID()
-		logger.debug( "ID de l'emission = %s" %( self.id ) )
-		# Recupere la page d'info de l'emission
-		page = self.navigateur.getFichier( "http://www.pluzz.fr/appftv/webservices/video/getInfosOeuvre.php?mode=zeri&id-diffusion=%s" %( self.id ) )
-		# Tente de recuperer l'URL directe de la video
-		self.lienDirect = False
-		res             = re.findall( r"(mms://[^\]]+\.wmv)", page )
-		if( len( res ) > 0 ): # Lien direct
-			logger.info( "Lien direct vers la video : %s \n Utiliser par exemple mimms ou msdl pour la récuperer" %( res[ 0 ] ) )
-			self.lienDirect = True
-		else:
-			logger.debug( "Pas de lien direct vers la vidéo" )
-		if( not self.useFragments and self.lienDirect ):
-			sys.exit( 0 )
-		# Tente de recuperer l'URL du manifest
-		res = re.findall( r"(http://[^\]]+manifest\.f4m)", page )
-		if( len( res ) > 0 ): # Lien manifest
-			self.manifestURL = res[ 0 ]
-			logger.debug( "URL du manifest = %s" %( self.manifestURL ) )
-		else:
-			logger.critical( "Impossible de recuperer l'URL du manifest" )
+		# Recupere le lien direct et le lien du manifest
+		( self.lienDirect, self.manifestURL ) = self.getLiens()
+		# Lien direct trouve
+		if( self.lienDirect is not None ):
+				logger.info( "Lien direct de la vidéo : %s\nUtiliser par exemple mimms ou msdl pour la récupérer directement ou l'option -f de pluzzdl pour essayer de la charger via ses fragments" %( self.lienDirect ) )
+				if( not self.useFragments ):
+					sys.exit( 0 )
+		
+		#
+		# Utilisation du manifest
+		#
+		
+		# Lien du manifest non trouve
+		if( self.manifestURL is None ):
+			logger.critical( "Pas de lien vers le manifest" )
 			sys.exit( -1 )
+		
 		# Lien reduit du manifest
 		self.manifestURLReduite = self.manifestURL[ self.manifestURL.find( "/z/" ) : ]
 		# Recupere le manifest
 		self.manifest = self.getManifest()
-		logger.debug( "Manifest recupere" )
+		logger.debug( "Manifest récupéré" )
 		
 		#
 		# Extrait les infos du manifest
@@ -83,7 +79,7 @@ class PluzzDL( object ):
 			# Ouverture du fichier
 			self.fichierVideo = open( self.nomFichier, "wb" )
 		except :
-			logger.critical( "Impossible d'ecrire dans le repertoire %s" %( os.getcwd() ) )
+			logger.critical( "Impossible d'écrire dans le répertoire %s" %( os.getcwd() ) )
 			sys.exit( -1 )
 		# Ajout de l'en-tête FLV
 		self.fichierVideo.write( binascii.a2b_hex( "464c56010500000009000000001200010c00000000000000" ) )
@@ -108,10 +104,33 @@ class PluzzDL( object ):
 		try :
 			page = self.navigateur.getFichier( self.url )
 			res  = re.findall( r"http://info.francetelevisions.fr/\?id-video=([^\"]+)", page )[ 0 ]
+			logger.debug( "ID de l'émission = %s" %( res ) )
 		except :
-			logger.critical( "Impossible de recuperer l'ID de l'emission" )
+			logger.critical( "Impossible de récupérer l'ID de l'émission" )
 			sys.exit( -1 )
 		return res
+	
+	def getLiens( self ):
+		page = self.navigateur.getFichier( "http://www.pluzz.fr/appftv/webservices/video/getInfosOeuvre.php?mode=zeri&id-diffusion=%s" %( self.id ) )
+		# Lien direct
+		try :
+			lienDirect = re.findall( r"(mms://[^\]]+\.wmv)", page )[ 0 ]
+			logger.debug( "URL directe = %s" %( lienDirect ) )
+		except :
+			lienDirect = None
+			logger.debug( "Pas de lien direct vers la vidéo" )
+		# Lien du manifest	
+		try :
+			lienManifest = re.findall( r"(http://[^\]]+manifest\.f4m)", page )[ 0 ]
+			logger.debug( "URL manifest = %s" %( lienManifest ) )
+		except :
+			lienManifest = None
+			logger.debug( "Pas de lien vers le manifest" )
+		# Test
+		if( lienDirect is None and lienManifest is None ): # Aucun lien trouve
+			logger.critical( "Aucun lien disponible pour charger la vidéo" )
+			sys.exit( -1 )
+		return ( lienDirect, lienManifest )
 		
 	def getManifest( self ):
 		lien = self.navigateur.getFichier( "http://hdfauth.francetv.fr/esi/urltokengen2.html?url=%s" %( self.manifestURLReduite ) )
