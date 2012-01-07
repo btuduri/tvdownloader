@@ -34,17 +34,21 @@ class Navigateur:
 						'Opera/9.80 (X11; Linux x86_64; U; fr) Presto/2.2.15 Version/10.00',
 						'Mozilla/5.0 (Macintosh; U; PPC Mac OS X; en-us) AppleWebKit/312.1 (KHTML, like Gecko) Safari/312' ]
 	
-	def __init__( self ):
+	def __init__( self, proxy = None ):
+		self.proxy = proxy
 		
 		# Cookiejar + urlopener
 		self.cookiejar            = cookielib.CookieJar()
-		self.urlOpener            = urllib2.build_opener( urllib2.HTTPCookieProcessor( self.cookiejar ) )
+		if( proxy is None ):
+			self.urlOpener        = urllib2.build_opener( urllib2.HTTPCookieProcessor( self.cookiejar ) )
+		else:
+			self.urlOpener        = urllib2.build_opener( urllib2.HTTPCookieProcessor( self.cookiejar ), urllib2.ProxyHandler( { 'http' : self.proxy } ) )
 		# Spoof de l'user-agent
 		self.urlOpener.addheaders = [ ( 'User-agent', random.choice( self.listeUserAgents ) ) ]		
 
 	def getFichier( self, url ):
 		try:
-			logger.info( "GET %s" %( url ) )
+			logger.debug( "GET %s" %( url ) )
 			requete = urllib2.Request( url )
 			page    = self.urlOpener.open( requete, timeout = self.timeOut )
 			donnees = page.read()

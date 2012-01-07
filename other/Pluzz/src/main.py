@@ -7,7 +7,7 @@
 
 __author__  = "Chaoswizard"
 __license__ = "GPL 2"
-__version__ = "0.1"
+__version__ = "0.2"
 __url__     = "http://code.google.com/p/tvdownloader/"
 
 #
@@ -32,8 +32,10 @@ if( __name__ == "__main__" ) :
 	usage   = "usage: pluzzdl [options] <url de l'emission>"
 	version = "pluzzdl %s" %( __version__ )
 	parser  = optparse.OptionParser( usage = usage, version = version )
-	parser.add_option( "--nocolor",       action = 'store_true', default = False, help = 'desactive la couleur' )
-	parser.add_option( "-v", "--verbose", action = "store_true", default = False, help = 'affiche des informations supplementaires' )
+	parser.add_option( "--nocolor",         action = 'store_true', default = False, help = 'desactive la couleur dans le terminal' )
+	parser.add_option( "-v", "--verbose",   action = "store_true", default = False, help = 'affiche les informations de debugage' )
+	parser.add_option( "-f", "--fragments", action = "store_true", default = False, help = 'telecharge la video via ses fragments meme si un lien direct existe' )
+	parser.add_option( "-p", "--proxy", dest = "proxy", metavar = "PROXY",          help = 'utilise un proxy au format suivant http://URL:PORT' )
 	( options, args ) = parser.parse_args()
 	
 	# Verification du nombre d'arguments
@@ -48,8 +50,8 @@ if( __name__ == "__main__" ) :
 		logger.setLevel( logging.DEBUG )
 		console.setLevel( logging.DEBUG )
 	else:
-		logger.setLevel( logging.ERROR )
-		console.setLevel( logging.ERROR )
+		logger.setLevel( logging.INFO )
+		console.setLevel( logging.INFO )
 	console.setFormatter( ColorFormatter( not options.nocolor ) )
 	logger.addHandler( console )
 	
@@ -58,5 +60,10 @@ if( __name__ == "__main__" ) :
 		logger.error( "L'URL \"%s\" n'est pas valide" %( args[ 0 ] ) )
 		sys.exit( -1 )
 	
+	# Verification du proxy
+	if( options.proxy != None and re.match( "http://[^:]+?:\d+", options.proxy ) is None ):
+		logger.error( "Le proxy \"%s\" n'est pas valide" %( options.proxy ) )
+		sys.exit( -1 )
+	
 	# Telechargement de la video
-	PluzzDL( args[ 0 ] )
+	PluzzDL( args[ 0 ], options.fragments, options.proxy )
