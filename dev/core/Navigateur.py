@@ -187,7 +187,7 @@ class Navigateur( object ):
 	
 	## Methode pour recuperer une image
 	# @param  URLPicture URL de l'image a charger
-	# @return Image
+	# @return les données de l'image
 	def getPicture( self, URLPicture ):
 		logger.info( "acces a l'image %s" %( URLPicture ) )
 		try:

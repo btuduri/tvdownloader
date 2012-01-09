@@ -1,15 +1,20 @@
 # -*- coding:Utf-8 -*-
 
-from AbstractDownloaderFactory import *
-from HttpDownloader import *
-from FtpDownloader import *
-from MsdlDownloader import *
-from DownloaderInterface import *
+from Downloaders import *
+
+
+class AbstractDownloaderFactory :
+	def __init__(self) :
+		pass
+	def create (self, url) :
+		# returns DownloaderInterface
+		pass
+
 
 ## Fabrique concrète des DownloaderInterface
 class DownloaderFactory (AbstractDownloaderFactory) :
 	def __init__(self) :
-		pass
+		AbstractDownloaderFactory.__init__(self)
 	
 	## Crée un DownloaderInterface
 	# @param url l'url du fichier à télécharger

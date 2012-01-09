@@ -4,10 +4,7 @@ import thread,threading,traceback
 from util import SynchronizedMethod
 
 from DownloaderFactory import *
-from HttpDownloader import *
-from FtpDownloader import *
-from MsdlDownloader import *
-from DownloadStatus import *
+
 
 #TODO Possibilité de récupérer les téléchargements en cours
 class DownloadManager(threading.Thread):
@@ -154,4 +151,54 @@ class DownloadManager(threading.Thread):
 		self.cond_toDl.notifyAll()
 		self.mutex_toDl.release()
 		self.nextNumDownload = self.nextNumDownload+1
+
+
+## Interface des callbacks de DownloaderManager;
+#
+# Un DownloadCallback est informé de l'état d'un téléchargement (progression, cas d'erreur) par le downloadManager. Voir DownloadManager.download.
+class DownloadCallback :
+	def __init__(self) :
+		pass
+	
+	## Appelée lors d'un changement de l'état du téléchargement.
+	# @param downloadNum le numéro du téléchargement
+	# @param status le status du téléchargement (voir classe DownloadStatus)
+	def downloadStatus (self, downloadNum, status) :
+		# returns 
+		pass
+
+
+## Représente l'état d'un téléchargement
+class DownloadStatus :
+	QUEUED = 0
+	PAUSED = 1
+	DOWN = 2
+	STOPPED = 3
+	FAILED = 4
+	COMPLETED = 5
+	
+	## Constructeur
+	# @param p la progession du téléchargement en %
+	# @param s l'état dans lequel se trouve le téléchargement (QUEUED,PAUSED,DOWN,STOPPED,FAILED,COMPLETED)
+	# @param sz la taille en octet du fichier téléchargé
+	def __init__(self, p, s, sz=0):
+		self.progress = p
+		self.status = s
+		self.size = sz
+	
+	## Renvoie la progression du téléchargement en %
+	# @return un nombre entre 0 et 100 ou None si inconnue
+	def getProgression(self):
+		return self.progress
+	
+	## Renvoie la taille du fichier en cour de téléchargement.
+	# @return la taille en octet ou 0 si inconnue
+	def getSize(self):
+		return self.size
+	
+	## Renvoie l'état dans lequel se trouve le téléchargement.
+	# @return l'état parmis QUEUED,PAUSED,DOWN,STOPPED,FAILED,COMPLETED
+	def getStatus(self):
+		return self.status
+
 

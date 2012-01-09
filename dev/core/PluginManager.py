@@ -12,7 +12,6 @@ import os
 import sys
 
 from Plugin import Plugin
-from PluginStatus import PluginStatus
 
 import Constantes
 
@@ -443,4 +442,23 @@ class PluginManager( object ):
 					file.close()
 				except:
 					logger.error("Erreur de sauvegarde des préférences de"+instance.nom)
+
+class PluginCallback :
+	def __init__(self) :
+		pass
+		
+	def pluginStatus(self, pluginName, status):
+		pass
+
+class PluginStatus :
+	ENABLED = 0
+	DISABLED = 1
+	REFRESHING = 2
+	REFRESHED = 3
+	
+	def __init__(self, status):
+		self.status = status
+	
+	def getStatus(self):
+		return self.status
 

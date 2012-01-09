@@ -76,8 +76,11 @@ class MainWindow(QtGui.QMainWindow):
 		rightAreaLayout.addWidget(self.fichierArea, 1, 0, 1, 2)
 		
 		###
-		self.connect(self.chaineArea, QtCore.SIGNAL('currentItemChanged(QListWidgetItem&)'),
-			self, QtCore.SLOT("selectChaine(QListWidgetItem&)"))
+		#self.connect(self.chaineArea, QtCore.SIGNAL('currentItemChanged(QListWidgetItem&)'),
+		#	self, QtCore.SLOT("selectChaine(QListWidgetItem&)"))
+		QtCore.QObject.connect( self.chaineArea,
+		   QtCore.SIGNAL( "itemChanged(PyQt_PyObject)" ),
+		   self.selectChaine )
 		
 		###
 		self.pluginManager = PluginManager()
@@ -102,7 +105,6 @@ class MainWindow(QtGui.QMainWindow):
 		else:
 			print "Le plugin "+name+"n'existe pas"
 	
-	@QtCore.pyqtSlot("QListWidgetItem&")
 	def selectChaine(self, item):
 		print "ok"
 		name = item
