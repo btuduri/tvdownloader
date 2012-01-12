@@ -3,7 +3,7 @@
 
 # Notes :
 #    -> Filtre Wireshark : 
-#          http.host == "ftvodhdsecz2-f.akamaihd.net" or http.host == "hdfauth.francetv.fr" or http.host == "www.pluzz.fr"
+#          http.host == "ftvodhdsecz2-f.akamaihd.net" or http.host == "ftvodhdsecz-f.akamaihd.net" or http.host == "hdfauth.francetv.fr" or http.host == "www.pluzz.fr"
 #    -> 
 
 #
@@ -15,73 +15,55 @@ import binascii
 import os
 import re
 import sys
-import xml.etree.ElementTree as xml
+import xml.etree.ElementTree
+import xml.sax
+from   xml.sax.handler import ContentHandler
 
 from Navigateur import Navigateur
 
 import logging
 logger = logging.getLogger( "pluzzdl" )
 
-# ToDo :
-# - getLiens -> getInfos
-# - return -> variables de classe
-# - warning si presence de DRM
-
 #
-# Classe
+# Classes
 #
 
 class PluzzDL( object ):
 	
 	def __init__( self, url, useFragments, proxy ):
-		self.url          = url
-		self.useFragments = useFragments
-		self.proxy        = proxy
-		self.navigateur   = Navigateur( self.proxy )
+		self.url              = url
+		self.useFragments     = useFragments
+		self.proxy            = proxy
+		self.navigateur       = Navigateur( self.proxy )
+		
+		self.lienDirect       = None
+		self.manifestURL      = None
+		self.drm              = None
 		
 		# Recupere l'ID de l'emission
-		self.id = self.getID()
-		# Recupere le lien direct et le lien du manifest
-		( self.lienDirect, self.manifestURL ) = self.getLiens()
+		self.getID()
+		# Recupere la page d'infos de l'emission
+		self.pageInfos = self.navigateur.getFichier( "http://www.pluzz.fr/appftv/webservices/video/getInfosOeuvre.php?mode=zeri&id-diffusion=%s" %( self.id ) )
+		# Parse la page d'infos
+		self.parseInfos()
+		# Petit message en cas de DRM
+		if( self.drm == "oui" ):
+			logger.warning( "La vidéo posséde un DRM ; elle sera sans doute illisible" )
 		# Lien direct trouve
 		if( self.lienDirect is not None ):
-				logger.info( "Lien direct de la vidéo : %s\nUtiliser par exemple mimms ou msdl pour la récupérer directement ou l'option -f de pluzzdl pour essayer de la charger via ses fragments" %( self.lienDirect ) )
+				logger.info( "Lien direct de la video : %s\nUtiliser par exemple mimms ou msdl pour la recuperer directement ou l'option -f de pluzzdl pour essayer de la charger via ses fragments" %( self.lienDirect ) )
 				if( not self.useFragments ):
 					sys.exit( 0 )
-		
-		#
-		# Utilisation du manifest
-		#
-		
 		# Lien du manifest non trouve
 		if( self.manifestURL is None ):
 			logger.critical( "Pas de lien vers le manifest" )
 			sys.exit( -1 )
-		
-		# Lien reduit du manifest
-		self.manifestURLReduite = self.manifestURL[ self.manifestURL.find( "/z/" ) : ]
+		# Lien du manifest (apres le token)
+		self.manifestURLToken = self.navigateur.getFichier( "http://hdfauth.francetv.fr/esi/urltokengen2.html?url=%s" %( self.manifestURL[ self.manifestURL.find( "/z/" ) : ] ) )
 		# Recupere le manifest
-		self.manifest = self.getManifest()
-		logger.debug( "Manifest récupéré" )
-		
-		#
-		# Extrait les infos du manifest
-		#
-		try :
-			arbre  = xml.fromstring( self.manifest )
-			# URL des fragments
-			media        = arbre.findall( "{http://ns.adobe.com/f4m/1.0}media" )[ -1 ]
-			urlbootstrap = media.attrib[ "url" ]
-			self.urlFrag = "%s%sSeg1-Frag" %( self.manifestURL[ : -12 ], urlbootstrap )
-			self.urlFrag = self.urlFrag.replace( "ftvodhdsecz-f", "ftvodhdsecz2-f" )
-			# Header du fichier final
-			self.flvHeader = base64.b64decode( media.find( "{http://ns.adobe.com/f4m/1.0}metadata" ).text )
-			# Fin
-			logger.debug( "Fin d'extraction des informations du manifest" )
-		except :
-			logger.critical( "Erreur lors du parsing du manifest" )
-			sys.exit( -1 )
-		
+		self.manifest = self.navigateur.getFichier( self.manifestURLToken )
+		# Parse le manifest
+		self.parseManifest()
 		#
 		# Creation de la video
 		#
@@ -113,36 +95,61 @@ class PluzzDL( object ):
 		
 	def getID( self ):
 		try :
-			page = self.navigateur.getFichier( self.url )
-			res  = re.findall( r"http://info.francetelevisions.fr/\?id-video=([^\"]+)", page )[ 0 ]
-			logger.debug( "ID de l'émission : %s" %( res ) )
+			page     = self.navigateur.getFichier( self.url )
+			self.id  = re.findall( r"http://info.francetelevisions.fr/\?id-video=([^\"]+)", page )[ 0 ]
+			logger.debug( "ID de l'émission : %s" %( self.id ) )
 		except :
 			logger.critical( "Impossible de récupérer l'ID de l'émission" )
 			sys.exit( -1 )
-		return res
-	
-	def getLiens( self ):
-		page = self.navigateur.getFichier( "http://www.pluzz.fr/appftv/webservices/video/getInfosOeuvre.php?mode=zeri&id-diffusion=%s" %( self.id ) )
-		# Lien direct
-		try :
-			lienDirect = re.findall( r"(mms://[^\]]+\.wmv)", page )[ 0 ]
-			logger.debug( "URL directe : %s" %( lienDirect ) )
-		except :
-			lienDirect = None
-			logger.debug( "Pas de lien direct vers la vidéo" )
-		# Lien du manifest	
-		try :
-			lienManifest = re.findall( r"(http://[^\]]+manifest\.f4m)", page )[ 0 ]
-			logger.debug( "URL manifest : %s" %( lienManifest ) )
-		except :
-			lienManifest = None
-			logger.debug( "Pas de lien vers le manifest" )
-		# Test
-		if( lienDirect is None and lienManifest is None ): # Aucun lien trouve
-			logger.critical( "Aucun lien disponible pour charger la vidéo" )
-			sys.exit( -1 )
-		return ( lienDirect, lienManifest )
 		
-	def getManifest( self ):
-		lien = self.navigateur.getFichier( "http://hdfauth.francetv.fr/esi/urltokengen2.html?url=%s" %( self.manifestURLReduite ) )
-		return self.navigateur.getFichier( lien )
+	def parseInfos( self ):
+		try : 
+			xml.sax.parseString( self.pageInfos, PluzzDLInfosHandler( self ) )
+			logger.debug( "URL directe : %s" %( self.lienDirect ) )
+			logger.debug( "URL manifest : %s" %( self.manifestURL ) )
+			logger.debug( "Utilisation de DRM : %s" %( self.drm ) )
+		except :
+			logger.critical( "Impossible de parser le fichier XML de l'émission" )
+			sys.exit( -1 )
+	
+	def parseManifest( self ):
+		try :
+			arbre  = xml.etree.ElementTree.fromstring( self.manifest )
+			# URL des fragments
+			media        = arbre.findall( "{http://ns.adobe.com/f4m/1.0}media" )[ -1 ]
+			urlbootstrap = media.attrib[ "url" ]
+			self.urlFrag = "%s%sSeg1-Frag" %( self.manifestURLToken[ : self.manifestURLToken.find( "manifest.f4m" ) ], urlbootstrap )
+			# Header du fichier final
+			self.flvHeader = base64.b64decode( media.find( "{http://ns.adobe.com/f4m/1.0}metadata" ).text )
+		except :
+			logger.critical( "Impossible de parser le manifest" )
+			sys.exit( -1 )	
+		
+class PluzzDLInfosHandler( ContentHandler ):
+	
+	def __init__( self, pluzzdl ):
+		self.pluzzdl = pluzzdl
+		
+		self.isUrl = False
+		self.isDRM = False
+		
+	def startElement( self, name, attrs ):
+		if( name == "url" ):
+			self.isUrl = True
+		elif( name == "drm" ):
+			self.isDRM = True
+	
+	def characters( self, data ):
+		if( self.isUrl ):
+			if( data[ : 3 ] == "mms" ):
+				self.pluzzdl.lienDirect = data
+			elif( data[ -3 : ] == "f4m" ):
+				self.pluzzdl.manifestURL = data
+		elif( self.isDRM ):
+			self.pluzzdl.drm = data
+			
+	def endElement( self, name ):
+		if( name == "url" ):
+			self.isUrl = False
+		elif( name == "drm" ):
+			self.isDRM = False
