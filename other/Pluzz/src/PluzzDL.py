@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 # -*- coding:Utf-8 -*-
 
+# Notes :
+#    -> Filtre Wireshark : 
+#          http.host == "ftvodhdsecz2-f.akamaihd.net" or http.host == "hdfauth.francetv.fr" or http.host == "www.pluzz.fr"
+#    -> 
+
 #
 # Modules
 #
@@ -16,6 +21,11 @@ from Navigateur import Navigateur
 
 import logging
 logger = logging.getLogger( "pluzzdl" )
+
+# ToDo :
+# - getLiens -> getInfos
+# - return -> variables de classe
+# - warning si presence de DRM
 
 #
 # Classe
@@ -63,6 +73,7 @@ class PluzzDL( object ):
 			media        = arbre.findall( "{http://ns.adobe.com/f4m/1.0}media" )[ -1 ]
 			urlbootstrap = media.attrib[ "url" ]
 			self.urlFrag = "%s%sSeg1-Frag" %( self.manifestURL[ : -12 ], urlbootstrap )
+			self.urlFrag = self.urlFrag.replace( "ftvodhdsecz-f", "ftvodhdsecz2-f" )
 			# Header du fichier final
 			self.flvHeader = base64.b64decode( media.find( "{http://ns.adobe.com/f4m/1.0}metadata" ).text )
 			# Fin
@@ -104,7 +115,7 @@ class PluzzDL( object ):
 		try :
 			page = self.navigateur.getFichier( self.url )
 			res  = re.findall( r"http://info.francetelevisions.fr/\?id-video=([^\"]+)", page )[ 0 ]
-			logger.debug( "ID de l'émission = %s" %( res ) )
+			logger.debug( "ID de l'émission : %s" %( res ) )
 		except :
 			logger.critical( "Impossible de récupérer l'ID de l'émission" )
 			sys.exit( -1 )
@@ -115,14 +126,14 @@ class PluzzDL( object ):
 		# Lien direct
 		try :
 			lienDirect = re.findall( r"(mms://[^\]]+\.wmv)", page )[ 0 ]
-			logger.debug( "URL directe = %s" %( lienDirect ) )
+			logger.debug( "URL directe : %s" %( lienDirect ) )
 		except :
 			lienDirect = None
 			logger.debug( "Pas de lien direct vers la vidéo" )
 		# Lien du manifest	
 		try :
 			lienManifest = re.findall( r"(http://[^\]]+manifest\.f4m)", page )[ 0 ]
-			logger.debug( "URL manifest = %s" %( lienManifest ) )
+			logger.debug( "URL manifest : %s" %( lienManifest ) )
 		except :
 			lienManifest = None
 			logger.debug( "Pas de lien vers le manifest" )

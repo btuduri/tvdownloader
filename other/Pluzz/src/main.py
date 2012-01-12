@@ -7,7 +7,7 @@
 
 __author__  = "Chaoswizard"
 __license__ = "GPL 2"
-__version__ = "0.2"
+__version__ = "0.3"
 __url__     = "http://code.google.com/p/tvdownloader/"
 
 #
@@ -35,7 +35,7 @@ if( __name__ == "__main__" ) :
 	parser.add_option( "--nocolor",         action = 'store_true', default = False, help = 'desactive la couleur dans le terminal' )
 	parser.add_option( "-v", "--verbose",   action = "store_true", default = False, help = 'affiche les informations de debugage' )
 	parser.add_option( "-f", "--fragments", action = "store_true", default = False, help = 'telecharge la video via ses fragments meme si un lien direct existe' )
-	parser.add_option( "-p", "--proxy", dest = "proxy", metavar = "PROXY",          help = 'utilise un proxy au format suivant http://URL:PORT' )
+	parser.add_option( "-p", "--proxy", dest = "proxy", metavar = "PROXY",          help = 'utilise un proxy HTTP au format suivant http://URL:PORT' )
 	( options, args ) = parser.parse_args()
 	
 	# Verification du nombre d'arguments
