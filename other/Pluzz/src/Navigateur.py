@@ -53,9 +53,9 @@ class Navigateur:
 			page    = self.urlOpener.open( requete, timeout = self.timeOut )
 			donnees = page.read()
 			return donnees
-		except urllib2.URLError, erreur:
-			try:
-				print erreur.reason
-			except :
-				pass
-			logger.warning( "Impossible de récupérer la page %s" %( url ) )
+		except urllib2.URLError, e :
+			if( hasattr( e, 'reason' ) ):
+				logger.debug( e.reason )
+			elif( hasattr( e, 'code' ) ):
+				logger.debug( "Erreur %d" %( e.code ) )
+			raise

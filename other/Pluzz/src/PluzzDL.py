@@ -15,6 +15,7 @@ import binascii
 import os
 import re
 import sys
+import urllib2
 import xml.etree.ElementTree
 import xml.sax
 from   xml.sax.handler import ContentHandler
@@ -87,8 +88,12 @@ class PluzzDL( object ):
 			for i in xrange( 2, 99999 ):
 				frag = self.navigateur.getFichier( "%s%d" %( self.urlFrag, i ) )
 				self.fichierVideo.write( frag[ frag.find( "mdat" ) + 79 : ] )
-		except :
-			pass
+		except urllib2.URLError, e :
+			if( hasattr( e, 'code' ) ):
+				if( e.code == 403 ):
+					logger.critical( "Impossible de charger la vidéo" )
+				elif( e.code == 404 ):
+					logger.info( "Fin du téléchargement" )
 		else :
 			# Fermeture du fichier
 			self.fichierVideo.close()
