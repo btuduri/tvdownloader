@@ -16,6 +16,7 @@
 import os,os.path,pickle
 from core import *
 
+
 ##########
 # Classe #
 ##########
@@ -26,7 +27,7 @@ from core import *
 # La méthode #listerOptions est optionnellement à redéfinir (dans le cas où il y aurai des options).
 class Plugin(object):
 	
-	NAVIGATEUR = None
+	NAVIGATEUR = Navigateur()
 	
 	## @var nom
 	# Nom du plugin
@@ -289,7 +290,4 @@ class Plugin(object):
 		#FIXME Navigateur (téléchargement full threadé) vraiment efficace ?
 		reponses = Plugin.NAVIGATEUR.getPages( urls )
 		return reponses
-
-Plugin.NAVIGATEUR = Navigateur()
-
 
