@@ -21,7 +21,7 @@ import xml.sax
 from xml.sax.handler import ContentHandler
 
 # Modules de TVD
-from core import Fichier, Plugin
+from tvdcore import Fichier, Plugin
 
 # Logger de TVD
 import logging

@@ -8,7 +8,9 @@
 import os.path
 import time
 
-import core.util as lib
+import tvdcore.util as lib
+import tvdcore.util.html
+import tvdcore.util.fichierDossier
 
 import logging
 logger = logging.getLogger( __name__ )
@@ -28,15 +30,15 @@ class Fichier(object):
 	# @param urlImage         URL de l'image a afficher
 	# @param descriptif       Texte descriptif a afficher
 	def __init__( self, nom, date = int( time.time() ), lien = "", nomFichierSortie = "", urlImage = "", descriptif = "" ):
-		self.nom              = lib.html.supprimeBalisesHTML( nom )
+		self.nom              = tvdcore.util.html.supprimeBalisesHTML( nom )
 		self.date             = date
 		self.lien             = lien
 		if( nomFichierSortie == "" ):
-			self.nomFichierSortie = lib.fichierDossier.chaineToNomFichier( os.path.basename( self.lien ) )
+			self.nomFichierSortie = tvdcore.util.fichierDossier.chaineToNomFichier( os.path.basename( self.lien ) )
 		else:
-			self.nomFichierSortie = lib.fichierDossier.chaineToNomFichier( nomFichierSortie )
+			self.nomFichierSortie = tvdcore.util.fichierDossier.chaineToNomFichier( nomFichierSortie )
 		self.urlImage         = urlImage
-		self.descriptif       = lib.html.supprimeBalisesHTML( descriptif )
+		self.descriptif       = tvdcore.util.html.supprimeBalisesHTML( descriptif )
 	
 	## Surcharge de la methode ==
 	# @param autre L'autre Fichier a comparer

@@ -4,7 +4,7 @@
 from PyQt4 import QtGui, QtCore, Qt
 import sys
 
-from core import *
+from tvdcore import *
 from urlparse import urlparse
 import os.path
 
@@ -75,42 +75,74 @@ class MainWindow(QtGui.QMainWindow):
 		self.fichierArea = QtGui.QListWidget()
 		rightAreaLayout.addWidget(self.fichierArea, 1, 0, 1, 2)
 		
-		###
-		#self.connect(self.chaineArea, QtCore.SIGNAL('currentItemChanged(QListWidgetItem&)'),
-		#	self, QtCore.SLOT("selectChaine(QListWidgetItem&)"))
-		QtCore.QObject.connect( self.chaineArea,
-		   QtCore.SIGNAL( "itemChanged(PyQt_PyObject)" ),
-		   self.selectChaine )
+		QtCore.QObject.connect(self.chaineArea,
+			QtCore.SIGNAL( "currentItemChanged(QListWidgetItem*,QListWidgetItem*)" ),
+			self.selectChannel
+		)
+		QtCore.QObject.connect(self.emissionArea,
+			QtCore.SIGNAL( "currentItemChanged(QListWidgetItem*,QListWidgetItem*)" ),
+			self.selectShow
+		)
 		
 		###
 		self.pluginManager = PluginManager()
 		for name in self.pluginManager.getPluginListe():
 			plugin = self.pluginManager.getInstance(name)
 			self.pluginArea.layout().addWidget(AutoLoadImage(plugin.logo, None, 100))
+		self.currentPlugin = None
+		self.currentChannel = None
+		self.currentShow = None
 	
 	def selectPlugin(self, name):
 		plugin = self.pluginManager.getInstance(name)
-		if plugin != None:
-			#On efface les anciens
-			while self.chaineArea.count() > 0:
-				self.chaineArea.removeItemWidget(self.chaineArea.item(0))
-			while self.emissionArea.count() > 0:
-				self.emissionArea.removeItemWidget(self.emissionArea.item(0))
-			while self.fichierArea.count() > 0:
-				self.fichierArea.removeItemWidget(self.fichierArea.item(0))
-			
-			#Ajout des chaînes
-			for chaine in self.pluginManager.getPluginListeChaines(name):
-				self.chaineArea.addItem(chaine)
-		else:
+		if plugin == None:
 			print "Le plugin "+name+"n'existe pas"
-	
-	def selectChaine(self, item):
-		print "ok"
-		name = item
+			return
 		if isinstance(name, QtGui.QListWidgetItem):
-			name = item.text()
-		print name
+			self.currentPlugin = str(name.text())
+		else:
+			self.currentPlugin = name
+		#On efface les anciens
+		self.currentChannel = None
+		while self.chaineArea.count() > 0:
+			self.chaineArea.takeItem(0)
+		self.currentShow = None
+		while self.emissionArea.count() > 0:
+			self.emissionArea.takeItem(0)
+		while self.fichierArea.count() > 0:
+			self.fichierArea.takeItem(0)
+		#Ajout des chaînes
+		for chaine in self.pluginManager.getPluginListeChaines(name):
+			self.chaineArea.addItem(chaine)
+	
+	def selectChannel(self, name):
+		if isinstance(name, QtGui.QListWidgetItem):
+			self.currentChannel = str(name.text())
+		else:
+			self.currentChannel = name
+		#On efface les anciens
+		self.currentShow = None
+		while self.emissionArea.count() > 0:
+			self.emissionArea.takeItem(0)
+		while self.fichierArea.count() > 0:
+			self.fichierArea.takeItem(0)
+		#Ajout des emissions
+		for emission in self.pluginManager.getPluginListeEmissions(self.currentPlugin, self.currentChannel):
+			self.emissionArea.addItem(emission)
+	
+	def selectShow(self, name):
+		if isinstance(name, QtGui.QListWidgetItem):
+			self.currentShow = str(name.text())
+		else:
+			self.currentShow = name
+		#On efface les anciens
+		while self.fichierArea.count() > 0:
+			self.fichierArea.takeItem(0)
+		#Ajout des fichiers
+		print "ok"
+		for fichier in self.pluginManager.getPluginListeFichiers(self.currentPlugin, self.currentShow):
+			print fichier
+			self.fichierArea.addItem(str(fichier))
 		
 
 class AutoLoadImage(QtGui.QLabel):

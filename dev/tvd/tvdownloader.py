@@ -6,7 +6,7 @@ import threading
 import runpy
 import os.path
 from multiprocessing.managers import BaseManager
-import core as tvdcore
+import tvdcore
 from lockfile import FileLock
 
 UI_ARG = "--ui"

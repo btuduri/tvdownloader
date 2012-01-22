@@ -15,7 +15,7 @@ import logging
 logger = logging.getLogger( __name__ )
 
 import threading
-from core.util import SynchronizedMethod
+from tvdcore.util import SynchronizedMethod
 
 ##########
 # Classe #

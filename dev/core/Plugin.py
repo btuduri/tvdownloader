@@ -14,7 +14,7 @@
 ###########
 
 import os,os.path,pickle
-from core import *
+from tvdcore import *
 
 
 ##########

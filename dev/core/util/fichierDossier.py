@@ -29,7 +29,7 @@ def verifieRepertoire( chemin ):
 ## Transforme une chaine de caracteres en chemin de fichier
 # @param chaine Chaine de caracteres a traiter
 # @return       Chaine de caracteres utilisable comme nom de fichier
-def chaineToNomFichier( self, chaine ):
+def chaineToNomFichier( chaine ):
 	if( isinstance( chaine, str ) ):
 		chaine = unicode( chaine, "utf8" )
 	# Supprime les accents
