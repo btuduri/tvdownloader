@@ -1,0 +1,12 @@
+Source: tvdownloader
+Section: net
+Priority: extra
+Maintainer: Chaoswizard <chaoswizard@gmail.com>
+Build-Depends: debhelper (>= 7), bash, python, python-qt4 (>=4.7)
+Standards-Version: 3.8.3
+Homepage: http://code.google.com/p/tvdownloader/
+
+Package: tvdownloader
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, bash, python, python-qt4 (>=4.7), python-crypto, python-mechanize, rtmpdump (>=2.3), msdl
+Description: TVDownloader est un programme sous licence GPL qui permet d'enregistrer sur son ordinateur les podcasts des plus grandes radios françaises ainsi que les emissions de télévision des grandes chaines nationales.

@@ -1,0 +1,8 @@
+/usr/lib/pythonX.X
+..+tvdcore -> module core
+/usr/share/tvdownloader
+..+tvdownloader.py -> entrée du programme
+..+plugins -> dossier des plugins (pas sous forme d'un module)
+..+uis -> dossier des UIs (pas sous forme d'un module)
+....+qt -> UI Qt (sous forme d'une application indépendente qui utilise la lib)
+......+main.py -> entrée de l'UI Qt
