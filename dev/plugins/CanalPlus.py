@@ -34,7 +34,7 @@ class CanalPlus( tvdcore.Plugin ):
 			self.listeProgrammes = self.chargerCache()
 		
 	def rafraichir( self ):
-		logger.info( "récupération de la liste des chaines et des émissions" )
+		logger.debug( "récupération de la liste des chaines et des émissions" )
 		# Remet a zero la liste des programmes
 		self.listeProgrammes.clear()
 		# Recupere la page qui contient les infos
@@ -49,7 +49,7 @@ class CanalPlus( tvdcore.Plugin ):
 			return
 		# Sauvegarde la liste dans le cache
 		self.sauvegarderCache( self.listeProgrammes )
-		logger.info( "liste des programmes sauvegardée" )
+		logger.debug( "liste des programmes sauvegardée" )
 		
 	def listerChaines( self ):
 		for chaine in self.listeProgrammes.keys():
@@ -61,7 +61,7 @@ class CanalPlus( tvdcore.Plugin ):
 			for emission in self.listeProgrammes[ chaine ].keys():
 				self.ajouterEmission( chaine, emission )
 		else:
-			logger.debug( 'chaine "%s" introuvable' %( chaine ) )
+			logger.warning( 'chaine "%s" introuvable' %( chaine ) )
 				
 	def listerFichiers( self, emission ):
 		if( self.listeProgrammes.has_key( self.derniereChaine ) ):
@@ -109,7 +109,7 @@ class CanalPlus( tvdcore.Plugin ):
 						basename, extension = os.path.splitext( lienLD )
 						self.ajouterFichier( emission, tvdcore.Fichier( "[LD]" + nom, dateBonFormat, lienLD, nom + extension, urlImage, descriptif ) )
 			else:
-				logger.debug( 'emission "%s" introuvable pour la chaine "%s"' %( emission, self.derniereChaine ) )
+				logger.warning( 'emission "%s" introuvable pour la chaine "%s"' %( emission, self.derniereChaine ) )
 					
 #
 # Parsers XML pour Canal+
