@@ -5,7 +5,7 @@
 # Décorateur #
 ##############
 
-import logging
+import logging,threading
 logger = logging.getLogger( "TVDownloader" )
 
 ## Décorateur qui permet d'assurer la synchronisation des méthodes, une
@@ -14,7 +14,7 @@ logger = logging.getLogger( "TVDownloader" )
 # threading.RLock. Ne peut décorer les méthodes __new__ ou __init__.
 def SynchronizedMethod(meth):
 	def local(self, *arg):
-		if hasattr(self, "LOCK"):
+		if hasattr(self, "RLOCK"):
 			self.RLOCK.acquire()
 			res = meth(self, *arg)
 			self.RLOCK.release()
@@ -23,3 +23,32 @@ def SynchronizedMethod(meth):
 			res = meth(self, *arg)
 		return res
 	return local
+
+## Classe permettant la gestion d'un groupe de callback en gérant ajout,
+# suppression et appel aux membres de ce groupe.
+class CallbackGroup(object):
+	
+	## Constructeur
+	# @param methode le nom de la méthode à appeler sur
+	# les callbacks
+	def __init__(self, methode):
+		self.callbacks = []
+		self.methode = methode
+		self.RLOCK = threading.RLock()
+	
+	## Ajoute un callback à ce groupe.
+	# @param callback le callback
+	def add(self, callback):
+		self.callbacks.append(callback)
+	
+	## Enlève un callback à ce groupe.
+	# @param callback le callback
+	def remove(self, callback):
+		self.callbacks.remove(callback)
+	
+	## Appel les callbacks.
+	# @param args arguments à passer au callback
+	# @param kwargs arguments (keyword args) à passer au callback
+	def __call__(self, *args, **kwargs):
+		for cback in self.callbacks:
+			getattr(cback, self.methode)(*args, **kwargs)

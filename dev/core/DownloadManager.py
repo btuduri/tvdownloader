@@ -1,13 +1,11 @@
 # -*- coding:Utf-8 -*-
 
 import thread,threading,traceback
-from util import SynchronizedMethod
+from util import SynchronizedMethod,CallbackGroup
 
 from DownloaderFactory import *
 
 #TODO Utiliser une structure de données dans le tableau de téléchargements
-#TODO Gérer les callbacks de manière globale plutôt que par téléchargement (le garder en option ?)
-#FIXME Gérer le nom du téléchargement (pas le nom du fichier de sortie)
 class DownloadManager(threading.Thread):
 	BUFFER_SIZE = 8000
 	
@@ -41,6 +39,16 @@ class DownloadManager(threading.Thread):
 		self.stopped = True
 		if start:
 			self.start()
+		
+		self.callbackGroup = CallbackGroup("downloadStatus")
+	
+	@SynchronizedMethod
+	def addDownloadCallback(self, callback):
+		self.callbackGroup.add(callback)
+	
+	@SynchronizedMethod
+	def removeDownloadCallback(self, callback):
+		self.callbackGroup.remove(callback)
 	
 	@SynchronizedMethod
 	def start(self):
@@ -52,7 +60,7 @@ class DownloadManager(threading.Thread):
 		self.mutex_toDl.acquire()
 		self.stopped = True
 		for dlParam in self.toDl:
-			dlParam[2].downloadStatus(
+			self.callbackGroup(
 				DownloadStatus(dlParam[3], DownloadStatus.STOPPED, dlParam[1])
 			)
 		self.toDl = []
@@ -65,7 +73,7 @@ class DownloadManager(threading.Thread):
 		found = False
 		for dlParam in self.toDl:
 			if dlParam[3] == num:
-				dlParam[2].downloadStatus(
+				self.callbackGroup(
 					DownloadStatus(dlParam[3], DownloadStatus.STOPPED, dlParam[1])
 				)
 				found = True
@@ -94,7 +102,7 @@ class DownloadManager(threading.Thread):
 				if len(self.stpDl) > 0:
 					for dlParam in self.toDl:
 						if dlParam[3] in self.stpDl:
-							dlParam[2].downloadStatus(
+							self.callbackGroup(
 								DownloadStatus(dlParam[3], DownloadStatus.STOPPED, dlParam[1], 0)
 							)
 					self.stpDl = []
@@ -110,7 +118,7 @@ class DownloadManager(threading.Thread):
 			print "Téléchargement de "+dlParam[0]+"..."
 			dler = self.getDownloader(dlParam[0])
 			if dler == None:
-				dlParam[2].downloadStatus(
+				self.callbackGroup(
 					DownloadStatus(dlParam[3], DownloadStatus.FAILED, dlParam[1], 0)
 				)
 				continue
@@ -121,12 +129,12 @@ class DownloadManager(threading.Thread):
 					dled = len(carac)
 					while len(carac) > 0:
 						if dlParam[3] in self.stpDl:
-							dlParam[2].downloadStatus(
+							self.callbackGroup(
 								DownloadStatus(dlParam[3], DownloadStatus.STOPPED, dlParam[1], dled, dler.getSize())
 							)
 							break
 						if self.stopped:
-							dlParam[2].downloadStatus(
+							self.callbackGroup(
 								DownloadStatus(dlParam[3], DownloadStatus.STOPPED, dlParam[1], dled, dler.getSize())
 							)
 							print "Arrêt!"
@@ -135,23 +143,23 @@ class DownloadManager(threading.Thread):
 						carac = dler.read(DownloadManager.BUFFER_SIZE)
 						dled = dled+len(carac)
 						
-						dlParam[2].downloadStatus(
+						self.callbackGroup(
 							DownloadStatus(dlParam[3], DownloadStatus.DOWN, dlParam[1], dled, dler.getSize())
 						)
 					outfile.close()
 					dler.stop()
 					if not(self.stopped) and not(dlParam[3] in self.stpDl):
-						dlParam[2].downloadStatus(
+						self.callbackGroup(
 							DownloadStatus(dlParam[3], DownloadStatus.COMPLETED, dlParam[1], dled, dler.getSize())
 						)
 				else:
 					print "Echec de téléchargement !"
-					dlParam[2].downloadStatus(
+					self.callbackGroup(
 						DownloadStatus(dlParam[3], DownloadStatus.FAILED, dlParam[1], 0)
 					)
 			except BaseException as e:
 				print "Erreur de téléchargement !"
-				dlParam[2].downloadStatus(
+				self.callbackGroup(
 					DownloadStatus(dlParam[3], DownloadStatus.FAILED, dlParam[1], 0)
 				)
 				traceback.print_exc(e)
@@ -162,22 +170,22 @@ class DownloadManager(threading.Thread):
 		return self.dlFactory.create(url)
 	
 	## Lance ou met en attente un téléchargement.
+	# @param name le nom du téléchargement (pour l'affichage)
 	# @param url l'url du fichier distant
 	# @param outfile le chemin du fichier de sauvegarde
-	# @param callback le DownloadCallback à tenir informé de l'état du téléchargement
 	# @return le numéro du téléchargement
 	@SynchronizedMethod
-	def download (self, name, url, outFile, callback) :
+	def download (self, name, url, outFile) :
 		if self.mutex_toDl.locked():
 			print "down: Mutex verrouillé, attention au dead lock !"
 		self.mutex_toDl.acquire()
-		self.toDl.append([url, outFile, callback, self.nextNumDownload, outFile])
+		self.toDl.append([url, outFile, None, self.nextNumDownload, outFile])
 		self.cond_toDl.notifyAll()
 		self.mutex_toDl.release()
 		self.nextNumDownload = self.nextNumDownload+1
 		#Appel au callback reporté pour appeler le callback après le return
 		threading.Timer(0.01,
-			callback.downloadStatus,
+			self.callbackGroup,
 			(DownloadStatus(self.nextNumDownload, DownloadStatus.QUEUED, outFile, 0),)
 		).start()
 		#callback.downloadStatus(self.nextNumDownload, DownloadStatus(0, DownloadStatus.QUEUED, outFile))
