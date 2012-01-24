@@ -169,7 +169,7 @@ class QFileTableWidget( QtGui.QTableWidget ):
 		self.insertRow(newRow)
 		print fichier
 		print fichier.nom
-		self.setItem(newRow, 0, QtGui.QTableWidgetItem(fichier.date))
+		self.setItem(newRow, 0, QtGui.QTableWidgetItem(fichier.date.isoformat()))
 		self.setItem(newRow, 1, QtGui.QTableWidgetItem(fichier.nom))
 
 class AutoLoadImage(QtGui.QLabel):

@@ -9,121 +9,114 @@ import datetime
 import os.path
 import re
 import xml.sax
-from xml.sax.handler import ContentHandler
 
-from tvdcore import Fichier, Plugin
+import tvdcore
 
 import logging
 logger = logging.getLogger( "TVDownloader" )
 
 #
-# Classes
+# Classe
 #
 
-class CanalPlus( Plugin ):
+class CanalPlus( tvdcore.Plugin ):
 	
 	urlFichierXMLListeProgrammes = "http://www.canalplus.fr/rest/bootstrap.php?/bigplayer/initPlayer"
 	urlFichierXMLEmissions       = "http://www.canalplus.fr/rest/bootstrap.php?/bigplayer/getMEAs/"
 	urlFichierXMLFichiers        = "http://www.canalplus.fr/rest/bootstrap.php?/bigplayer/getVideos/"
 	
 	def __init__( self ):
-		Plugin.__init__( self, "Canal+", "http://www.canalplus.fr/", 7, "CanalPlus.jpg" )
-		
+		tvdcore.Plugin.__init__( self, "Canal+", "http://www.canalplus.fr/", 7, "CanalPlus.jpg" )
 		self.listeProgrammes          = {} # { Nom chaine : { Nom emission : ID emission } }
 		self.derniereChaine           = ""
-		
-		if os.path.exists( self.fichierCache ):
+		# Charge le cache
+		if( os.path.exists( self.fichierCache ) ):
 			self.listeProgrammes = self.chargerCache()
 		
 	def rafraichir( self ):
 		logger.info( "récupération de la liste des chaines et des émissions" )
-		
-		# On remet a 0 la liste des programmes
+		# Remet a zero la liste des programmes
 		self.listeProgrammes.clear()
-		
-		# On recupere la page qui contient les infos
+		# Recupere la page qui contient les infos
 		pageXML = self.getPage( self.urlFichierXMLListeProgrammes )
-		
 		# Handler
 		handler = CanalPlusListeProgrammesHandler( self.listeProgrammes )
-		# On parse le fichier xml
+		# Parse le fichier xml
 		try:
 			xml.sax.parseString( pageXML, handler )
 		except:
 			logger.error( "impossible de parser le fichier XML de la liste des programmes" )
 			return
-		
-		# On sauvegarde la liste dans le cache
+		# Sauvegarde la liste dans le cache
 		self.sauvegarderCache( self.listeProgrammes )
-		
 		logger.info( "liste des programmes sauvegardée" )
 		
 	def listerChaines( self ):
 		for chaine in self.listeProgrammes.keys():
 			self.ajouterChaine( chaine )
-		logger.info("Pouet !")
 	
 	def listerEmissions( self, chaine ):
 		if( self.listeProgrammes.has_key( chaine ) ):
 			self.derniereChaine = chaine
 			for emission in self.listeProgrammes[ chaine ].keys():
 				self.ajouterEmission( chaine, emission )
+		else:
+			logger.debug( 'chaine "%s" introuvable' %( chaine ) )
 				
 	def listerFichiers( self, emission ):
 		if( self.listeProgrammes.has_key( self.derniereChaine ) ):
 			listeEmissions = self.listeProgrammes[ self.derniereChaine ]
 			if( listeEmissions.has_key( emission ) ):
 				IDEmission = listeEmissions[ emission ]
-				# On recupere la page qui contient les ids des fichiers
+				# Recupere la page qui contient les ids des fichiers
 				pageXML = self.getPage( self.urlFichierXMLEmissions + IDEmission )
-				# On extrait les ids
+				# Extrait les ids
 				listeIDs = re.findall( "<ID>(.+?)</ID>", pageXML )
-				# On construit la liste des liens a recuperer
+				# Construit la liste des liens a recuperer
 				listeURL = []
 				for IDFichier in listeIDs:
 					listeURL.append( self.urlFichierXMLFichiers + IDFichier )
-				# On recupere les pages correspondantes
+				# Recupere les pages correspondantes
 				pagesXML = self.getPages( listeURL )
-				# On parse chacune de ces pages
+				# Parse chacune de ces pages
 				for URL in listeURL:
 					pageXMLFichier = pagesXML[ URL ]
 					# Handler
 					infosFichier = []
 					handler      = CanalPlusListeFichierHandler( infosFichier )
-					# On parse le fichier xml
+					# Parse le fichier xml
 					try:
 						xml.sax.parseString( pageXMLFichier, handler )
 					except:
-						logger.error( "impossible de parser le fichier XML de la liste des fichiers" )
+						logger.error( "impossible de parser le fichier XML %s" %( URL ) )
 						continue
-					
-					# On ajoute le fichier
+					# Ajoute le fichier
 					nom, date, lienLD, lienMD, lienHD, urlImage, descriptif = infosFichier
-					# On transforme la date en type datetime.date
+					# Transforme la date en type datetime.date
 					try:
 						dateDecoupee  = map( int, date.split( "/" ) )
 						dateBonFormat = datetime.date( dateDecoupee[ 2 ], dateDecoupee[ 1 ], dateDecoupee[ 0 ] )
 					except:
-						dateBonFormat = date
+						dateBonFormat = datetime.date.today()
+						logger.error( "impossible de transformer la date" )
 					if( lienHD != "" and lienHD[ : 4 ] == "rtmp" ):
-						# On extrait l'extension du fichier
 						basename, extension = os.path.splitext( lienHD )
-						self.ajouterFichier( emission, Fichier( "[HD]" + nom, dateBonFormat, lienHD, nom + extension, urlImage, descriptif ) )	
+						self.ajouterFichier( emission, tvdcore.Fichier( "[HD]" + nom, dateBonFormat, lienHD, nom + extension, urlImage, descriptif ) )	
 					elif( lienMD != "" and lienMD[ : 4 ] == "rtmp" ):	
-						# On extrait l'extension du fichier
 						basename, extension = os.path.splitext( lienMD )
-						self.ajouterFichier( emission, Fichier( "[MD]" + nom, dateBonFormat, lienMD, nom + extension, urlImage, descriptif ) )	
+						self.ajouterFichier( emission, tvdcore.Fichier( "[MD]" + nom, dateBonFormat, lienMD, nom + extension, urlImage, descriptif ) )	
 					elif( lienLD != "" and lienLD[ : 4 ] == "rtmp" ):	
-						# On extrait l'extension du fichier
 						basename, extension = os.path.splitext( lienLD )
-						self.ajouterFichier( emission, Fichier( "[LD]" + nom, dateBonFormat, lienLD, nom + extension, urlImage, descriptif ) )	
+						self.ajouterFichier( emission, tvdcore.Fichier( "[LD]" + nom, dateBonFormat, lienLD, nom + extension, urlImage, descriptif ) )
+			else:
+				logger.debug( 'emission "%s" introuvable pour la chaine "%s"' %( emission, self.derniereChaine ) )
 					
 #
 # Parsers XML pour Canal+
 #
 
 ## Classe qui permet de lire le fichier XML de Canal qui liste les emissions
-class CanalPlusListeProgrammesHandler( ContentHandler ):
+class CanalPlusListeProgrammesHandler( xml.sax.handler.ContentHandler ):
 
 	# Constructeur
 	# @param listeProgrammes Liste des programmes que le parser va remplir
@@ -182,7 +175,7 @@ class CanalPlusListeProgrammesHandler( ContentHandler ):
 			self.nomEmissionConnu                           = False
 
 ## Classe qui permet de lire le fichier XML d'un fichier de Canal
-class CanalPlusListeFichierHandler( ContentHandler ):
+class CanalPlusListeFichierHandler( xml.sax.handler.ContentHandler ):
 
 	# Constructeur
 	# @param infosFichier Infos du fichier que le parser va remplir
@@ -190,7 +183,7 @@ class CanalPlusListeFichierHandler( ContentHandler ):
 		# Liste des programmes
 		self.infosFichier = infosFichier
 		
-		# On n'a pas forcement les 3 liens
+		# Il n'a pas forcement les 3 liens
 		self.lienLD = ""
 		self.lienMD = ""
 		self.lienHD = ""
