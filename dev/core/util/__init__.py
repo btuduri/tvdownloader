@@ -6,7 +6,7 @@
 ##############
 
 import logging
-logger = logging.getLogger( __name__ )
+logger = logging.getLogger( "TVDownloader" )
 
 ## Décorateur qui permet d'assurer la synchronisation des méthodes, une
 # thread à la fois travaille sur l'instance avec les méthodes marquées.

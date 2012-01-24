@@ -12,7 +12,7 @@ import Constantes
 from Fichier import Fichier
 
 import logging
-logger = logging.getLogger( __name__ )
+logger = logging.getLogger( "TVDownloader" )
 
 import threading
 from tvdcore.util import SynchronizedMethod

@@ -25,7 +25,7 @@ import time
 import xml.sax.saxutils
 
 import logging
-logger = logging.getLogger( __name__ )
+logger = logging.getLogger( "TVDownloader" )
 
 #
 # Liste d'user agent

@@ -8,6 +8,7 @@ import os.path
 from multiprocessing.managers import BaseManager
 import tvdcore
 from lockfile import FileLock
+import logging
 
 UI_ARG = "--ui"
 UI_RUN__NAME__ = "__tvdui__"
@@ -91,6 +92,19 @@ if __name__ == "__main__" :
 	if not(os.path.isfile(path)):
 		print "L'ui "+uiname+" est introuvable"
 		sys.exit(1)
+
+	# Mise en place du logger
+	logger  = logging.getLogger( "TVDownloader" )
+	console = logging.StreamHandler( sys.stdout )
+	# if( options.verbose ):
+	if( True ):
+		logger.setLevel( logging.DEBUG )
+		console.setLevel( logging.DEBUG )
+	else:
+		logger.setLevel( logging.INFO )
+		console.setLevel( logging.INFO )
+	console.setFormatter( tvdcore.ColorFormatter( True ) )
+	logger.addHandler( console )
 	
 	if isLaunched():
 		#TODO Appel au laucher d'ui dans le processus lancé

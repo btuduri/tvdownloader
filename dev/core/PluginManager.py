@@ -16,7 +16,7 @@ from Plugin import Plugin
 import Constantes
 
 import logging
-logger = logging.getLogger( __name__ )
+logger = logging.getLogger( "TVDownloader" )
 
 from util import SynchronizedMethod
 import threading

@@ -13,7 +13,7 @@ import tvdcore.util.html
 import tvdcore.util.fichierDossier
 
 import logging
-logger = logging.getLogger( __name__ )
+logger = logging.getLogger( "TVDownloader" )
 
 ##########
 # Classe #

@@ -189,7 +189,7 @@ class AutoLoadImage(QtGui.QLabel):
 			self.setPixmap(pixmap)
 		#else: TODO Lancer le chargement asynchrone
 
-logger  = logging.getLogger( __name__ )
+logger = logging.getLogger( "TVDownloader" )
 
 app = QtGui.QApplication( sys.argv )
 window = MainWindow()

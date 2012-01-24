@@ -11,6 +11,7 @@ from Navigateur                import *
 from Option                    import *
 from Plugin                    import *
 from PluginManager             import *
+from ColorFormatter            import ColorFormatter
 
 import sys
 
