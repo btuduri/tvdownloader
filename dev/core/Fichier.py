@@ -55,3 +55,6 @@ class Fichier(object):
 	def __ne__( self, autre ):
 		return not self.__eq__( autre )
 
+	## Surcharge de la methode d'affichage d'un fichier
+	def __str__( self ):
+		return "--> Fichier :\nNom : %s\nLien : %s" %( self.nom, self.lien )
