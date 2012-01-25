@@ -169,7 +169,7 @@ class QFileTableWidget( QtGui.QTableWidget ):
 		self.insertRow(newRow)
 		print fichier
 		print fichier.nom
-		self.setItem(newRow, 0, QtGui.QTableWidgetItem(fichier.date.isoformat()))
+		self.setItem(newRow, 0, QtGui.QTableWidgetItem(fichier.date.strftime("%Y-%m-%d")))
 		self.setItem(newRow, 1, QtGui.QTableWidgetItem(fichier.nom))
 
 class AutoLoadImage(QtGui.QLabel):
@@ -194,7 +194,8 @@ logger = logging.getLogger( "TVDownloader" )
 app = QtGui.QApplication( sys.argv )
 window = MainWindow()
 window.show()
-window.selectPlugin("Canal+")
+# window.selectPlugin("Canal+")
+window.selectPlugin("W9Replay")
 #sys.exit(app.exec_())
 print app.exec_()
 

@@ -16,6 +16,11 @@ import logging
 logger = logging.getLogger( "TVDownloader" )
 
 #
+# Filtre Wireshark :
+#    http.host == "canalplus.fr"
+#
+
+#
 # Classe
 #
 
@@ -27,8 +32,8 @@ class CanalPlus( tvdcore.Plugin ):
 	
 	def __init__( self ):
 		tvdcore.Plugin.__init__( self, "Canal+", "http://www.canalplus.fr/", 7, "CanalPlus.jpg" )
-		self.listeProgrammes          = {} # { Nom chaine : { Nom emission : ID emission } }
-		self.derniereChaine           = ""
+		self.listeProgrammes    = {} # { Nom chaine : { Nom emission : ID emission } }
+		listeEmissionsCourantes = {}
 		# Charge le cache
 		if( os.path.exists( self.fichierCache ) ):
 			self.listeProgrammes = self.chargerCache()
@@ -57,59 +62,57 @@ class CanalPlus( tvdcore.Plugin ):
 	
 	def listerEmissions( self, chaine ):
 		if( self.listeProgrammes.has_key( chaine ) ):
-			self.derniereChaine = chaine
-			for emission in self.listeProgrammes[ chaine ].keys():
+			self.listeEmissionsCourantes = self.listeProgrammes[ chaine ]
+			for emission in self.listeEmissionsCourantes.keys():
 				self.ajouterEmission( chaine, emission )
 		else:
 			logger.warning( 'chaine "%s" introuvable' %( chaine ) )
 				
 	def listerFichiers( self, emission ):
-		if( self.listeProgrammes.has_key( self.derniereChaine ) ):
-			listeEmissions = self.listeProgrammes[ self.derniereChaine ]
-			if( listeEmissions.has_key( emission ) ):
-				IDEmission = listeEmissions[ emission ]
-				# Recupere la page qui contient les ids des fichiers
-				pageXML = self.getPage( self.urlFichierXMLEmissions + IDEmission )
-				# Extrait les ids
-				listeIDs = re.findall( "<ID>(.+?)</ID>", pageXML )
-				# Construit la liste des liens a recuperer
-				listeURL = []
-				for IDFichier in listeIDs:
-					listeURL.append( self.urlFichierXMLFichiers + IDFichier )
-				# Recupere les pages correspondantes
-				pagesXML = self.getPages( listeURL )
-				# Parse chacune de ces pages
-				for URL in listeURL:
-					pageXMLFichier = pagesXML[ URL ]
-					# Handler
-					infosFichier = []
-					handler      = CanalPlusListeFichierHandler( infosFichier )
-					# Parse le fichier xml
-					try:
-						xml.sax.parseString( pageXMLFichier, handler )
-					except:
-						logger.error( "impossible de parser le fichier XML %s" %( URL ) )
-						continue
-					# Ajoute le fichier
-					nom, date, lienLD, lienMD, lienHD, urlImage, descriptif = infosFichier
-					# Transforme la date en type datetime.date
-					try:
-						dateDecoupee  = map( int, date.split( "/" ) )
-						dateBonFormat = datetime.date( dateDecoupee[ 2 ], dateDecoupee[ 1 ], dateDecoupee[ 0 ] )
-					except:
-						dateBonFormat = datetime.date.today()
-						logger.error( "impossible de transformer la date" )
-					if( lienHD != "" and lienHD[ : 4 ] == "rtmp" ):
-						basename, extension = os.path.splitext( lienHD )
-						self.ajouterFichier( emission, tvdcore.Fichier( "[HD]" + nom, dateBonFormat, lienHD, nom + extension, urlImage, descriptif ) )	
-					elif( lienMD != "" and lienMD[ : 4 ] == "rtmp" ):	
-						basename, extension = os.path.splitext( lienMD )
-						self.ajouterFichier( emission, tvdcore.Fichier( "[MD]" + nom, dateBonFormat, lienMD, nom + extension, urlImage, descriptif ) )	
-					elif( lienLD != "" and lienLD[ : 4 ] == "rtmp" ):	
-						basename, extension = os.path.splitext( lienLD )
-						self.ajouterFichier( emission, tvdcore.Fichier( "[LD]" + nom, dateBonFormat, lienLD, nom + extension, urlImage, descriptif ) )
-			else:
-				logger.warning( 'emission "%s" introuvable pour la chaine "%s"' %( emission, self.derniereChaine ) )
+		if( self.listeEmissionsCourantes.has_key( emission ) ):
+			IDEmission = self.listeEmissionsCourantes[ emission ]
+			# Recupere la page qui contient les ids des fichiers
+			pageXML = self.getPage( self.urlFichierXMLEmissions + IDEmission )
+			# Extrait les ids
+			listeIDs = re.findall( "<ID>(.+?)</ID>", pageXML )
+			# Construit la liste des liens a recuperer
+			listeURL = []
+			for IDFichier in listeIDs:
+				listeURL.append( self.urlFichierXMLFichiers + IDFichier )
+			# Recupere les pages correspondantes
+			pagesXML = self.getPages( listeURL )
+			# Parse chacune de ces pages
+			for URL in listeURL:
+				pageXMLFichier = pagesXML[ URL ]
+				# Handler
+				infosFichier = []
+				handler      = CanalPlusListeFichierHandler( infosFichier )
+				# Parse le fichier xml
+				try:
+					xml.sax.parseString( pageXMLFichier, handler )
+				except:
+					logger.error( "impossible de parser le fichier XML %s" %( URL ) )
+					continue
+				# Ajoute le fichier
+				nom, date, lienLD, lienMD, lienHD, urlImage, descriptif = infosFichier
+				# Transforme la date en type datetime.date
+				try:
+					dateDecoupee  = map( int, date.split( "/" ) )
+					dateBonFormat = datetime.date( dateDecoupee[ 2 ], dateDecoupee[ 1 ], dateDecoupee[ 0 ] )
+				except:
+					dateBonFormat = datetime.date.today()
+					logger.error( "impossible de transformer la date" )
+				if( lienHD != "" and lienHD[ : 4 ] == "rtmp" ):
+					basename, extension = os.path.splitext( lienHD )
+					self.ajouterFichier( emission, tvdcore.Fichier( "[HD]" + nom, dateBonFormat, lienHD, nom + extension, urlImage, descriptif ) )	
+				elif( lienMD != "" and lienMD[ : 4 ] == "rtmp" ):	
+					basename, extension = os.path.splitext( lienMD )
+					self.ajouterFichier( emission, tvdcore.Fichier( "[MD]" + nom, dateBonFormat, lienMD, nom + extension, urlImage, descriptif ) )	
+				elif( lienLD != "" and lienLD[ : 4 ] == "rtmp" ):	
+					basename, extension = os.path.splitext( lienLD )
+					self.ajouterFichier( emission, tvdcore.Fichier( "[LD]" + nom, dateBonFormat, lienLD, nom + extension, urlImage, descriptif ) )
+		else:
+			logger.warning( 'emission "%s" introuvable pour la chaine courante' %( emission ) )
 					
 #
 # Parsers XML pour Canal+
