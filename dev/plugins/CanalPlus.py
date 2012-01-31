@@ -17,7 +17,7 @@ logger = logging.getLogger( "TVDownloader" )
 
 #
 # Filtre Wireshark :
-#    http.host == "canalplus.fr"
+#    http.host contains "canalplus" or http.host contains "canal-plus"
 #
 
 #

@@ -37,7 +37,8 @@ class PluzzDL( object ):
 		self.proxy            = proxy
 		self.navigateur       = Navigateur( self.proxy )
 		
-		self.lienDirect       = None
+		self.lienMMS          = None
+		self.lienRTMP         = None
 		self.manifestURL      = None
 		self.drm              = None
 		
@@ -50,11 +51,15 @@ class PluzzDL( object ):
 		# Petit message en cas de DRM
 		if( self.drm == "oui" ):
 			logger.warning( "La vidéo posséde un DRM ; elle sera sans doute illisible" )
-		# Lien direct trouve
-		if( self.lienDirect is not None ):
-				logger.info( "Lien direct de la video : %s\nUtiliser par exemple mimms ou msdl pour la recuperer directement ou l'option -f de pluzzdl pour essayer de la charger via ses fragments" %( self.lienDirect ) )
-				if( not self.useFragments ):
-					sys.exit( 0 )
+		# Lien MMS trouve
+		if( self.lienMMS is not None ):
+			logger.info( "Lien MMS : %s\nUtiliser par exemple mimms ou msdl pour la recuperer directement ou l'option -f de pluzzdl pour essayer de la charger via ses fragments" %( self.lienMMS ) )
+		# Lien RTMP trouve
+		if( self.lienRTMP is not None ):
+			logger.info( "Lien RTMP : %s\nUtiliser par exemple rtmpdump pour la recuperer directement ou l'option -f de pluzzdl pour essayer de la charger via ses fragments" %( self.lienRTMP ) )
+		# N'utilise pas les fragments si cela n'a pas ete demande et que des liens directs ont ete trouves
+		if( ( ( self.lienMMS is not None ) or ( self.lienRTMP is not None ) ) and not self.useFragments ):
+			sys.exit( 0 )
 		# Lien du manifest non trouve
 		if( self.manifestURL is None ):
 			logger.critical( "Pas de lien vers le manifest" )
@@ -110,7 +115,8 @@ class PluzzDL( object ):
 	def parseInfos( self ):
 		try : 
 			xml.sax.parseString( self.pageInfos, PluzzDLInfosHandler( self ) )
-			logger.debug( "URL directe : %s" %( self.lienDirect ) )
+			logger.debug( "Lien MMS : %s" %( self.lienMMS ) )
+			logger.debug( "Lien RTMP : %s" %( self.lienRTMP ) )
 			logger.debug( "URL manifest : %s" %( self.manifestURL ) )
 			logger.debug( "Utilisation de DRM : %s" %( self.drm ) )
 		except :
@@ -147,7 +153,9 @@ class PluzzDLInfosHandler( ContentHandler ):
 	def characters( self, data ):
 		if( self.isUrl ):
 			if( data[ : 3 ] == "mms" ):
-				self.pluzzdl.lienDirect = data
+				self.pluzzdl.lienMMS = data
+			elif( data[ : 4 ] == "rtmp" ):
+				self.pluzzdl.lienRTMP = data
 			elif( data[ -3 : ] == "f4m" ):
 				self.pluzzdl.manifestURL = data
 		elif( self.isDRM ):

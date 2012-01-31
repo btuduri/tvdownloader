@@ -49,7 +49,7 @@ class TF1( tvdcore.Plugin ):
 	def listerEmissions( self, chaine ):
 		if( self.listeChaines.has_key( chaine ) ):
 			urlChaine  = "http://videos.tf1.fr%s" %( self.listeChaines[ chaine ] )
-			self.listeEmissions = {} # Clefs = nom de l'emission, Valeurs = {} avec clefs = nom du programme, valeurs = lien de la page
+			self.listeEmissions = {} # Clefs = nom de l'emission, Valeurs = [] avec nom, date, lien
 			# Recupere la premiere page
 			page = self.getPage( urlChaine )
 			# Extrait le nombre max de pages
@@ -65,13 +65,26 @@ class TF1( tvdcore.Plugin ):
 			# Recupere une par une les pages et en extrait les infos
 			for i in range( 2, pageMax + 1 ):
 				# Charge la page
-				page = self.getPage( "%s%d/" %( urlChaine, i ) )
+				url  = "%s%d/" %( urlChaine, i )
+				page = self.getPage( url )
 				# Extrait les infos des vidéos
-				parser = TF1ProgrammesParser()
-				parser.feed(page)
-				return		
+				try :
+					parser = TF1ProgrammesParser( self )
+					parser.feed( page )
+				except :
+					logger.error( "impossible de parser la page %s" %( url ) )
+					continue
+			# Affiche la liste des emissions
+			for emission in self.listeEmissions.keys():
+				self.ajouterEmission( chaine, emission )
 		else:
 			logger.warning( 'chaine "%s" introuvable' %( chaine ) )
+	
+	def mettreEnPlaceEmission( self, nomEmission, nomFichier, date, lien ):
+		if( self.listeEmissions.has_key( nomEmission ) ):
+			self.listeEmissions[ nomEmission ].append( ( nomFichier, date, lien ) )
+		else:
+			self.listeEmissions[ nomEmission ] = [ ( nomFichier, date, lien ) ]
 				
 	def listerFichiers( self, emission ):
 		pass
@@ -79,8 +92,9 @@ class TF1( tvdcore.Plugin ):
 class TF1ProgrammesParser( HTMLParser.HTMLParser ):
 	
 	## Constructeur
-	def __init__( self ):
+	def __init__( self, tf1 ):
 		HTMLParser.HTMLParser.__init__( self )
+		self.tf1           = tf1
 		
 		self.isDate        = False
 		self.isNomEmission = False
@@ -92,22 +106,23 @@ class TF1ProgrammesParser( HTMLParser.HTMLParser ):
 	def handle_starttag( self, tag, attrs ):
 		if( tag == "div" and attrs == [ ( 'class', 'date t3 c5' ) ] ):
 			self.isDate = True
+			self.nomEmission = ""
 		elif( tag == "div" and attrs == [ ( 'class', 'prog t4 c5' ) ] ):
 			self.isNomEmission = True
 		elif( tag == "h3" and attrs == [ ( 'class', 'titre t4' ) ] ):
 			self.isTitre = True
 			self.titre   = ""
 		elif( self.isTitre and tag == "a" and attrs[ 0 ][ 0 ] == "href" ):
-			print "Lien page = %s" %( attrs[ 0 ][ 1 ] )
+			self.lien = attrs[ 0 ][ 1 ]
 		
 	## Methode qui renvoit les donnees d'une balise
 	# @param data Donnees de la balise
 	def handle_data( self, data ):
 		if( self.isDate ):
-			print "Date = %s" %( data )
+			self.date = data
 			self.isDate = False
 		elif( self.isNomEmission ):
-			print "Nome emission = %s" %( data )
+			self.nomEmission = data
 			self.isNomEmission = False
 		elif( self.isTitre ):
 			self.titre += data
@@ -116,5 +131,7 @@ class TF1ProgrammesParser( HTMLParser.HTMLParser ):
 	# @param tag Tag de la balise
 	def handle_endtag( self, tag ):
 		if( self.isTitre and tag == "a" ):
-			print "Titre = %s" %( self.titre )
 			self.isTitre = False
+			if( self.nomEmission == "" ):
+				self.nomEmission = "Divers"
+			self.tf1.mettreEnPlaceEmission( self.nomEmission, self.titre, self.date, self.lien )
