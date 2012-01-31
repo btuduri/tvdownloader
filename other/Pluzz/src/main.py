@@ -55,6 +55,9 @@ if( __name__ == "__main__" ) :
 	console.setFormatter( ColorFormatter( not options.nocolor ) )
 	logger.addHandler( console )
 	
+	# Affiche la version de pluzzdl
+	logger.debug( version )
+	
 	# Verification de l'URL
 	if( re.match( "http://www.pluzz.fr/[^\.]+?\.html", args[ 0 ] ) is None ):
 		logger.error( "L'URL \"%s\" n'est pas valide" %( args[ 0 ] ) )
