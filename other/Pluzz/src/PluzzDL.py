@@ -3,7 +3,7 @@
 
 # Notes :
 #    -> Filtre Wireshark : 
-#          http.host == "ftvodhdsecz2-f.akamaihd.net" or http.host == "ftvodhdsecz-f.akamaihd.net" or http.host == "hdfauth.francetv.fr" or http.host == "www.pluzz.fr"
+#          http.host contains "ftvodhdsecz" or http.host contains "francetv" or http.host contains "pluzz"
 #    -> 
 
 #
@@ -31,10 +31,11 @@ logger = logging.getLogger( "pluzzdl" )
 
 class PluzzDL( object ):
 	
-	def __init__( self, url, useFragments, proxy ):
+	def __init__( self, url, useFragments = False, proxy = None, progressbar = False ):
 		self.url              = url
 		self.useFragments     = useFragments
 		self.proxy            = proxy
+		self.progressbar      = progressbar
 		self.navigateur       = Navigateur( self.proxy )
 		
 		self.lienMMS          = None
@@ -85,19 +86,33 @@ class PluzzDL( object ):
 		# Ajout de l'header du fichier
 		self.fichierVideo.write( self.flvHeader )
 		self.fichierVideo.write( binascii.a2b_hex( "00000000" ) ) # Padding pour avoir des blocs de 8
+		# Calcul l'estimation du nombre de fragments
+		self.nbFragMax      = round( ( self.duree * self.bitrate ) / 6040.0, 0 )
+		logger.debug( "Estimation du nombre de fragments %f" %( self.nbFragMax ) )
+		self.ancienPourcent = 0
 		# Ajout des fragments
 		logger.info( "Début du téléchargement des fragments" )
 		try :
+			if( self.progressbar ):
+				logger.info( "Avancement : %3d %%" %( 0 ) )
 			frag = self.navigateur.getFichier( "%s1" %( self.urlFrag ) )
 			self.fichierVideo.write( frag[ frag.find( "mdat" ) + 4 : ] )
 			for i in xrange( 2, 99999 ):
 				frag = self.navigateur.getFichier( "%s%d" %( self.urlFrag, i ) )
 				self.fichierVideo.write( frag[ frag.find( "mdat" ) + 79 : ] )
+				# Affichage de la progression
+				if( self.progressbar ):
+					self.nouveauPourcent = min( int( ( i / self.nbFragMax ) * 100 ), 100 )
+					if( self.nouveauPourcent != self.ancienPourcent ):
+						logger.info( "Avancement : %3d %%" %( self.nouveauPourcent ) )
+						self.ancienPourcent = self.nouveauPourcent
 		except urllib2.URLError, e :
 			if( hasattr( e, 'code' ) ):
 				if( e.code == 403 ):
 					logger.critical( "Impossible de charger la vidéo" )
 				elif( e.code == 404 ):
+					if( self.progressbar and self.ancienPourcent < 100 ):
+						logger.info( "Avancement : %3d %%" %( 100 ) )
 					logger.info( "Fin du téléchargement" )
 		else :
 			# Fermeture du fichier
@@ -125,16 +140,20 @@ class PluzzDL( object ):
 	
 	def parseManifest( self ):
 		try :
-			arbre  = xml.etree.ElementTree.fromstring( self.manifest )
+			arbre          = xml.etree.ElementTree.fromstring( self.manifest )
+			# Duree
+			self.duree     = float( arbre.find( "{http://ns.adobe.com/f4m/1.0}duration" ).text )
+			media          = arbre.findall( "{http://ns.adobe.com/f4m/1.0}media" )[ -1 ]
+			# Bitrate
+			self.bitrate   = int( media.attrib[ "bitrate" ] )
 			# URL des fragments
-			media        = arbre.findall( "{http://ns.adobe.com/f4m/1.0}media" )[ -1 ]
-			urlbootstrap = media.attrib[ "url" ]
-			self.urlFrag = "%s%sSeg1-Frag" %( self.manifestURLToken[ : self.manifestURLToken.find( "manifest.f4m" ) ], urlbootstrap )
+			urlbootstrap   = media.attrib[ "url" ]
+			self.urlFrag   = "%s%sSeg1-Frag" %( self.manifestURLToken[ : self.manifestURLToken.find( "manifest.f4m" ) ], urlbootstrap )
 			# Header du fichier final
 			self.flvHeader = base64.b64decode( media.find( "{http://ns.adobe.com/f4m/1.0}metadata" ).text )
 		except :
 			logger.critical( "Impossible de parser le manifest" )
-			sys.exit( -1 )	
+			sys.exit( -1 )
 		
 class PluzzDLInfosHandler( ContentHandler ):
 	

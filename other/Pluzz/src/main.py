@@ -32,9 +32,10 @@ if( __name__ == "__main__" ) :
 	usage   = "usage: pluzzdl [options] <url de l'emission>"
 	version = "pluzzdl %s" %( __version__ )
 	parser  = optparse.OptionParser( usage = usage, version = version )
-	parser.add_option( "--nocolor",         action = 'store_true', default = False, help = 'desactive la couleur dans le terminal' )
-	parser.add_option( "-v", "--verbose",   action = "store_true", default = False, help = 'affiche les informations de debugage' )
-	parser.add_option( "-f", "--fragments", action = "store_true", default = False, help = 'telecharge la video via ses fragments meme si un lien direct existe' )
+	parser.add_option( "--nocolor",           action = 'store_true', default = False, help = 'desactive la couleur dans le terminal' )
+	parser.add_option( "-v", "--verbose",     action = "store_true", default = False, help = 'affiche les informations de debugage' )
+	parser.add_option( "-b", "--progressbar", action = "store_true", default = False, help = 'ajoute une barre de progression' )
+	parser.add_option( "-f", "--fragments",   action = "store_true", default = False, help = 'telecharge la video via ses fragments meme si un lien direct existe' )
 	parser.add_option( "-p", "--proxy", dest = "proxy", metavar = "PROXY",          help = 'utilise un proxy HTTP au format suivant http://URL:PORT' )
 	( options, args ) = parser.parse_args()
 	
@@ -69,4 +70,4 @@ if( __name__ == "__main__" ) :
 		sys.exit( -1 )
 	
 	# Telechargement de la video
-	PluzzDL( args[ 0 ], options.fragments, options.proxy )
+	PluzzDL( args[ 0 ], options.fragments, options.proxy, options.progressbar )
