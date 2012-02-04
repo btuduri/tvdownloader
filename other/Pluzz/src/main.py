@@ -16,6 +16,7 @@ __url__     = "http://code.google.com/p/tvdownloader/"
 
 import logging
 import optparse
+import platform
 import re
 import sys
 
@@ -34,7 +35,7 @@ if( __name__ == "__main__" ) :
 	parser  = optparse.OptionParser( usage = usage, version = version )
 	parser.add_option( "--nocolor",           action = 'store_true', default = False, help = 'desactive la couleur dans le terminal' )
 	parser.add_option( "-v", "--verbose",     action = "store_true", default = False, help = 'affiche les informations de debugage' )
-	parser.add_option( "-b", "--progressbar", action = "store_true", default = False, help = 'ajoute une barre de progression' )
+	parser.add_option( "-b", "--progressbar", action = "store_true", default = False, help = 'affiche la progression du telechargement' )
 	parser.add_option( "-f", "--fragments",   action = "store_true", default = False, help = 'telecharge la video via ses fragments meme si un lien direct existe' )
 	parser.add_option( "-p", "--proxy", dest = "proxy", metavar = "PROXY",          help = 'utilise un proxy HTTP au format suivant http://URL:PORT' )
 	( options, args ) = parser.parse_args()
@@ -56,8 +57,8 @@ if( __name__ == "__main__" ) :
 	console.setFormatter( ColorFormatter( not options.nocolor ) )
 	logger.addHandler( console )
 	
-	# Affiche la version de pluzzdl
-	logger.debug( version )
+	# Affiche la version de pluzzdl et de python
+	logger.debug( "%s avec Python %s" %( version, platform.python_version() ) )
 	
 	# Verification de l'URL
 	if( re.match( "http://www.pluzz.fr/[^\.]+?\.html", args[ 0 ] ) is None ):

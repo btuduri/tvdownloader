@@ -18,7 +18,6 @@ import sys
 import urllib2
 import xml.etree.ElementTree
 import xml.sax
-from   xml.sax.handler import ContentHandler
 
 from Navigateur import Navigateur
 
@@ -88,31 +87,29 @@ class PluzzDL( object ):
 		self.fichierVideo.write( binascii.a2b_hex( "00000000" ) ) # Padding pour avoir des blocs de 8
 		# Calcul l'estimation du nombre de fragments
 		self.nbFragMax      = round( ( self.duree * self.bitrate ) / 6040.0, 0 )
-		logger.debug( "Estimation du nombre de fragments %f" %( self.nbFragMax ) )
-		self.ancienPourcent = 0
+		logger.debug( "Estimation du nombre de fragments : %d" %( self.nbFragMax ) )
+		if( self.progressbar and self.nbFragMax != 0 ):
+			self.progression = Progression( self.nbFragMax )
+		else:
+			self.progression = ProgressionVide( self.nbFragMax )
 		# Ajout des fragments
 		logger.info( "Début du téléchargement des fragments" )
 		try :
-			if( self.progressbar ):
-				logger.info( "Avancement : %3d %%" %( 0 ) )
 			frag = self.navigateur.getFichier( "%s1" %( self.urlFrag ) )
 			self.fichierVideo.write( frag[ frag.find( "mdat" ) + 4 : ] )
+			# Affichage de la progression
+			self.progression.afficher()
 			for i in xrange( 2, 99999 ):
 				frag = self.navigateur.getFichier( "%s%d" %( self.urlFrag, i ) )
 				self.fichierVideo.write( frag[ frag.find( "mdat" ) + 79 : ] )
 				# Affichage de la progression
-				if( self.progressbar ):
-					self.nouveauPourcent = min( int( ( i / self.nbFragMax ) * 100 ), 100 )
-					if( self.nouveauPourcent != self.ancienPourcent ):
-						logger.info( "Avancement : %3d %%" %( self.nouveauPourcent ) )
-						self.ancienPourcent = self.nouveauPourcent
+				self.progression.afficher()
 		except urllib2.URLError, e :
 			if( hasattr( e, 'code' ) ):
 				if( e.code == 403 ):
 					logger.critical( "Impossible de charger la vidéo" )
 				elif( e.code == 404 ):
-					if( self.progressbar and self.ancienPourcent < 100 ):
-						logger.info( "Avancement : %3d %%" %( 100 ) )
+					self.progression.afficherFin()
 					logger.info( "Fin du téléchargement" )
 		else :
 			# Fermeture du fichier
@@ -155,7 +152,7 @@ class PluzzDL( object ):
 			logger.critical( "Impossible de parser le manifest" )
 			sys.exit( -1 )
 		
-class PluzzDLInfosHandler( ContentHandler ):
+class PluzzDLInfosHandler( xml.sax.handler.ContentHandler ):
 	
 	def __init__( self, pluzzdl ):
 		self.pluzzdl = pluzzdl
@@ -185,3 +182,33 @@ class PluzzDLInfosHandler( ContentHandler ):
 			self.isUrl = False
 		elif( name == "drm" ):
 			self.isDRM = False
+
+class ProgressionVide( object ):
+	
+	def __init__( self, nbMax ):
+		self.nbMax  = nbMax
+		self.indice = 1
+		self.old    = 0
+		self.new    = 0
+	
+	def afficher( self ):
+		pass
+		
+	def afficherFin( self ):
+		pass
+	
+class Progression( ProgressionVide ):
+	
+	def __init__( self, nbMax ):
+		ProgressionVide.__init__( self, nbMax )
+		
+	def afficher( self ):
+		self.new = min( int( ( self.indice / self.nbMax ) * 100 ), 100 )
+		if( self.new != self.old ):
+			logger.info( "Avancement : %3d %%" %( self.new ) )
+			self.old = self.new
+		self.indice += 1
+	
+	def afficherFin( self ):
+		if( self.old < 100 ):
+			logger.info( "Avancement : %3d %%" %( 100 ) )
