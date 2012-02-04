@@ -4,6 +4,10 @@ import thread,threading,traceback
 from util import SynchronizedMethod,CallbackGroup
 
 from DownloaderFactory import *
+from TVDContext import TVDContext
+
+import logging
+logger = logging.getLogger( "TVDownloader" )
 
 #TODO Utiliser une structure de données dans le tableau de téléchargements
 class DownloadManager(threading.Thread):
@@ -14,6 +18,12 @@ class DownloadManager(threading.Thread):
 	
 	## Surcharge de la methode de construction standard (pour mettre en place le singleton)
 	def __new__(typ, *args, **kwargs):
+		# On vérifie qu'on peut instancier
+		context = TVDContext()
+		if not(context.isInitialized()):
+			logger.error("Le context n'est pas initialisé, impossible d'instancier")
+			return None
+		
 		if DownloadManager.__instance == None:
 			return super(DownloadManager, typ).__new__(typ, *args, **kwargs)
 		else:

@@ -115,7 +115,12 @@ if __name__ == "__main__" :
 		launcher = manager.getUILauncher()
 		launcher.lauchUI(uiname, path)
 	else:
-		lockLaunch()
+		#lockLaunch()
+		context = tvdcore.TVDContext()
+		if not(context.isInitialized()) and not(context.initialize()):
+			logger.error("Impossible d'initialiser le context")
+			sys.exit(1)
+		
 		#Mise à disposition du laucher
 		launcher = UILauncher()
 		launcher.lauchUI(uiname, path)
@@ -125,7 +130,7 @@ if __name__ == "__main__" :
 		
 		manager.start()
 		
-		pluginMan = tvdcore.PluginManager()
+		pluginMan = context.pluginManager
 		pluginMan.pluginRafraichirAuto()
 		
 		import time
@@ -133,5 +138,7 @@ if __name__ == "__main__" :
 			time.sleep(0.1)
 		manager.shutdown()
 		pluginMan.fermeture()
-		unlockLaunch()
+		context.release()
+		context.historique.sauverHistorique()
+		#unlockLaunch()
 

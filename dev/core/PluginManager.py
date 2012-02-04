@@ -20,6 +20,7 @@ logger = logging.getLogger( "TVDownloader" )
 
 from util import SynchronizedMethod
 import threading
+from TVDContext import TVDContext
 
 ##########
 # Classe #
@@ -35,6 +36,12 @@ class PluginManager( object ):
 	
 	## Surcharge de la methode de construction standard (pour mettre en place le singleton)
 	def __new__(typ, *args, **kwargs):
+		# On vérifie qu'on peut instancier
+		context = TVDContext()
+		if not(context.isInitialized()):
+			logger.error("Le context n'est pas initialisé, impossible d'instancier")
+			return None
+		
 		if PluginManager.__instance == None:
 			return super(PluginManager, typ).__new__(typ, *args, **kwargs)
 		else:

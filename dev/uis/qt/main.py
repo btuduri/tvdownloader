@@ -191,13 +191,17 @@ class AutoLoadImage(QtGui.QLabel):
 
 logger = logging.getLogger( "TVDownloader" )
 
-app = QtGui.QApplication( sys.argv )
-window = MainWindow()
-window.show()
-# window.selectPlugin("Canal+")
-# window.selectPlugin("W9Replay")
-# window.selectPlugin("M6Replay")
-window.selectPlugin("TF1")
-#sys.exit(app.exec_())
-print app.exec_()
+ctx = TVDContext()
+if not(ctx.isInitialized()) and not(ctx.initialize()):
+	logger.error("Impossible d'initialiser le context")
+else:
+	app = QtGui.QApplication( sys.argv )
+	window = MainWindow()
+	window.show()
+	# window.selectPlugin("Canal+")
+	# window.selectPlugin("W9Replay")
+	# window.selectPlugin("M6Replay")
+	window.selectPlugin("TF1")
+	#sys.exit(app.exec_())
+	print app.exec_()
 

@@ -2,6 +2,7 @@
 # -*- coding:Utf-8 -*-
 
 from Constantes                import *
+from ColorFormatter            import ColorFormatter
 from DownloaderFactory         import *
 from Downloaders               import *
 from DownloadManager           import *
@@ -11,8 +12,6 @@ from Navigateur                import *
 from Option                    import *
 from Plugin                    import *
 from PluginManager             import *
-from ColorFormatter            import ColorFormatter
+from TVDContext                import *
 
 import sys
-
-
