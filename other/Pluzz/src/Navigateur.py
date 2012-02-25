@@ -44,12 +44,6 @@ class Navigateur:
 	def getFichier( self, url ):
 		try:
 			logger.debug( "GET %s" %( url ) )
-			
-			# Modif à la con du cookie >< !
-			for cookie in self.cookiejar:
-				if( cookie.name == "hdntl" and cookie.value.find( "PV-IDENT" ) == -1 ):
-					cookie.value += "; PV-IDENT=exp=1330022391~acl=%2f*~hmac=66cbe2c1a63657297bd537b393263d3ebb06980089188e9013690390b6f8da3b"
-			
 			requete = urllib2.Request( url )
 			page    = self.urlOpener.open( requete, timeout = self.timeOut )
 			donnees = page.read()
@@ -60,3 +54,9 @@ class Navigateur:
 			elif( hasattr( e, 'code' ) ):
 				logger.debug( "Erreur %d" %( e.code ) )
 			raise
+	
+	def appendCookie( self, cookieName, cookieValue ):
+		for cookie in self.cookiejar:
+			if( cookie.name == cookieName ):
+				cookie.value += "; %s" %( cookieValue )
+				break

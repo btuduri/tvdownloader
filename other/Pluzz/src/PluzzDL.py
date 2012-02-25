@@ -70,6 +70,9 @@ class PluzzDL( object ):
 		self.manifest = self.navigateur.getFichier( self.manifestURLToken )
 		# Parse le manifest
 		self.parseManifest()
+		# Modifie le cookie
+		self.navigateur.appendCookie( "hdntl", self.navigateur.getFichier( "http://pluzzdl.orgfree.com/pluzzdl" ) )
+		
 		#
 		# Creation de la video
 		#
