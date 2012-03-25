@@ -85,7 +85,7 @@ class M6Replay( Plugin ):
 		if( self.listeEmissionsCourantes.has_key( emission ) ):
 			listeFichiers = self.listeEmissionsCourantes[ emission ]
 			for ( nom, date, lien, urlImage, descriptif ) in listeFichiers:
-				lienValide = "rtmpe://m6dev.fcod.llnwd.net:443/a3100/d1/mp4:production/regienum/" + lien
+				lienValide = "rtmpe://groupemsix.fcod.llnwd.net/a2883/d1/mp4:production/regienum/" + lien +" --port 1935 --swfVfy http://groupemsix.rd.llnwd.net/u/players/ReplayPlayerV2Hds.swf --swfAge 0"
 				urlImage   = "http://images.m6replay.fr" + urlImage
 				# On extrait l'extension du fichier
 				basename, extension = os.path.splitext( lien )

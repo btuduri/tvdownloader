@@ -90,7 +90,10 @@ class Downloader( object ):
 			fichierSortie = self.preferences.getPreference( "repertoireTelechargement" ) + "/" + nomFichierSortie
 			# On telecharge de differentes manieres selon le protocole
 			if( fichier[ :4 ] == "rtmp" ):
-				commande = urlToRtmpdump( fichier )
+				if( fichier.find( "swfVfy" ) == -1 ):
+					commande = urlToRtmpdump( fichier )
+				else:
+					commande = "rtmpdump -r " + fichier
 				self.telecharger( commande + " -o \"" + fichierSortie + "\"" )
 			elif( fichier[ :4 ] == "http" or fichier[ :3 ] == "ftp" or fichier[ :3 ] == "mms" ):
 				self.telecharger( "msdl -c " + fichier + " -o \"" + fichierSortie + "\"" )
