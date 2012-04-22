@@ -12,9 +12,12 @@
 
 import base64
 import binascii
+import hashlib
+import hmac
 import os
 import re
 import sys
+import urllib
 import urllib2
 import xml.etree.ElementTree
 import xml.sax
@@ -41,6 +44,9 @@ class PluzzDL( object ):
 		self.lienRTMP         = None
 		self.manifestURL      = None
 		self.drm              = None
+		
+		self.key        = r"bd938d5ee6d9f42016f9c56577b6fdcf415fe4b184932b785ab32bcadc9bb592".decode( "hex" )
+		self.pvtokenKey = r"3fPHzcjMxiTmRj5AdV0bhzgjjSjk2PqUMBzFxgPEPF4="
 		
 		# Recupere l'ID de l'emission
 		self.getID()
@@ -70,8 +76,11 @@ class PluzzDL( object ):
 		self.manifest = self.navigateur.getFichier( self.manifestURLToken )
 		# Parse le manifest
 		self.parseManifest()
-		# Modifie le cookie
-		self.navigateur.appendCookie( "hdntl", self.navigateur.getFichier( "http://pluzzdl.orgfree.com/pluzzdl" ) )
+		# Calcul les elements
+		self.hdnea = self.manifestURLToken[ self.manifestURLToken.find( "hdnea" ) : ]
+		self.pv20, self.hdntl = self.pv2.split( ";" )
+		self.pvtokenData = r"st=0000000000~exp=9999999999~acl=%2f%2a~data=" + self.pv20 + "!" + self.pvtokenKey
+		self.pvtoken = "pvtoken=%s~hmac=%s" %( urllib.quote( self.pvtokenData ), hmac.new( self.key, self.pvtokenData, hashlib.sha256 ).hexdigest() )
 		
 		#
 		# Creation de la video
@@ -98,7 +107,8 @@ class PluzzDL( object ):
 		# Ajout des fragments
 		logger.info( "Début du téléchargement des fragments" )
 		try :
-			frag = self.navigateur.getFichier( "%s1" %( self.urlFrag ) )
+			# frag = self.navigateur.getFichier( "%s1" %( self.urlFrag ) )
+			frag = self.navigateur.getFichier( "%s1?%s&%s&%s" %( self.urlFrag, self.pvtoken, self.hdntl, self.hdnea ) )
 			self.fichierVideo.write( frag[ frag.find( "mdat" ) + 4 : ] )
 			# Affichage de la progression
 			self.progression.afficher()
@@ -143,6 +153,7 @@ class PluzzDL( object ):
 			arbre          = xml.etree.ElementTree.fromstring( self.manifest )
 			# Duree
 			self.duree     = float( arbre.find( "{http://ns.adobe.com/f4m/1.0}duration" ).text )
+			self.pv2       = arbre.find( "{http://ns.adobe.com/f4m/1.0}pv-2.0" ).text
 			media          = arbre.findall( "{http://ns.adobe.com/f4m/1.0}media" )[ -1 ]
 			# Bitrate
 			self.bitrate   = int( media.attrib[ "bitrate" ] )
