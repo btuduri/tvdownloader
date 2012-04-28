@@ -88,7 +88,8 @@ class PluzzDL( object ):
 		#
 		# Creation de la video
 		#
-		self.nomFichier   = "%s.flv" %( re.findall( "http://www.pluzz.fr/([^\.]+?)\.html", self.url )[ 0 ] )
+		self.nomFichier      = "%s.flv" %( re.findall( "http://www.pluzz.fr/([^\.]+?)\.html", self.url )[ 0 ] )
+		self.premierFragment = 1
 		
 		# S'il faut reprendre le telechargement
 		if( self.resume ):
@@ -98,7 +99,7 @@ class PluzzDL( object ):
 				# Si la video existe sur le disque
 				if( os.path.exists( self.nomFichier ) ):
 					if( video.finie ):
-						logger.info( "La vidéo a déjà été correctement téléchargée" )
+						logger.info( "La vidéo a déjà été entièrement téléchargée" )
 						sys.exit( 0 )
 					else:
 						self.ouvrirVideoExistante()
@@ -106,14 +107,11 @@ class PluzzDL( object ):
 						logger.info( "Reprise du téléchargement de la vidéo au fragment %d" %( video.fragments ) )
 				else:
 					self.ouvrirNouvelleVideo()
-					self.premierFragment = 1
-					logger.info( "Impossible de reprendre la vidéo, le fichier %s n'existe pas" %( self.nomFichier ) )
+					logger.info( "Impossible de reprendre le téléchargement de la vidéo, le fichier %s n'existe pas" %( self.nomFichier ) )
 			else: # Si la video n'est pas dans l'historique
 				self.ouvrirNouvelleVideo()
-				self.premierFragment = 1
 		else: # S'il ne faut pas reprendre le telechargement
 			self.ouvrirNouvelleVideo()
-			self.premierFragment = 1
 			
 		# Calcul l'estimation du nombre de fragments
 		self.nbFragMax      = round( ( self.duree * self.bitrate ) / 6040.0, 0 )
