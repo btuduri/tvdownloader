@@ -12,7 +12,7 @@ class ColorFormatter( logging.Formatter ):
 	FORMAT    = ( "[%(levelname)-19s]  " "$BOLD%(filename)-20s$RESET" "%(message)s"  )
 	# FORMAT    = ( "[%(levelname)-18s]  " "($BOLD%(filename)s$RESET:%(lineno)d)  " "%(message)s"  )
 
-	BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
+	BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range( 8 )
 
 	RESET_SEQ = "\033[0m"
 	COLOR_SEQ = "\033[1;%dm"

@@ -7,7 +7,7 @@
 
 __author__  = "Chaoswizard"
 __license__ = "GPL 2"
-__version__ = "0.7.1"
+__version__ = "0.8"
 __url__     = "http://code.google.com/p/tvdownloader/"
 
 #
@@ -37,6 +37,7 @@ if( __name__ == "__main__" ) :
 	parser.add_option( "-v", "--verbose",     action = "store_true", default = False, help = 'affiche les informations de debugage' )
 	parser.add_option( "-b", "--progressbar", action = "store_true", default = False, help = 'affiche la progression du telechargement' )
 	parser.add_option( "-f", "--fragments",   action = "store_true", default = False, help = 'telecharge la video via ses fragments meme si un lien direct existe' )
+	parser.add_option( "-r", "--resume",      action = "store_true", default = False, help = 'essaye de reprendre un téléchargement interrompu' )
 	parser.add_option( "-p", "--proxy", dest = "proxy", metavar = "PROXY",          help = 'utilise un proxy HTTP au format suivant http://URL:PORT' )
 	( options, args ) = parser.parse_args()
 	
@@ -71,4 +72,8 @@ if( __name__ == "__main__" ) :
 		sys.exit( -1 )
 	
 	# Telechargement de la video
-	PluzzDL( args[ 0 ], options.fragments, options.proxy, options.progressbar )
+	PluzzDL( url          = args[ 0 ],
+			 useFragments = options.fragments,
+			 proxy        = options.proxy,
+			 progressbar  = options.progressbar,
+			 resume       = options.resume )

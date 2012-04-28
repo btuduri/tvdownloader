@@ -22,6 +22,7 @@ import urllib2
 import xml.etree.ElementTree
 import xml.sax
 
+from Historique import Historique, Video
 from Navigateur import Navigateur
 
 import logging
@@ -33,12 +34,14 @@ logger = logging.getLogger( "pluzzdl" )
 
 class PluzzDL( object ):
 	
-	def __init__( self, url, useFragments = False, proxy = None, progressbar = False ):
+	def __init__( self, url, useFragments = False, proxy = None, progressbar = False, resume = False ):
 		self.url              = url
 		self.useFragments     = useFragments
 		self.proxy            = proxy
 		self.progressbar      = progressbar
+		self.resume           = resume
 		self.navigateur       = Navigateur( self.proxy )
+		self.historique       = Historique()
 		
 		self.lienMMS          = None
 		self.lienRTMP         = None
@@ -86,33 +89,52 @@ class PluzzDL( object ):
 		# Creation de la video
 		#
 		self.nomFichier   = "%s.flv" %( re.findall( "http://www.pluzz.fr/([^\.]+?)\.html", self.url )[ 0 ] )
-		try :
-			# Ouverture du fichier
-			self.fichierVideo = open( self.nomFichier, "wb" )
-		except :
-			logger.critical( "Impossible d'écrire dans le répertoire %s" %( os.getcwd() ) )
-			sys.exit( -1 )
-		# Ajout de l'en-tête FLV
-		self.fichierVideo.write( binascii.a2b_hex( "464c56010500000009000000001200010c00000000000000" ) )
-		# Ajout de l'header du fichier
-		self.fichierVideo.write( self.flvHeader )
-		self.fichierVideo.write( binascii.a2b_hex( "00000000" ) ) # Padding pour avoir des blocs de 8
+		
+		# S'il faut reprendre le telechargement
+		if( self.resume ):
+			video = self.historique.getVideo( self.urlFrag )
+			# Si la video est dans l'historique
+			if( video is not None ):
+				# Si la video existe sur le disque
+				if( os.path.exists( self.nomFichier ) ):
+					if( video.finie ):
+						logger.info( "La vidéo a déjà été correctement téléchargée" )
+						sys.exit( 0 )
+					else:
+						self.ouvrirVideoExistante()
+						self.premierFragment = video.fragments
+						logger.info( "Reprise du téléchargement de la vidéo au fragment %d" %( video.fragments ) )
+				else:
+					self.ouvrirNouvelleVideo()
+					self.premierFragment = 1
+					logger.info( "Impossible de reprendre la vidéo, le fichier %s n'existe pas" %( self.nomFichier ) )
+			else: # Si la video n'est pas dans l'historique
+				self.ouvrirNouvelleVideo()
+				self.premierFragment = 1
+		else: # S'il ne faut pas reprendre le telechargement
+			self.ouvrirNouvelleVideo()
+			self.premierFragment = 1
+			
 		# Calcul l'estimation du nombre de fragments
 		self.nbFragMax      = round( ( self.duree * self.bitrate ) / 6040.0, 0 )
 		logger.debug( "Estimation du nombre de fragments : %d" %( self.nbFragMax ) )
 		if( self.progressbar and self.nbFragMax != 0 ):
-			self.progression = Progression( self.nbFragMax )
+			self.progression = Progression( self.nbFragMax, self.premierFragment )
 		else:
-			self.progression = ProgressionVide( self.nbFragMax )
+			self.progression = ProgressionVide( self.nbFragMax, self.premierFragment )
+		
 		# Ajout des fragments
 		logger.info( "Début du téléchargement des fragments" )
 		try :
-			# frag = self.navigateur.getFichier( "%s1" %( self.urlFrag ) )
-			frag = self.navigateur.getFichier( "%s1?%s&%s&%s" %( self.urlFrag, self.pvtoken, self.hdntl, self.hdnea ) )
-			self.fichierVideo.write( frag[ frag.find( "mdat" ) + 4 : ] )
+			i = self.premierFragment
+			frag = self.navigateur.getFichier( "%s%d?%s&%s&%s" %( self.urlFrag, i, self.pvtoken, self.hdntl, self.hdnea ) )
+			if( i == 1 ):
+				self.fichierVideo.write( frag[ frag.find( "mdat" ) + 4 : ] )
+			else:
+				self.fichierVideo.write( frag[ frag.find( "\x0f\x09" ) + 1 : ] )
 			# Affichage de la progression
 			self.progression.afficher()
-			for i in xrange( 2, 99999 ):
+			for i in xrange( self.premierFragment + 1, 99999 ):
 				frag = self.navigateur.getFichier( "%s%d" %( self.urlFrag, i ) )
 				self.fichierVideo.write( frag[ frag.find( "\x0f\x09" ) + 1 : ] )
 				# self.fichierVideo.write( frag[ frag.find( "mdat" ) + 79 : ] )
@@ -121,10 +143,14 @@ class PluzzDL( object ):
 		except urllib2.URLError, e :
 			if( hasattr( e, 'code' ) ):
 				if( e.code == 403 ):
+					self.historique.ajouter( Video( lien = self.urlFrag, fragments = i, finie = False ) )
 					logger.critical( "Impossible de charger la vidéo" )
 				elif( e.code == 404 ):
 					self.progression.afficherFin()
+					self.historique.ajouter( Video( lien = self.urlFrag, fragments = i, finie = True ) )
 					logger.info( "Fin du téléchargement" )
+		except :
+			self.historique.ajouter( Video( lien = self.urlFrag, fragments = i, finie = False ) )
 		else :
 			# Fermeture du fichier
 			self.fichierVideo.close()
@@ -166,6 +192,27 @@ class PluzzDL( object ):
 		except :
 			logger.critical( "Impossible de parser le manifest" )
 			sys.exit( -1 )
+
+	def ouvrirNouvelleVideo( self ):
+		try :
+			# Ouverture du fichier
+			self.fichierVideo = open( self.nomFichier, "wb" )
+		except :
+			logger.critical( "Impossible d'écrire dans le répertoire %s" %( os.getcwd() ) )
+			sys.exit( -1 )
+		# Ajout de l'en-tête FLV
+		self.fichierVideo.write( binascii.a2b_hex( "464c56010500000009000000001200010c00000000000000" ) )
+		# Ajout de l'header du fichier
+		self.fichierVideo.write( self.flvHeader )
+		self.fichierVideo.write( binascii.a2b_hex( "00000000" ) ) # Padding pour avoir des blocs de 8
+		
+	def ouvrirVideoExistante( self ):
+		try :
+			# Ouverture du fichier
+			self.fichierVideo = open( self.nomFichier, "a+b" )
+		except :
+			logger.critical( "Impossible d'écrire dans le répertoire %s" %( os.getcwd() ) )
+			sys.exit( -1 )
 		
 class PluzzDLInfosHandler( xml.sax.handler.ContentHandler ):
 	
@@ -200,9 +247,9 @@ class PluzzDLInfosHandler( xml.sax.handler.ContentHandler ):
 
 class ProgressionVide( object ):
 	
-	def __init__( self, nbMax ):
+	def __init__( self, nbMax, indice = 1 ):
 		self.nbMax  = nbMax
-		self.indice = 1
+		self.indice = indice
 		self.old    = 0
 		self.new    = 0
 	
@@ -214,8 +261,8 @@ class ProgressionVide( object ):
 	
 class Progression( ProgressionVide ):
 	
-	def __init__( self, nbMax ):
-		ProgressionVide.__init__( self, nbMax )
+	def __init__( self, nbMax, indice ):
+		ProgressionVide.__init__( self, nbMax, indice )
 		
 	def afficher( self ):
 		self.new = min( int( ( self.indice / self.nbMax ) * 100 ), 100 )
