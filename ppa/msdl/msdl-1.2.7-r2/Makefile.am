@@ -1,5 +1,0 @@
-AUTOMAKE_OPTIONS = 1.5
-
-SUBDIRS = src doc
-
-EXTRA_DIST = msdl.spec
