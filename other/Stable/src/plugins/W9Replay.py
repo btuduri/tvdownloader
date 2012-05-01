@@ -74,7 +74,9 @@ class W9Replay( Plugin ):
 		if( self.listeEmissionsCourantes.has_key( emission ) ):
 			listeFichiers = self.listeEmissionsCourantes[ emission ]
 			for ( nom, date, lien, urlImage, descriptif ) in listeFichiers:
-				lienValide = "rtmpe://m6dev.fcod.llnwd.net:443/a3100/d1/mp4:production/w9replay/" + lien
+				nom  = nom.replace( ".f4m", ".mp4" )
+				lien = lien.replace( ".f4m", ".mp4" )
+				lienValide = "rtmpe://groupemsix.fcod.llnwd.net/a2883/d1/mp4:production/w9replay/" + lien +" --port 1935 --swfVfy http://l3.player.M6.fr/swf/ReplayPlayerV2Hds.swf --swfAge 0"
 				urlImage = "http://images.w9replay.fr" + urlImage
 				# On extrait l'extension du fichier
 				basename, extension = os.path.splitext( lien )
