@@ -37,7 +37,7 @@ if( __name__ == "__main__" ) :
 	parser.add_option( "-v", "--verbose",     action = "store_true", default = False, help = 'affiche les informations de debugage' )
 	parser.add_option( "-b", "--progressbar", action = "store_true", default = False, help = 'affiche la progression du telechargement' )
 	parser.add_option( "-f", "--fragments",   action = "store_true", default = False, help = 'telecharge la video via ses fragments meme si un lien direct existe' )
-	parser.add_option( "-r", "--resume",      action = "store_true", default = False, help = 'essaye de reprendre un téléchargement interrompu' )
+	parser.add_option( "-r", "--resume",      action = "store_true", default = False, help = 'essaye de reprendre un telechargement interrompu' )
 	parser.add_option( "-p", "--proxy", dest = "proxy", metavar = "PROXY",          help = 'utilise un proxy HTTP au format suivant http://URL:PORT' )
 	( options, args ) = parser.parse_args()
 	
