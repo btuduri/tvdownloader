@@ -133,7 +133,7 @@ class PluzzDL( object ):
 			# Affichage de la progression
 			self.progression.afficher()
 			for i in xrange( self.premierFragment + 1, 99999 ):
-				frag = self.navigateur.getFichier( "%s%d" %( self.urlFrag, i ) )
+				frag = self.navigateur.getFichier( "%s%d?%s&%s&%s" %( self.urlFrag, i, self.pvtoken, self.hdntl, self.hdnea ) )
 				self.fichierVideo.write( frag[ frag.find( "\x0f\x09" ) + 1 : ] )
 				# self.fichierVideo.write( frag[ frag.find( "mdat" ) + 79 : ] )
 				# Affichage de la progression
