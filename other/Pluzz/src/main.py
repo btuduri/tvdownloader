@@ -7,15 +7,15 @@
 
 __author__  = "Chaoswizard"
 __license__ = "GPL 2"
-__version__ = "0.8.1"
+__version__ = "0.8.2"
 __url__     = "http://code.google.com/p/tvdownloader/"
 
 #
 # Modules
 #
 
+import argparse
 import logging
-import optparse
 import platform
 import re
 import sys
@@ -29,51 +29,47 @@ from PluzzDL        import PluzzDL
 
 if( __name__ == "__main__" ) :
 	
-	# Options de la ligne de commande
-	usage   = "usage: pluzzdl [options] <url de l'emission>"
-	version = "pluzzdl %s" %( __version__ )
-	parser  = optparse.OptionParser( usage = usage, version = version )
-	parser.add_option( "--nocolor",           action = 'store_true', default = False, help = 'desactive la couleur dans le terminal' )
-	parser.add_option( "-v", "--verbose",     action = "store_true", default = False, help = 'affiche les informations de debugage' )
-	parser.add_option( "-b", "--progressbar", action = "store_true", default = False, help = 'affiche la progression du telechargement' )
-	parser.add_option( "-f", "--fragments",   action = "store_true", default = False, help = 'telecharge la video via ses fragments meme si un lien direct existe' )
-	parser.add_option( "-r", "--resume",      action = "store_true", default = False, help = 'essaye de reprendre un telechargement interrompu' )
-	parser.add_option( "-p", "--proxy", dest = "proxy", metavar = "PROXY",          help = 'utilise un proxy HTTP au format suivant http://URL:PORT' )
-	( options, args ) = parser.parse_args()
-	
-	# Verification du nombre d'arguments
-	if( len( args ) != 1 or args[ 0 ] == "" ):
-		parser.print_help()
-		parser.exit( 1 )
+	# Arguments de la ligne de commande
+	usage   = "pluzzdl [options] <url de l'émission>"
+	parser  = argparse.ArgumentParser( usage = usage, description = "Télécharge les émissions de Pluzz" )
+	parser.add_argument( "-f", "--fragments",   action = "store_true", default = False, help = 'télécharge la vidéo via ses fragments même si un lien direct existe' )
+	parser.add_argument( "-r", "--resume",      action = "store_true", default = False, help = 'essaye de reprendre un téléchargement interrompu' )
+	parser.add_argument( "-b", "--progressbar", action = "store_true", default = False, help = 'affiche la progression du téléchargement' )
+	parser.add_argument( "-p", "--proxy", dest = "proxy", metavar = "PROXY",            help = 'utilise un proxy HTTP au format suivant http://URL:PORT' )	
+	parser.add_argument( "-v", "--verbose",     action = "store_true", default = False, help = 'affiche les informations de debugage' )
+	parser.add_argument( "--nocolor",           action = 'store_true', default = False, help = 'désactive la couleur dans le terminal' )
+	parser.add_argument( "--version",           action = 'version', version = "pluzzdl %s" %( __version__ ) )
+	parser.add_argument( "urlEmission", action = "store", help = "URL de l'émission Pluzz a charger" )
+	args = parser.parse_args()
 	
 	# Mise en place du logger
 	logger  = logging.getLogger( "pluzzdl" )
 	console = logging.StreamHandler( sys.stdout )
-	if( options.verbose ):
+	if( args.verbose ):
 		logger.setLevel( logging.DEBUG )
 		console.setLevel( logging.DEBUG )
 	else:
 		logger.setLevel( logging.INFO )
 		console.setLevel( logging.INFO )
-	console.setFormatter( ColorFormatter( not options.nocolor ) )
+	console.setFormatter( ColorFormatter( not args.nocolor ) )
 	logger.addHandler( console )
 	
 	# Affiche la version de pluzzdl et de python
-	logger.debug( "%s avec Python %s" %( version, platform.python_version() ) )
+	logger.debug( "pluzzdl %s avec Python %s" %( __version__, platform.python_version() ) )
 	
 	# Verification de l'URL
-	if( re.match( "http://www.pluzz.fr/[^\.]+?\.html", args[ 0 ] ) is None ):
-		logger.error( "L'URL \"%s\" n'est pas valide" %( args[ 0 ] ) )
+	if( re.match( "http://www.pluzz.fr/[^\.]+?\.html", args.urlEmission ) is None ):
+		logger.error( "L'URL \"%s\" n'est pas valide" %( args.urlEmission ) )
 		sys.exit( -1 )
 	
 	# Verification du proxy
-	if( options.proxy is not None and re.match( "http://[^:]+?:\d+", options.proxy ) is None ):
-		logger.error( "Le proxy \"%s\" n'est pas valide" %( options.proxy ) )
+	if( args.proxy is not None and re.match( "http://[^:]+?:\d+", args.proxy ) is None ):
+		logger.error( "Le proxy \"%s\" n'est pas valide" %( args.proxy ) )
 		sys.exit( -1 )
 	
 	# Telechargement de la video
-	PluzzDL( url          = args[ 0 ],
-			 useFragments = options.fragments,
-			 proxy        = options.proxy,
-			 progressbar  = options.progressbar,
-			 resume       = options.resume )
+	PluzzDL( url          = args.urlEmission,
+			 useFragments = args.fragments,
+			 proxy        = args.proxy,
+			 progressbar  = args.progressbar,
+			 resume       = args.resume )
