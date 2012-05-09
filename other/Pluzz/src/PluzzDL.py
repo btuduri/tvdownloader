@@ -16,6 +16,7 @@ import hashlib
 import hmac
 import os
 import re
+import struct
 import sys
 import urllib
 import urllib2
@@ -124,18 +125,10 @@ class PluzzDL( object ):
 		# Ajout des fragments
 		logger.info( "Début du téléchargement des fragments" )
 		try :
-			i = self.premierFragment
-			frag = self.navigateur.getFichier( "%s%d?%s&%s&%s" %( self.urlFrag, i, self.pvtoken, self.hdntl, self.hdnea ) )
-			if( i == 1 ):
-				self.fichierVideo.write( frag[ frag.find( "mdat" ) + 4 : ] )
-			else:
-				self.fichierVideo.write( frag[ frag.find( "\x0f\x09" ) + 1 : ] )
-			# Affichage de la progression
-			self.progression.afficher()
-			for i in xrange( self.premierFragment + 1, 99999 ):
-				frag = self.navigateur.getFichier( "%s%d?%s&%s&%s" %( self.urlFrag, i, self.pvtoken, self.hdntl, self.hdnea ) )
-				self.fichierVideo.write( frag[ frag.find( "\x0f\x09" ) + 1 : ] )
-				# self.fichierVideo.write( frag[ frag.find( "mdat" ) + 79 : ] )
+			for i in xrange( self.premierFragment, 99999 ):
+				frag  = self.navigateur.getFichier( "%s%d?%s&%s&%s" %( self.urlFrag, i, self.pvtoken, self.hdntl, self.hdnea ) )
+				debut = self.debutVideo( i, frag )
+				self.fichierVideo.write( frag[ debut : ] )
 				# Affichage de la progression
 				self.progression.afficher()
 		except urllib2.URLError, e :
@@ -152,6 +145,25 @@ class PluzzDL( object ):
 		else :
 			# Fermeture du fichier
 			self.fichierVideo.close()
+
+	def debutVideo( self, fragID, fragData ):
+		
+		# Old way
+		# if( fragID == 1 ):
+			# start = fragData.find( "mdat" ) + 4
+		# else:
+			# start = fragData.find( "\x0f\x09" ) + 1
+
+		# Skip fragment header
+		start = fragData.find( "mdat" ) + 4
+		# For all fragment (except frag1)
+		if( fragID > 1 ):
+			# Skip 2 FLV tags
+			for dummy in range( 2 ):
+				tagLen, = struct.unpack_from( '>L', fragData, start ) # Read 32 bits (big endian)
+				tagLen &= 0x00ffffff                                  # Take the last 24 bits
+				start  += tagLen + 11 + 4                             # 11 = tag header len ; 4 = tag footer len
+		return start
 		
 	def getID( self ):
 		try :

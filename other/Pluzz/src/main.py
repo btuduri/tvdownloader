@@ -30,7 +30,7 @@ from PluzzDL        import PluzzDL
 if( __name__ == "__main__" ) :
 	
 	# Arguments de la ligne de commande
-	usage   = "pluzzdl [options] <url de l'émission>"
+	usage   = "pluzzdl [options] urlEmission"
 	parser  = argparse.ArgumentParser( usage = usage, description = "Télécharge les émissions de Pluzz" )
 	parser.add_argument( "-f", "--fragments",   action = "store_true", default = False, help = 'télécharge la vidéo via ses fragments même si un lien direct existe' )
 	parser.add_argument( "-r", "--resume",      action = "store_true", default = False, help = 'essaye de reprendre un téléchargement interrompu' )
