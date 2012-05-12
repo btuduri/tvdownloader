@@ -89,8 +89,9 @@ class PluzzDL( object ):
 		#
 		# Creation de la video
 		#
-		self.nomFichier      = "%s.flv" %( re.findall( "http://www.pluzz.fr/([^\.]+?)\.html", self.url )[ 0 ] )
-		self.premierFragment = 1
+		self.nomFichier         = "%s.flv" %( re.findall( "http://www.pluzz.fr/([^\.]+?)\.html", self.url )[ 0 ] )
+		self.premierFragment    = 1
+		self.telechargementFini = False
 		
 		# S'il faut reprendre le telechargement
 		if( self.resume ):
@@ -115,7 +116,7 @@ class PluzzDL( object ):
 			self.ouvrirNouvelleVideo()
 			
 		# Calcul l'estimation du nombre de fragments
-		self.nbFragMax      = round( ( self.duree * self.bitrate ) / 6040.0, 0 )
+		self.nbFragMax = round( ( self.duree * self.bitrate ) / 6040.0, 0 )
 		logger.debug( "Estimation du nombre de fragments : %d" %( self.nbFragMax ) )
 		if( self.progressbar and self.nbFragMax != 0 ):
 			self.progression = Progression( self.nbFragMax, self.premierFragment )
@@ -134,15 +135,16 @@ class PluzzDL( object ):
 		except urllib2.URLError, e :
 			if( hasattr( e, 'code' ) ):
 				if( e.code == 403 ):
-					self.historique.ajouter( Video( lien = self.urlFrag, fragments = i, finie = False ) )
 					logger.critical( "Impossible de charger la vidéo" )
 				elif( e.code == 404 ):
 					self.progression.afficherFin()
-					self.historique.ajouter( Video( lien = self.urlFrag, fragments = i, finie = True ) )
+					self.telechargementFini = True
 					logger.info( "Fin du téléchargement" )
-		except :
-			self.historique.ajouter( Video( lien = self.urlFrag, fragments = i, finie = False ) )
-		else :
+		except:
+			pass
+		finally :
+			# Ajout dans l'historique
+			self.historique.ajouter( Video( lien = self.urlFrag, fragments = i, finie = self.telechargementFini ) )
 			# Fermeture du fichier
 			self.fichierVideo.close()
 
