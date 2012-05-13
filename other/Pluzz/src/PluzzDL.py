@@ -140,6 +140,8 @@ class PluzzDL( object ):
 					self.progression.afficherFin()
 					self.telechargementFini = True
 					logger.info( "Fin du téléchargement" )
+		except KeyboardInterrupt:
+			logger.info( "Interruption clavier" )
 		except:
 			logger.critical( "Erreur inconnue" )
 		finally :
