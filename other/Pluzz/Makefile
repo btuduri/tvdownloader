@@ -11,6 +11,13 @@ INSTALL = install -m 755
 # Version de Python a utiliser
 PYTHON_VERSION ?= python
 
+# Version de pluzzdl
+PLUZZDL_VERSION = $(shell grep '__version__ = ".*"' src/main.py | cut -d '"' -f 2)
+
+# Nom du repertoire
+PLUZZDL_REPERTOIRE = pluzzdl-$(PLUZZDL_VERSION)
+
+
 # Compilation
 build :
 	# ByteCode
@@ -33,4 +40,12 @@ install :
 # Nettoyage
 clean : 
 	@echo "Nothing"
-	
+
+# Creation tar.gz
+tar :
+	@mkdir -p $(PLUZZDL_REPERTOIRE)
+	@cp Makefile pluzzdl.sh $(PLUZZDL_REPERTOIRE)
+	@mkdir -p $(PLUZZDL_REPERTOIRE)/src
+	@cp src/*.py $(PLUZZDL_REPERTOIRE)/src/
+	@tar czf pluzzdl_$(PLUZZDL_VERSION).orig.tar.gz $(PLUZZDL_REPERTOIRE)
+	@rm -rf $(PLUZZDL_REPERTOIRE)
