@@ -141,7 +141,7 @@ class PluzzDL( object ):
 					self.telechargementFini = True
 					logger.info( "Fin du téléchargement" )
 		except:
-			pass
+			logger.critical( "Erreur inconnue" )
 		finally :
 			# Ajout dans l'historique
 			self.historique.ajouter( Video( lien = self.urlFrag, fragments = i, finie = self.telechargementFini ) )
