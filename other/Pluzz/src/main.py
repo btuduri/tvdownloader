@@ -7,7 +7,7 @@
 
 __author__  = "Chaoswizard"
 __license__ = "GPL 2"
-__version__ = "0.8.3"
+__version__ = "0.8.4"
 __url__     = "http://code.google.com/p/tvdownloader/"
 
 #

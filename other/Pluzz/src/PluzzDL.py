@@ -50,7 +50,7 @@ class PluzzDL( object ):
 		self.drm              = None
 		
 		self.key        = r"bd938d5ee6d9f42016f9c56577b6fdcf415fe4b184932b785ab32bcadc9bb592".decode( "hex" )
-		self.pvtokenKey = r"3fPHzcjMxiTmRj5AdV0bhzgjjSjk2PqUMBzFxgPEPF4="
+		self.pvtokenKey = r"YUr6elTM4fjUu/vvXV4Ab+C29xJvG3trfw4dEBOKjUk="
 		
 		# Recupere l'ID de l'emission
 		self.getID()
