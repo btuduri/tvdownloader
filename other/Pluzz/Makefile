@@ -47,5 +47,6 @@ tar :
 	@cp Makefile pluzzdl.sh $(PLUZZDL_REPERTOIRE)
 	@mkdir -p $(PLUZZDL_REPERTOIRE)/src
 	@cp src/*.py $(PLUZZDL_REPERTOIRE)/src/
+	@cp src/pluzzdl_default.cfg $(PLUZZDL_REPERTOIRE)/src/
 	@tar czf pluzzdl_$(PLUZZDL_VERSION).orig.tar.gz $(PLUZZDL_REPERTOIRE)
 	@rm -rf $(PLUZZDL_REPERTOIRE)

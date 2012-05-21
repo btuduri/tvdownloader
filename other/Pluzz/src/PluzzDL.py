@@ -16,15 +16,18 @@ import hashlib
 import hmac
 import os
 import re
+import StringIO
 import struct
 import sys
 import urllib
 import urllib2
 import xml.etree.ElementTree
 import xml.sax
+import zlib
 
-from Historique import Historique, Video
-from Navigateur import Navigateur
+from Configuration import Configuration
+from Historique    import Historique, Video
+from Navigateur    import Navigateur
 
 import logging
 logger = logging.getLogger( "pluzzdl" )
@@ -43,14 +46,15 @@ class PluzzDL( object ):
 		self.resume           = resume
 		self.navigateur       = Navigateur( self.proxy )
 		self.historique       = Historique()
+		self.configuration    = Configuration()
 		
 		self.lienMMS          = None
 		self.lienRTMP         = None
 		self.manifestURL      = None
 		self.drm              = None
 		
-		self.key        = r"bd938d5ee6d9f42016f9c56577b6fdcf415fe4b184932b785ab32bcadc9bb592".decode( "hex" )
-		self.pvtokenKey = r"YUr6elTM4fjUu/vvXV4Ab+C29xJvG3trfw4dEBOKjUk="
+		self.hmacKey          = self.configuration[ "hmac_key" ].decode( "hex" )
+		self.playerHash       = self.configuration[ "player_hash" ]
 		
 		# Recupere l'ID de l'emission
 		self.getID()
@@ -83,8 +87,8 @@ class PluzzDL( object ):
 		# Calcul les elements
 		self.hdnea = self.manifestURLToken[ self.manifestURLToken.find( "hdnea" ) : ]
 		self.pv20, self.hdntl = self.pv2.split( ";" )
-		self.pvtokenData = r"st=0000000000~exp=9999999999~acl=%2f%2a~data=" + self.pv20 + "!" + self.pvtokenKey
-		self.pvtoken = "pvtoken=%s~hmac=%s" %( urllib.quote( self.pvtokenData ), hmac.new( self.key, self.pvtokenData, hashlib.sha256 ).hexdigest() )
+		self.pvtokenData = r"st=0000000000~exp=9999999999~acl=%2f%2a~data=" + self.pv20 + "!" + self.playerHash
+		self.pvtoken = "pvtoken=%s~hmac=%s" %( urllib.quote( self.pvtokenData ), hmac.new( self.hmacKey, self.pvtokenData, hashlib.sha256 ).hexdigest() )
 		
 		#
 		# Creation de la video
@@ -135,7 +139,17 @@ class PluzzDL( object ):
 		except urllib2.URLError, e :
 			if( hasattr( e, 'code' ) ):
 				if( e.code == 403 ):
-					logger.critical( "Impossible de charger la vidéo" )
+					if( e.reason == "Forbidden" ):
+						logger.info( "Le hash du player semble invalide ; calcul du nouveau hash" )
+						newPlayerHash = self.getPlayerHash()
+						if( newPlayerHash != self.playerHash ):
+							self.configuration[ "player_hash" ] = newPlayerHash
+							self.configuration.writeConfig()
+							logger.info( "Un nouveau hash a été trouvé ; essayez de relancer l'application" )
+						else:
+							logger.critical( "Pas de nouveau hash disponible..." )						
+					else:
+						logger.critical( "Impossible de charger la vidéo" )
 				elif( e.code == 404 ):
 					self.progression.afficherFin()
 					self.telechargementFini = True
@@ -150,21 +164,39 @@ class PluzzDL( object ):
 			# Fermeture du fichier
 			self.fichierVideo.close()
 
-	def debutVideo( self, fragID, fragData ):
-		
-		# Old way
-		# if( fragID == 1 ):
-			# start = fragData.find( "mdat" ) + 4
-		# else:
-			# start = fragData.find( "\x0f\x09" ) + 1
+	def getPlayerHash( self ):
+		# Get SWF player
+		playerData = self.navigateur.getFichier( "http://www.pluzz.fr/layoutftv/players/h264/player.swf" )
+		# Uncompress SWF player
+		playerDataUncompress = self.decompressSWF( playerData )
+		# Perform sha256 of uncompressed SWF player
+		hashPlayer = hashlib.sha256( playerDataUncompress ).hexdigest()
+		# Perform base64
+		return base64.encodestring( hashPlayer.decode( 'hex' ) )
 
+	def decompressSWF( self, swfData ):
+		# Adapted from :
+		#    Prozacgod
+		#    http://www.python-forum.org/pythonforum/viewtopic.php?f=2&t=14693
+		if( type( swfData ) is str ):
+			swfData = StringIO.StringIO( swfData )
+
+		swfData.seek( 0, 0 )
+		magic = swfData.read( 3 )
+
+		if( magic == "CWS" ):
+			return "FWS" + swfData.read( 5 ) + zlib.decompress( swfData.read() )
+		else:
+			return None
+
+	def debutVideo( self, fragID, fragData ):
 		# Skip fragment header
 		start = fragData.find( "mdat" ) + 4
 		# For all fragment (except frag1)
 		if( fragID > 1 ):
 			# Skip 2 FLV tags
 			for dummy in range( 2 ):
-				tagLen, = struct.unpack_from( '>L', fragData, start ) # Read 32 bits (big endian)
+				tagLen, = struct.unpack_from( ">L", fragData, start ) # Read 32 bits (big endian)
 				tagLen &= 0x00ffffff                                  # Take the last 24 bits
 				start  += tagLen + 11 + 4                             # 11 = tag header len ; 4 = tag footer len
 		return start
