@@ -81,7 +81,7 @@ class Navigateur( object ):
 	# @return dictionnary { url1 : data1, url2 : data2, ... }
 	def getFiles( self, urlList ):
 		
-		def threadGetFile( self, url ):
+		def threadGetFile( self, url, filesData ):
 			# Thread += 1
 			with self.lock:
 				self.runningThreads += 1
@@ -89,24 +89,24 @@ class Navigateur( object ):
 			data = self.getFile( url )
 			# Save data and thread -= 1
 			with self.lock:
-				self.filesData[ url ] = data
+				filesData[ url ] = data
 				self.runningThreads -= 1
 				with self.noThreadRunning:
 					if( self.runningThreads == 0 ):
 						self.noThreadRunning.notify()	
 			self.semaphore.release()
 		
-		self.filesData = {}
-		currentFile    = 0
+		filesData   = {}
+		currentFile = 0
 		
 		if( len( urlList ) == 0 ):
-			return self.filesData
+			return filesData
 		
 		# Launch threads
 		while( currentFile < len( urlList ) ):
 			self.semaphore.acquire()
 			threading.Thread( target = threadGetFile, 
-							  args = ( self, urlList[ currentFile ] ) 
+							  args = ( self, urlList[ currentFile ], filesData ) 
 							).start()
 			currentFile += 1
 		
@@ -114,7 +114,7 @@ class Navigateur( object ):
 		with self.noThreadRunning:
 			self.noThreadRunning.wait()
 		
-		return self.filesData
+		return filesData
 				
 	def appendCookie( self, cookieName, cookieValue ):
 		for cookie in self.cookiejar:

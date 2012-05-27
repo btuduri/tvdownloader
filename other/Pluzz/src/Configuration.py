@@ -24,7 +24,7 @@ class Configuration( object ):
 	def __init__( self ):
 		# Le chemin du fichier de configuration est different selon l'OS utilise
 		if( os.name == "nt" ):
-			self.configFileName = os.path.join( os.getenv( "APPDATA" ), "pluzzdl.cfg" )
+			self.configFileName = os.path.join( os.getenv( "APPDATA" ), "pluzzdl", "pluzzdl.cfg" )
 		else:
 			self.configFileName = os.path.join( os.path.expanduser( "~" ), ".config", "pluzzdl.cfg" )			
 		# Si le fichier de configuration n'est pas present dans le repertoire de l'utilisateur ou si celui par defaut est plus recent

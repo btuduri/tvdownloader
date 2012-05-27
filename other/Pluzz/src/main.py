@@ -17,6 +17,7 @@ __url__     = "http://code.google.com/p/tvdownloader/"
 import argparse
 import logging
 import platform
+import os
 import re
 import sys
 
@@ -66,6 +67,13 @@ if( __name__ == "__main__" ) :
 	if( args.proxy is not None and re.match( "http://[^:]+?:\d+", args.proxy ) is None ):
 		logger.error( "Le proxy \"%s\" n'est pas valide" %( args.proxy ) )
 		sys.exit( -1 )
+	
+	# Creation du repertoire de travail
+	if( os.name == "nt" ):
+		pluzzdlDir = os.path.join( os.getenv( "APPDATA" ), "pluzzdl" )
+		if( not os.path.isdir( pluzzdlDir ) ):
+			logger.info( "Création du répertoire %s" %( pluzzdlDir ) )
+			os.makedirs( pluzzdlDir )
 	
 	# Telechargement de la video
 	PluzzDL( url          = args.urlEmission,
