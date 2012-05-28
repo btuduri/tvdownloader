@@ -56,28 +56,42 @@ class PluzzDL( object ):
 		self.hmacKey          = self.configuration[ "hmac_key" ].decode( "hex" )
 		self.playerHash       = self.configuration[ "player_hash" ]
 		
-		# Recupere l'ID de l'emission
-		self.getID()
-		# Recupere la page d'infos de l'emission
-		self.pageInfos = self.navigateur.getFichier( "http://www.pluzz.fr/appftv/webservices/video/getInfosOeuvre.php?mode=zeri&id-diffusion=%s" %( self.id ) )
-		# Parse la page d'infos
-		self.parseInfos()
-		# Petit message en cas de DRM
-		if( self.drm == "oui" ):
-			logger.warning( "La vidéo posséde un DRM ; elle sera sans doute illisible" )
-		# Lien MMS trouve
-		if( self.lienMMS is not None ):
-			logger.info( "Lien MMS : %s\nUtiliser par exemple mimms ou msdl pour la recuperer directement ou l'option -f de pluzzdl pour essayer de la charger via ses fragments" %( self.lienMMS ) )
-		# Lien RTMP trouve
-		if( self.lienRTMP is not None ):
-			logger.info( "Lien RTMP : %s\nUtiliser par exemple rtmpdump pour la recuperer directement ou l'option -f de pluzzdl pour essayer de la charger via ses fragments" %( self.lienRTMP ) )
-		# N'utilise pas les fragments si cela n'a pas ete demande et que des liens directs ont ete trouves
-		if( ( ( self.lienMMS is not None ) or ( self.lienRTMP is not None ) ) and not self.useFragments ):
-			sys.exit( 0 )
-		# Lien du manifest non trouve
-		if( self.manifestURL is None ):
-			logger.critical( "Pas de lien vers le manifest" )
-			sys.exit( -1 )
+		if( re.match( "http://www.pluzz.fr/[^\.]+?\.html", self.url ) ):
+			# Recupere l'ID de l'emission
+			self.getID()
+			# Recupere la page d'infos de l'emission
+			self.pageInfos = self.navigateur.getFichier( "http://www.pluzz.fr/appftv/webservices/video/getInfosOeuvre.php?mode=zeri&id-diffusion=%s" %( self.id ) )
+			# Parse la page d'infos
+			self.parseInfos()
+			# Petit message en cas de DRM
+			if( self.drm == "oui" ):
+				logger.warning( "La vidéo posséde un DRM ; elle sera sans doute illisible" )
+			# Lien MMS trouve
+			if( self.lienMMS is not None ):
+				logger.info( "Lien MMS : %s\nUtiliser par exemple mimms ou msdl pour la recuperer directement ou l'option -f de pluzzdl pour essayer de la charger via ses fragments" %( self.lienMMS ) )
+			# Lien RTMP trouve
+			if( self.lienRTMP is not None ):
+				logger.info( "Lien RTMP : %s\nUtiliser par exemple rtmpdump pour la recuperer directement ou l'option -f de pluzzdl pour essayer de la charger via ses fragments" %( self.lienRTMP ) )
+			# N'utilise pas les fragments si cela n'a pas ete demande et que des liens directs ont ete trouves
+			if( ( ( self.lienMMS is not None ) or ( self.lienRTMP is not None ) ) and not self.useFragments ):
+				sys.exit( 0 )
+			# Lien du manifest non trouve
+			if( self.manifestURL is None ):
+				logger.critical( "Pas de lien vers le manifest" )
+				sys.exit( -1 )
+			self.nomFichier         = "%s.flv" %( re.findall( "http://www.pluzz.fr/([^\.]+?)\.html", self.url )[ 0 ] )
+		else:
+			page = self.navigateur.getFichier( self.url )
+			try:
+				self.manifestURL = re.findall( "(http://.+?manifest.f4m)", page )[ 0 ]
+			except:
+				logger.critical( "Pas de lien vers le manifest" )
+				sys.exit( -1 )
+			try:
+				self.nomFichier         = "%s.flv" %( self.url.split( "/" )[ -1 ] )
+			except:
+				self.nomFichier = "video.flv"
+			
 		# Verifie si le lien du manifest contient la chaine "media-secure"
 		if( self.manifestURL.find( "media-secure" ) != -1 ):
 			logger.critical( "pluzzdl ne sait pas encore gérer ce type de vidéo..." )
@@ -97,7 +111,6 @@ class PluzzDL( object ):
 		#
 		# Creation de la video
 		#
-		self.nomFichier         = "%s.flv" %( re.findall( "http://www.pluzz.fr/([^\.]+?)\.html", self.url )[ 0 ] )
 		self.premierFragment    = 1
 		self.telechargementFini = False
 		

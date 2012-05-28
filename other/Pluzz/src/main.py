@@ -59,7 +59,8 @@ if( __name__ == "__main__" ) :
 	logger.debug( "pluzzdl %s avec Python %s" %( __version__, platform.python_version() ) )
 	
 	# Verification de l'URL
-	if( re.match( "http://www.pluzz.fr/[^\.]+?\.html", args.urlEmission ) is None ):
+	if( re.match( "http://www.pluzz.fr/[^\.]+?\.html", args.urlEmission ) is None 
+	and re.match( "http://www.francetv.fr/[^\.]+?", args.urlEmission ) is None ):
 		logger.error( "L'URL \"%s\" n'est pas valide" %( args.urlEmission ) )
 		sys.exit( -1 )
 	
