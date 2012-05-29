@@ -24,6 +24,8 @@ build :
 	@$(PYTHON_VERSION) -c "import compileall ; compileall.compile_dir( 'src' )"
 	# Modifie le lanceur
 	sed -i 's|__DATADIR__|$(DESTDIR)$(DATADIR)|g' pluzzdl.sh
+	# Creer manpage
+	gzip pluzzdl.1
 
 # Installation
 install :
@@ -36,6 +38,10 @@ install :
 	# Met en place le code
 	mkdir -p $(DESTDIR)$(DATADIR)/pluzzdl
 	$(INSTALL) src/* $(DESTDIR)$(DATADIR)/pluzzdl/
+	
+	# Met en place le manpage
+	mkdir -p /usr/share/man/fr/man1/
+	$(INSTALL) pluzzdl.1.gz /usr/share/man/fr/man1/
 
 # Nettoyage
 clean : 
@@ -48,5 +54,7 @@ tar :
 	@mkdir -p $(PLUZZDL_REPERTOIRE)/src
 	@cp src/*.py $(PLUZZDL_REPERTOIRE)/src/
 	@cp src/pluzzdl_default.cfg $(PLUZZDL_REPERTOIRE)/src/
+	@man -t ./pluzzdl.1 | ps2pdf14 - manuel.pdf
+	@mv manuel.pdf $(PLUZZDL_REPERTOIRE)
 	@tar czf pluzzdl_$(PLUZZDL_VERSION).orig.tar.gz $(PLUZZDL_REPERTOIRE)
 	@rm -rf $(PLUZZDL_REPERTOIRE)
