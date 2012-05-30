@@ -7,7 +7,7 @@
 
 .SH UTILISATION
 .HP 1
-\fBpluzzdl\fR [\fIoptions\fR] \fIurlEmission\fR
+\fBpluzzdl [ -frbv ] [ -p \fIproxy\fB ] \fIurlEmission\fR\fR
 .PP
 où \fIurlEmission\fR doit être de la forme :
 .TP
@@ -23,19 +23,19 @@ vidéos du site FranceTV
 Les options suivantes sont disponibles :
 .TP
 \fB\-f\fr
-Force \fBpluzzdl\fR a télécharger la vidéo en streaming adaptatif
+Force \fBpluzzdl\fR a télécharger la vidéo en utilisant le streaming adaptatif
 .TP
 \fB\-r\fr
 Permet de reprendre un téléchargement
 .TP
+\fB\-b\fr
+Affiche le pourcentage de progression du téléchargement
+.TP
 \fB\-v\fr
 Mode verbeux (à utiliser pour obtenir des informations de debugage)
 .TP
-\fB\-p\fr
+\fB\-p \fIproxy\fB\fr
 Permet d'utiliser un proxy HTTP au format http://URL:PORT
-.TP
-\fB\-b\fr
-Affiche le pourcentage de progression du téléchargement
 .TP
 \fB\-\-nocolor\fr
 Désactive la couleur dans le terminal (particulierement utile si le terminal ne supporte pas la couleur)
@@ -47,7 +47,7 @@ Affiche la version actuelle de \fBpluzzdl\fR
 .SH EXEMPLE
 La plupart de téléchargements se feront avec les options suivantes
 .TP
-\fBpluzzdl\fR \fB-f\fr \fB-b\fr \fB-r\fr \fIurlEmission\fR
+\fBpluzzdl\fR \fB-fbr\fr \fIurlEmission\fR
 La vidéo sera donc chargée en rassemblant les fragments du streaming adaptatif, en affichant la progression du téléchargement et reprenant le téléchargement s'il avait été coupé.
 
 
