@@ -137,7 +137,7 @@ class PluzzDL( object ):
 			self.ouvrirNouvelleVideo()
 			
 		# Calcul l'estimation du nombre de fragments
-		self.nbFragMax = round( ( self.duree * self.bitrate ) / 6040.0, 0 )
+		self.nbFragMax = round( self.duree / 6 )
 		logger.debug( "Estimation du nombre de fragments : %d" %( self.nbFragMax ) )
 		if( self.progressbar and self.nbFragMax != 0 ):
 			self.progression = Progression( self.nbFragMax, self.premierFragment )
