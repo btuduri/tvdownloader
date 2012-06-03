@@ -54,8 +54,8 @@ class API(APIPrive):
 	# @param self le plugin courant
 	# @param url l'url de la page web
 	# @return la page web sous forme d'une chaîne ou la chaîne vide en cas d'échec
-	def getPage(self, url):
-		return self.navigateur.getPage( url )
+	def getPage(self, url, data = None ):
+		return self.navigateur.getPage( url, data )
 		#~ 
 		#~ #Vérification de l'url
 		#~ match = re.match(API.PATTERN_URL, url)

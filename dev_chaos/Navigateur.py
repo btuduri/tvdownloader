@@ -8,6 +8,7 @@
 import cookielib
 import random
 import threading
+import urllib
 import urllib2
 
 from Cache import Cache
@@ -60,10 +61,13 @@ class Navigateur( object ):
 		self.runningThreads       = 0
 	
 	@Cache( maxSize = 10 * 1024 * 1024, acceptedTypes = [ "text", "image" ] )
-	def getFile( self, url ):
+	def getFile( self, url, data = None ):
 		try:
 			logger.debug( "GET %s" %( url ) )
-			request = urllib2.Request( url )
+			if( data is not None ):
+				request = urllib2.Request( url, urllib.urlencode( data ) )
+			else:
+				request = urllib2.Request( url )
 			page    = self.urlOpener.open( request, timeout = self.timeOut )
 			data = page.read()
 			return data

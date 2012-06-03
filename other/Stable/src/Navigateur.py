@@ -49,7 +49,7 @@ listeUserAgents = [ 'Mozilla/5.0 (Windows; U; Windows NT 5.1; fr; rv:1.9.0.1) Ge
 ## Classe Navigateur pour charger les pages web
 class Navigateur( object ):
 	
-	timeOut   = 5
+	timeOut   = 15
 	maxThread = 10
 	
 	## Constructeur
@@ -80,11 +80,15 @@ class Navigateur( object ):
 	## Methode pour recuperer une page web
 	# @param  URLPage URL de la page web a charger
 	# @return Code de la page
-	def getPage( self, URLPage ):
+	def getPage( self, URLPage, data = None ):
 		logger.info( "acces a la page %s" %( URLPage ) )
 		try:
 			# Page a charger
-			page = self.navigateur.open( URLPage, timeout = self.timeOut )			
+			if( data is not None ):
+				req  = mechanize.Request( URLPage, urllib.urlencode( data ) )
+				page = mechanize.urlopen( req )
+			else:
+				page = self.navigateur.open( URLPage, timeout = self.timeOut )			
 			
 			# Si le fichier est un XML
 			if( URLPage[ -4 : ] == ".xml" ):
