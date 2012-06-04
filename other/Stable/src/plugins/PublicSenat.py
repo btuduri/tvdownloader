@@ -6,6 +6,7 @@
 #
 
 import BeautifulSoup
+import HTMLParser
 import os
 
 from Fichier import Fichier
@@ -31,7 +32,6 @@ class PublicSenat( Plugin ):
 		pass
 		
 	def listerChaines( self ):
-		pass
 		self.ajouterChaine( self.nom )
 	
 	def listerEmissions( self, chaine ):
