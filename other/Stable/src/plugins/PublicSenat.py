@@ -18,32 +18,18 @@ from Plugin import Plugin
 class PublicSenat( Plugin ):
 	
 	pagePrincipale = "http://www.publicsenat.fr"
-	listeEmissions = {} # { Nom emission, URL page HTML }
+	
+	# { Nom emission, id de l'emission sur le site }
+	listeEmissions = { r"A l'heure du choix"       : 270,
+					   r"A nous le Sénat"          : 281,
+					   r"Attention grands travaux" : 271
+					 }
 	
 	def __init__( self ):
 		Plugin.__init__( self, "Public Senat", "http://www.publicsenat.fr", 7 )
-		
-		if( os.path.exists( self.fichierCache ) ):
-			self.listeEmissions = self.chargerCache()
 	
 	def rafraichir( self ):
-		self.afficher( u"Récupération de la liste des émissions..." )
-		# RAZ
-		self.listeEmissions.clear()
-		# Recupere la page principale
-		page = BeautifulSoup.BeautifulSoup( self.API.getPage( self.pagePrincipale ) )
-		try:
-			# Extrait le block qui contient les emissions
-			emissionsBlock = BeautifulSoup.BeautifulSoup( str( page.findAll( "ul", { "class" : "emissions-level2" } )[ 0 ].contents[ 1 ] ) )
-			# Extrait les emissions
-			emissions = emissionsBlock.findAll( "div", { "class" : "field-item" } )
-			# Creer le dictionnaire
-			self.listeEmissions = dict( zip( map( lambda x : x.contents[ 0 ][ "title" ], emissions ), map( lambda x : x.contents[ 0 ][ "href" ], emissions ) ) )
-		
-			self.sauvegarderCache( self.listeEmissions )
-			self.afficher( u"Liste des émissions sauvegardées" )
-		except:
-			return
+		pass
 		
 	def listerChaines( self ):
 		pass
@@ -60,7 +46,7 @@ class PublicSenat( Plugin ):
 		#
 		
 		# Recupere la page qui liste les fichiers disponibles
-		pageFichiers = BeautifulSoup.BeautifulSoup( self.API.getPage( "http://www.publicsenat.fr/zp/templates/emission/JX_video.php", { "idP" : 108, "page" : 1 } ) )
+		pageFichiers = BeautifulSoup.BeautifulSoup( self.API.getPage( "http://www.publicsenat.fr/zp/templates/emission/JX_video.php", { "idP" : self.listeEmissions[ emission ], "page" : 1 } ) )
 		# Recupere les fichiers disponibles
 		emissionsData = pageFichiers.findAll( "h3" )
 		for emissionData in emissionsData:
