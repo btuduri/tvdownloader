@@ -7,6 +7,7 @@
 
 import BeautifulSoup
 import os
+import unicodedata 
 
 from Fichier import Fichier
 from Plugin import Plugin
@@ -31,23 +32,19 @@ class LCP( Plugin ):
 		# RAZ
 		self.listeEmissions.clear()
 		# Recupere la page principale
-		page = BeautifulSoup.BeautifulSoup( self.API.getPage( self.pageEmissions ) )
-		try:
-			# Extrait le block qui contient les emissions
-			emissionsBlock = page.findAll( "div", { "class" : "unit_int" } )
-			# Extrait les emissions
-			for elmt in emissionsBlock[ 3 : ]:
-				try:
-					emissionBlock = BeautifulSoup.BeautifulSoup( str( elmt.contents[ 1 ] ) )
-					nomEmission = emissionBlock.findAll( "a", { "class" : "emission" } )[ 0 ][ "title" ]
-					idEmission  =  emissionBlock.findAll( "input", { "name" : "rubrique" } )[ 0 ][ "value" ]
-					self.listeEmissions[ nomEmission ] = idEmission
-				except:
-					continue
-				self.sauvegarderCache( self.listeEmissions )
-				self.afficher( u"Liste des émissions sauvegardées" )
-		except:
-			pass
+		page         = self.API.getPage( self.pageEmissions )
+		soupStrainer = BeautifulSoup.SoupStrainer( "div", { "class" : "unit size1of5" } )
+		pageSoup     = BeautifulSoup.BeautifulSoup( page, parseOnlyThese = soupStrainer )
+		# Extrait les emissions
+		for emissionBlock in pageSoup.contents:
+			try:
+				nomEmission = unicodedata.normalize( 'NFKD', emissionBlock.div.p.a[ "title" ] ).encode( 'ASCII', 'ignore' )
+				idEmission  = emissionBlock.div.p.input[ "value" ]
+				self.listeEmissions[ nomEmission ] = idEmission
+			except:
+				continue
+		self.sauvegarderCache( self.listeEmissions )
+		self.afficher( u"Liste des émissions sauvegardées" )
 		
 	def listerChaines( self ):
 		self.ajouterChaine( self.nom )
@@ -59,23 +56,29 @@ class LCP( Plugin ):
 	def listerFichiers( self, emission ):
 		if( self.listeEmissions.has_key( emission ) ):
 			# Recupere la page qui liste les fichiers
-			pageFichiers = BeautifulSoup.BeautifulSoup( self.API.getPage( "http://www.lcp.fr/spip.php?page=lcp_page_videos_ajax&parent=%s" %( self.listeEmissions[ emission ] ) ) )
+			pageFichiers     = self.API.getPage( "http://www.lcp.fr/spip.php?page=lcp_page_videos_ajax&parent=%s" %( self.listeEmissions[ emission ] ) )
+			soupStrainer     = BeautifulSoup.SoupStrainer( "div", { "class" : "video-item" } )
+			pageFichiersSoup = BeautifulSoup.BeautifulSoup( pageFichiers, parseOnlyThese = soupStrainer )
+			# Extrait d'abord tous les liens vers les pages qui contienent les fichiers
+			listeUrls = map( lambda x : "http://www.lcp.fr/%s" %( x[ "href" ] ), pageFichiersSoup.findAll( "a" ) )
+			# Recupere toutes les pages
+			dicoPageFichier = self.API.getPages( listeUrls )
 			# Extrait les fichiers
-			fichiersData = pageFichiers.findAll( "strong", { "class" : "titre" } )
-			for elmt in fichiersData:
+			for fichiersBlock in pageFichiersSoup.contents:
 				try:
-					fichierBlock =  BeautifulSoup.BeautifulSoup( str( elmt.contents[ 1 ] ) )
-					nomEmission = fichierBlock.findAll( "a" )[ 0 ].contents[ -1 ].replace( "\n", "" )
-					urlImage = "http://www.lcp.fr/%s" %( fichierBlock.findAll( "img" )[ 0 ][ "src" ] )
-					urlPage = "http://www.lcp.fr/%s" %( fichierBlock.findAll( "a" )[ 0 ][ "href" ] )
-					# Recupere la page contenant le lien vers le fichier
-					soup = BeautifulSoup.BeautifulSoup( self.API.getPage( urlPage ) )
+					urlPageFichier = "http://www.lcp.fr/%s" %( fichiersBlock.strong.a[ "href" ] )
+					urlImage       = "http://www.lcp.fr/%s" %( fichiersBlock.strong.img[ "src" ] )
+					descriptif     = fichiersBlock.p.contents[ 0 ].replace( "\n", "" ).replace( "\t", "" )
+					pageFichier    = dicoPageFichier[ urlPageFichier ]
+					if( pageFichier == "" ):
+						continue
+					soup = BeautifulSoup.BeautifulSoup( pageFichier )
 					
 					#
 					# Code k3c
 					#
 					
-					nom = urlPage.split('/')[-1:][0]
+					nom = urlPageFichier.split('/')[-1:][0]
 					player = soup.find('param', {'name': 'movie'})['value']
 					info_video = soup.find('param', attrs={'name' : 'flashvars' })['value']
 					host = info_video.split('rtmp://')[1].split('/')[0]
@@ -90,7 +93,6 @@ class LCP( Plugin ):
 					#
 							
 					# Ajouter le fichier
-					self.ajouterFichier( emission, Fichier( nom = nomEmission, lien = cmds, urlImage = urlImage ) )
+					self.ajouterFichier( emission, Fichier( nom = "%s - %s" %( emission, descriptif ), lien = cmds, nomFichierSortie = "%s %s.mp4" %( emission, descriptif ), urlImage = urlImage, descriptif = descriptif ) )
 				except:
 					continue
-			

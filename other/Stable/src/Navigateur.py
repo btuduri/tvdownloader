@@ -90,6 +90,8 @@ class Navigateur( object ):
 			else:
 				page = self.navigateur.open( URLPage, timeout = self.timeOut )			
 			
+			return page.read()
+			
 			# Si le fichier est un XML
 			if( URLPage[ -4 : ] == ".xml" ):
 				# On la page telle quelle, sans aucun traitement
