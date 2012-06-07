@@ -8,9 +8,11 @@
 import os.path
 import time
 
-import tvdcore.util as lib
-import tvdcore.util.html
-import tvdcore.util.fichierDossier
+from DownloaderFactory import DownloaderFactory
+
+import util as lib
+import util.html
+import util.fichierDossier
 
 import logging
 logger = logging.getLogger( "TVDownloader" )
@@ -21,6 +23,7 @@ logger = logging.getLogger( "TVDownloader" )
 
 ## Classe qui contient les informations d'un fichier
 class Fichier(object):
+	DOWNLOADER_FACTORY = DownloaderFactory()
 	
 	## Contructeur
 	# @param nom              Le nom du fichier (tel qu'affiché à l'utilisateur)
@@ -30,15 +33,15 @@ class Fichier(object):
 	# @param urlImage         URL de l'image a afficher
 	# @param descriptif       Texte descriptif a afficher
 	def __init__( self, nom, date = int( time.time() ), lien = "", nomFichierSortie = "", urlImage = "", descriptif = "" ):
-		self.nom              = tvdcore.util.html.supprimeBalisesHTML( nom )
+		self.nom              = util.html.supprimeBalisesHTML( nom )
 		self.date             = date
 		self.lien             = lien
 		if( nomFichierSortie == "" ):
-			self.nomFichierSortie = tvdcore.util.fichierDossier.chaineToNomFichier( os.path.basename( self.lien ) )
+			self.nomFichierSortie = util.fichierDossier.chaineToNomFichier( os.path.basename( self.lien ) )
 		else:
-			self.nomFichierSortie = tvdcore.util.fichierDossier.chaineToNomFichier( nomFichierSortie )
+			self.nomFichierSortie = util.fichierDossier.chaineToNomFichier( nomFichierSortie )
 		self.urlImage         = urlImage
-		self.descriptif       = tvdcore.util.html.supprimeBalisesHTML( descriptif )
+		self.descriptif       = util.html.supprimeBalisesHTML( descriptif )
 	
 	## Surcharge de la methode ==
 	# @param autre L'autre Fichier a comparer
@@ -58,3 +61,6 @@ class Fichier(object):
 	## Surcharge de la methode d'affichage d'un fichier
 	def __str__( self ):
 		return "--> Fichier :\nNom : %s\nLien : %s" %( self.nom, self.lien )
+	
+	def getDownloader(self):
+		return Fichier.DOWNLOADER_FACTORY.create(self.lien)

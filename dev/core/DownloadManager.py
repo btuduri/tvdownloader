@@ -1,7 +1,7 @@
 # -*- coding:Utf-8 -*-
 
-import thread,threading,traceback
-from util import SynchronizedMethod,CallbackGroup
+import thread,threading,traceback,time
+from util import Synchronized,SynchronizedWith,CallbackGroup
 
 from DownloaderFactory import *
 from TVDContext import TVDContext
@@ -9,7 +9,6 @@ from TVDContext import TVDContext
 import logging
 logger = logging.getLogger( "TVDownloader" )
 
-#TODO Utiliser une structure de données dans le tableau de téléchargements
 class DownloadManager(threading.Thread):
 	BUFFER_SIZE = 8000
 	
@@ -20,187 +19,164 @@ class DownloadManager(threading.Thread):
 	def __new__(typ, *args, **kwargs):
 		# On vérifie qu'on peut instancier
 		context = TVDContext()
-		if not(context.isInitialized()):
-			logger.error("Le context n'est pas initialisé, impossible d'instancier")
-			return None
+		#if not(context.isInitialized()):
+		#	logger.error("Le context n'est pas initialisé, impossible d'instancier")
+		#	return None
 		
-		if DownloadManager.__instance == None:
+		if DownloadManager.__instance == None:#Décorateur ?
 			return super(DownloadManager, typ).__new__(typ, *args, **kwargs)
 		else:
 			return DownloadManager.__instance
 	
 	def __init__(self, start=False) :
-		if DownloadManager.__instance != None:
+		if DownloadManager.__instance != None:#Décorateur ?
 			return
 		threading.Thread.__init__(self)
 		DownloadManager.__instance = self
 		
-		self.RLOCK = threading.RLock()
-		
-		self.nextNumDownload = 0 # int
-		
-		self.dlFactory = DownloaderFactory();
-		
-		self.toDl = []
-		self.stpDl = []
-		self.mutex_toDl = thread.allocate_lock()
-		self.cond_toDl = threading.Condition(self.mutex_toDl)
-		
-		self.stopped = True
-		if start:
-			self.start()
-		
+		self.downloads = []
+		self.downloadToStop = []
 		self.callbackGroup = CallbackGroup("downloadStatus")
+		self.maxDownloads = 2
+		self.stopped = False
+		self.nextNumDownload = 0
+
 	
-	@SynchronizedMethod
+	@Synchronized
 	def addDownloadCallback(self, callback):
 		self.callbackGroup.add(callback)
 	
-	@SynchronizedMethod
+	@Synchronized
 	def removeDownloadCallback(self, callback):
 		self.callbackGroup.remove(callback)
 	
-	@SynchronizedMethod
 	def start(self):
-		self.stopped = False
 		threading.Thread.start(self)
 	
-	@SynchronizedMethod
 	def stop(self):
-		self.mutex_toDl.acquire()
 		self.stopped = True
-		for dlParam in self.toDl:
-			self.callbackGroup(
-				DownloadStatus(dlParam[3], DownloadStatus.STOPPED, dlParam[1])
-			)
-		self.toDl = []
-		self.cond_toDl.notifyAll()
-		self.mutex_toDl.release()
 	
-	@SynchronizedMethod
+	@Synchronized
 	def stopDownload(self, num):
-		self.mutex_toDl.acquire()
-		found = False
-		for dlParam in self.toDl:
-			if dlParam[3] == num:
-				self.callbackGroup(
-					DownloadStatus(dlParam[3], DownloadStatus.STOPPED, dlParam[1])
-				)
-				found = True
-				break
-		if not(found):
-			self.stpDl.append(num)
-		self.mutex_toDl.release()
+		self.stopped = True
 	
-	@SynchronizedMethod
-	def getActiveDownloads(self):
+	@Synchronized
+	def getDownloads(self):
 		dls = []
-		self.mutex_toDl.acquire()
-		for dlParam in self.toDl:
+		for dl in self.downloads:
 			dls.append(
-				DownloadStatus(dlParam[3], DownloadStatus.STOPPED, dlParam[1])
+				dl.getStatus()
 			)
-		self.mutex_toDl.release()
 		return dls
 	
+	@Synchronized
+	def getActiveDownloads(self):
+		pass
+	
 	def run(self):
-		while True:
-			if self.mutex_toDl.locked():
-				print "run: Mutex verrouillé, attention au dead lock !"
-			self.mutex_toDl.acquire()
-			while len(self.toDl) <= 0:
-				if len(self.stpDl) > 0:
-					for dlParam in self.toDl:
-						if dlParam[3] in self.stpDl:
-							self.callbackGroup(
-								DownloadStatus(dlParam[3], DownloadStatus.STOPPED, dlParam[1], 0)
-							)
-					self.stpDl = []
-				if self.stopped:
-					print "Arrêt!"
-					self.mutex_toDl.release()
-					return
-				print "En attente..."
-				self.cond_toDl.wait();
-			dlParam = self.toDl.pop(0)
-			self.mutex_toDl.release()
-			
-			print "Téléchargement de "+dlParam[0]+"..."
-			dler = self.getDownloader(dlParam[0])
-			if dler == None:
-				self.callbackGroup(
-					DownloadStatus(dlParam[3], DownloadStatus.FAILED, dlParam[1], 0)
-				)
-				continue
-			try:
-				outfile = open(dlParam[1], "w")
-				if dler.start():
-					carac = dler.read(DownloadManager.BUFFER_SIZE)
-					dled = len(carac)
-					while len(carac) > 0:
-						if dlParam[3] in self.stpDl:
-							self.callbackGroup(
-								DownloadStatus(dlParam[3], DownloadStatus.STOPPED, dlParam[1], dled, dler.getSize())
-							)
-							break
-						if self.stopped:
-							self.callbackGroup(
-								DownloadStatus(dlParam[3], DownloadStatus.STOPPED, dlParam[1], dled, dler.getSize())
-							)
-							print "Arrêt!"
-							return
-						outfile.write(carac)
-						carac = dler.read(DownloadManager.BUFFER_SIZE)
-						dled = dled+len(carac)
-						
-						self.callbackGroup(
-							DownloadStatus(dlParam[3], DownloadStatus.DOWN, dlParam[1], dled, dler.getSize())
-						)
-					outfile.close()
-					dler.stop()
-					if not(self.stopped) and not(dlParam[3] in self.stpDl):
-						self.callbackGroup(
-							DownloadStatus(dlParam[3], DownloadStatus.COMPLETED, dlParam[1], dled, dler.getSize())
-						)
-				else:
-					print "Echec de téléchargement !"
-					self.callbackGroup(
-						DownloadStatus(dlParam[3], DownloadStatus.FAILED, dlParam[1], 0)
-					)
-			except BaseException as e:
-				print "Erreur de téléchargement !"
-				self.callbackGroup(
-					DownloadStatus(dlParam[3], DownloadStatus.FAILED, dlParam[1], 0)
-				)
-				traceback.print_exc(e)
-		print "Arrêt anormal!"
-	
-	# Renvoie None si aucun downloader trouvé
-	def getDownloader(self, url):
-		return self.dlFactory.create(url)
-	
-	## Lance ou met en attente un téléchargement.
-	# @param name le nom du téléchargement (pour l'affichage)
-	# @param url l'url du fichier distant
-	# @param outfile le chemin du fichier de sauvegarde
-	# @return le numéro du téléchargement
-	@SynchronizedMethod
-	def download (self, name, url, outFile) :
-		if self.mutex_toDl.locked():
-			print "down: Mutex verrouillé, attention au dead lock !"
-		self.mutex_toDl.acquire()
-		self.toDl.append([url, outFile, None, self.nextNumDownload, outFile])
-		self.cond_toDl.notifyAll()
-		self.mutex_toDl.release()
-		self.nextNumDownload = self.nextNumDownload+1
-		#Appel au callback reporté pour appeler le callback après le return
-		threading.Timer(0.01,
-			self.callbackGroup,
-			(DownloadStatus(self.nextNumDownload, DownloadStatus.QUEUED, outFile, 0),)
-		).start()
-		#callback.downloadStatus(self.nextNumDownload, DownloadStatus(0, DownloadStatus.QUEUED, outFile))
-		return self.nextNumDownload-1
+		@SynchronizedWith(self)
+		def getDownload(num):
+			for dl in self.downloads:
+				if dl.getStatus().getNum() == num:
+					return dl
+			return None
+		@SynchronizedWith(self)
+		def hasQueue():
+			return len(self.downloads) > 0
+		@SynchronizedWith(self)
+		def popQueue():
+			return self.downloads.pop()
+		@SynchronizedWith(self)
+		def stopDownload(num):
+			dl = getDownload(num)
+			if num != None:
+				dl.stop()
+		print "Actif..."
+		while not(self.stopped):
+			activeDl = []
+			dlCount = 0
+			for dl in self.downloads:
+				st = dl.getStatus().getStatus()
+				if st == DownloadStatus.DOWN:
+					activeDl.append(dl)
+					dlCount = dlCount+1
+				elif st == DownloadStatus.PAUSED:
+					dlCount = dlCount+1
+			if dlCount < self.maxDownloads:
+				n = self.maxDownloads-dlCount
+				#while n > 0 and hasQueue():
+				for newDl in self.downloads:
+					#newDl = popQueue()
+					if newDl.getStatus().getStatus() != DownloadStatus.QUEUED:
+						continue
+					newDl.start()
+					if newDl.getStatus().getStatus() == DownloadStatus.DOWN:
+						activeDl.append(newDl)
+					self.callbackGroup(newDl.getStatus())
+			if len(activeDl) == 0:
+				time.sleep(0.1)#Utiliser les cond...
+			else:
+				for dl in activeDl:
+					dl.step()
 
+	
+	@Synchronized
+	def download (self, fichier) :
+		self.downloads.append(Download(fichier, self.nextNumDownload))
+		self.nextNumDownload = self.nextNumDownload+1
+
+#TODO Différencier arrêt en cour et fin de dl
+class Download :
+	STEP_SIZE = 16000
+	def __init__(self, fichier, num):
+		self.fichier = fichier
+		self.dler = fichier.getDownloader()
+		self.num = num
+		self.status = DownloadStatus(num, DownloadStatus.QUEUED, fichier.nom, 0)
+		self.outfile = None
+	
+	def start(self):
+		try:
+			self.outfile = open(self.fichier.nomFichierSortie, "w")#TODO Dossier de téléchargement !!
+		except Exception:
+			self.status.status = DownloadStatus.FAILED
+			return False
+		if not(self.dler.start()):
+			self.outfile.close()
+			self.status.status = DownloadStatus.FAILED
+			return False
+		self.status.size = self.dler.getSize()
+		self.status.status = DownloadStatus.DOWN
+		return True
+	
+	def stop(self):
+		self.outfile.close()
+		self.dler.stop()
+	
+	def pause(self):
+		self.status.status = DownloadStatus.PAUSE
+	
+	def resume(self):
+		self.status.status = DownloadStatus.DOWN
+	
+	## Télécharge un bout du fichier.
+	# @return True si réussit, False en cas d'échec, None en cas de fin de flux
+	def step(self):
+		data = self.dler.read(Download.STEP_SIZE)
+		if data == None:
+			self.status.status = DownloadStatus.FAILED
+			return False
+		dled = len(data)
+		if dled == 0:
+			self.status.status = DownloadStatus.COMPLETED
+			return None
+		else:
+			self.status.status = DownloadStatus.DOWN
+			self.outfile.write(data)
+			self.status.downloaded = self.status.downloaded+dled
+	
+	def getStatus(self):
+		return self.status
 
 ## Interface des callbacks de DownloaderManager;
 #
@@ -260,5 +236,8 @@ class DownloadStatus :
 	# @return le nom du téléchargement
 	def getName(self):
 		return self.name
+	
+	def getNum(self):
+		return self.num
 
 

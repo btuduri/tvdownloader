@@ -24,6 +24,35 @@ def SynchronizedMethod(meth):
 		return res
 	return local
 
+def Synchronized(meth):
+	LOCAL_RLOCK = threading.RLock()
+	def local(self, *arg):
+		if not(hasattr(self, "RLOCK")):
+			LOCAL_RLOCK.acquire()
+			setattr(self, "RLOCK", threading.RLock())
+			LOCAL_RLOCK.release()
+		self.RLOCK.acquire()
+		res = meth(self, *arg)
+		self.RLOCK.release()
+		return res
+	return local
+
+def SynchronizedWith(instance):
+	def decorator(func):
+		LOCAL_RLOCK = threading.RLock()
+		def local(*arg):
+			if not(hasattr(instance, "RLOCK")):
+				LOCAL_RLOCK.acquire()
+				setattr(instance, "RLOCK", threading.RLock())
+				LOCAL_RLOCK.release()
+			instance.RLOCK.acquire()
+			res = func(*arg)
+			instance.RLOCK.release()
+			return res
+		return local
+	return decorator
+
+
 ## Classe permettant la gestion d'un groupe de callback en gérant ajout,
 # suppression et appel aux membres de ce groupe.
 class CallbackGroup(object):
