@@ -29,7 +29,7 @@ class DownloaderInterface :
 	#
 	# La méthode start doit avoir été appelé avant pour que le téléchargement soit lancé.
 	# @param n le nombre d'octet à lire
-	# @return une chaîne de charactère de taille maximale n ou de taille 0 en cas d'échec ou de fin du flux
+	# @return une chaîne de charactère de taille maximale n ou de taille 0 en cas de fin du flux ou None en cas d'échec
 	def read (self, n) :
 		# returns byte[]
 		pass

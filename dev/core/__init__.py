@@ -4,6 +4,7 @@
 from Constantes                import *
 from ColorFormatter            import ColorFormatter
 from DownloaderFactory         import *
+print DownloaderFactory
 from Downloaders               import *
 from DownloadManager           import *
 from Historique                import *
