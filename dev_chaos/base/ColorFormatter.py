@@ -1,11 +1,19 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding:Utf-8 -*-
 
 # Adapted from :
 #    Brandon Thomson
 #    http://stackoverflow.com/questions/384076/how-can-i-make-the-python-logging-output-to-be-colored
 
+#
+# Modules
+#
+
 import logging
+
+#
+# Class
+#
 
 class ColorFormatter( logging.Formatter ):
 	

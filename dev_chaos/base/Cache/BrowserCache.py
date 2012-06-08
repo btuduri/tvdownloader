@@ -5,38 +5,22 @@
 # Modules
 #
 
-import collections
 import functools
 import mimetypes
 import sys
 
+from base.Cache.CacheDict import CacheDict
+
 import logging
-logger = logging.getLogger( "pluzzdl" )
+logger = logging.getLogger( "base.Cache.BrowserCache" )
 
 #
-# Classes
+# Class
 #
 
-class CacheDict( collections.OrderedDict ):
+class BrowserCache( object ):
 	"""
-	Custom ordered dict for Cache
-	"""
-	
-	def __init__( self, *args, **kwargs ):
-		collections.OrderedDict.__init__( self )
-		self.update( *args, **kwargs )
-	
-	def __setitem__( self, key, value ):
-		"""
-		Set item ; item always go to the end of the dict
-		"""
-		if( self.has_key( key ) ):
-			del self[ key ]
-		collections.OrderedDict.__setitem__( self, key, value )
-		
-class Cache( object ):
-	"""
-	Cache decorator for browser methods
+	Cache decorator for browser's functions
 	"""
 	
 	def __init__( self, *decargs, **deckwargs ):

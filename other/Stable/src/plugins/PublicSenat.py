@@ -77,7 +77,7 @@ class PublicSenat( Plugin ):
 					descriptif     = fichier.h3.a.string
 					pageFichier    = dicoPageFichier[ urlPageFichier ]
 					if( pageFichier == "" ):
-							continue
+						continue
 					# Extrait le lien vers la video
 					fichierSoup = BeautifulSoup.BeautifulSoup( pageFichier )
 					lienVideo   = fichierSoup.find( "input", { "id" : "flvEmissionSelect" } )[ "value" ]

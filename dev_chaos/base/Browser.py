@@ -11,16 +11,18 @@ import threading
 import urllib
 import urllib2
 
-from Cache import Cache
+from base.Cache.BrowserCache import BrowserCache
+from base.Patterns import Singleton
 
 import logging
-logger = logging.getLogger( "pluzzdl" )
+logger = logging.getLogger( "base.Browser" )
 
 #
 # Classe
 #
 
-class Navigateur( object ):
+class Browser( object ):
+	__metaclass__ = Singleton
 	
 	timeOut        = 60
 	maxThread      = 10
@@ -32,12 +34,6 @@ class Navigateur( object ):
 					   'Mozilla/5.0 (Macintosh; U; PPC Mac OS X; en-us) AppleWebKit/312.1 (KHTML, like Gecko) Safari/312',
 					   'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.12 Safari/535.11',
 					   'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.8 (KHTML, like Gecko) Chrome/17.0.940.0 Safari/535.8' ]
-	instance = None
-	
-	def __new__( self, *args, **kwargs ):
-		if( self.instance is None ):
-			self.instance = super( Navigateur, self ).__new__( self )
-		return self.instance	
 	
 	def __init__( self, proxy = None ):
 		# HTTP proxy
@@ -60,7 +56,7 @@ class Navigateur( object ):
 		# Number of running threads
 		self.runningThreads       = 0
 	
-	@Cache( maxSize = 10 * 1024 * 1024, acceptedTypes = [ "text", "image" ] )
+	@BrowserCache( maxSize = 10 * 1024 * 1024, acceptedTypes = [ "text", "image" ] )
 	def getFile( self, url, data = None ):
 		try:
 			logger.debug( "GET %s" %( url ) )
