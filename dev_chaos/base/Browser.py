@@ -24,7 +24,7 @@ logger = logging.getLogger( "base.Browser" )
 class Browser( object ):
 	__metaclass__ = Singleton
 	
-	timeOut        = 3
+	timeOut        = 10
 	maxThread      = 10
 	userAgentsList = [ 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_5_5; fr-fr) AppleWebKit/525.18 (KHTML, like Gecko) Version/3.1.2 Safari/525.20.1',
 					   'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/14.0.835.186 Safari/535.1',
