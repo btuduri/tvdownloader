@@ -9,7 +9,8 @@ import ConfigParser
 import os
 import threading
 
-from base.Patterns import Singleton
+from base.decorators import synchronized
+from base.Patterns   import Singleton
 
 import logging
 logger = logging.getLogger( "base.Config" )
@@ -31,26 +32,26 @@ class Config( object ):
 		# Open config file
 		self.open()
 	
+	@synchronized( self.mutex )
 	def open( self ):
-		with self.mutex:
-			if( os.path.exists( CONFIG_FILE ) ):
-				self.configParser.read( CONFIG_FILE )
+		if( os.path.exists( CONFIG_FILE ) ):
+			self.configParser.read( CONFIG_FILE )
 	
+	@synchronized( self.mutex )
 	def save( self ):
 		# N.B. : only one thread has to call this function
-		with self.mutex:
-			with open( CONFIG_FILE, "w" ) as configFile:
-				self.configParser.write( configFile )
+		with open( CONFIG_FILE, "w" ) as configFile:
+			self.configParser.write( configFile )
 	
+	@synchronized( self.mutex )
 	def get( self, section, option ):
-		with self.mutex:
-			if( self.configParser.has_option( section, option ) ):
-				return self.configParser.get( section, option )
-			else:
-				return None
+		if( self.configParser.has_option( section, option ) ):
+			return self.configParser.get( section, option )
+		else:
+			return None
 	
+	@synchronized( self.mutex )
 	def set( self, section, option, value ):
-		with self.mutex:
-			if( not self.configParser.has_section( section ) ):
-				self.configParser.add_section( section )
-			self.configParser.set( section, option, value )
+		if( not self.configParser.has_section( section ) ):
+			self.configParser.add_section( section )
+		self.configParser.set( section, option, value )

@@ -24,7 +24,7 @@ logger = logging.getLogger( "base.Browser" )
 class Browser( object ):
 	__metaclass__ = Singleton
 	
-	timeOut        = 60
+	timeOut        = 10
 	maxThread      = 10
 	userAgentsList = [ 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_5_5; fr-fr) AppleWebKit/525.18 (KHTML, like Gecko) Version/3.1.2 Safari/525.20.1',
 					   'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/14.0.835.186 Safari/535.1',
@@ -64,9 +64,9 @@ class Browser( object ):
 				request = urllib2.Request( url, urllib.urlencode( data ) )
 			else:
 				request = urllib2.Request( url )
-			page    = self.urlOpener.open( request, timeout = self.timeOut )
-			data = page.read()
-			return data
+			page     = self.urlOpener.open( request, timeout = self.timeOut )
+			pageData = page.read()
+			return pageData
 		except urllib2.URLError, e :
 			if( hasattr( e, 'reason' ) ):
 				logger.debug( e.reason )
@@ -77,36 +77,41 @@ class Browser( object ):
 			raise
 	
 	## Use threads to download several files
-	# @param  urlList URL list [ url1, url2, ... ]
-	# @return dictionnary { url1 : data1, url2 : data2, ... }
+	# @param  urlList URL list [ ( url, data ) ]
+	# @return dictionnary { ( url, data ) : page }
 	def getFiles( self, urlList ):
 		
-		def threadGetFile( self, url, filesData ):
+		def threadGetFile( self, pageArgs, pagesDict ):
 			# Thread += 1
 			with self.lock:
 				self.runningThreads += 1
 			# Get data
-			data = self.getFile( url )
+			( url, data ) = pageArgs
+			page = self.getFile( url, data )
 			# Save data and thread -= 1
 			with self.lock:
-				filesData[ url ] = data
+				if( data is None ):
+					fdata = None
+				else:
+					fdata = frozenset( data.items() )
+				pagesDict[ ( url, fdata ) ] = page
 				self.runningThreads -= 1
 				with self.noThreadRunning:
 					if( self.runningThreads == 0 ):
 						self.noThreadRunning.notify()	
 			self.semaphore.release()
 		
-		filesData   = {}
+		pagesDict   = {}
 		currentFile = 0
 		
 		if( len( urlList ) == 0 ):
-			return filesData
+			return pagesDict
 		
 		# Launch threads
 		while( currentFile < len( urlList ) ):
 			self.semaphore.acquire()
 			threading.Thread( target = threadGetFile, 
-							  args = ( self, urlList[ currentFile ], filesData ) 
+							  args = ( self, urlList[ currentFile ], pagesDict ) 
 							).start()
 			currentFile += 1
 		
@@ -114,7 +119,7 @@ class Browser( object ):
 		with self.noThreadRunning:
 			self.noThreadRunning.wait()
 		
-		return filesData
+		return pagesDict
 				
 	def appendCookie( self, cookieName, cookieValue ):
 		for cookie in self.cookiejar:
