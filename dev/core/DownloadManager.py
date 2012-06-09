@@ -38,9 +38,19 @@ class DownloadManager(threading.Thread):
 		self.downloadToStop = []
 		self.callbackGroup = CallbackGroup("downloadStatus")
 		self.maxDownloads = 2
+		self.maxSpeed = 200000
 		self.stopped = False
 		self.nextNumDownload = 0
 
+	def getMaxDownloads(self):
+		return self.maxDownloads
+	def setMaxDownloads(self, maxDownloads):
+		self.maxDownloads = maxDownloads
+
+	def getMaxSpeed(self):
+		return self.maxSpeed
+	def setMaxSpeed(self, maxSpeed):
+		self.maxSpeed = maxSpeed
 	
 	@Synchronized
 	def addDownloadCallback(self, callback):
@@ -107,6 +117,7 @@ class DownloadManager(threading.Thread):
 					dl.stop()
 					self.callbackGroup(dl.getStatus())
 					return
+		pause = 0
 		print "Actif..."
 		while not(self.stopped):
 			activeDls = retrieveDls()
@@ -114,8 +125,18 @@ class DownloadManager(threading.Thread):
 				time.sleep(0.1)#Utiliser les cond...
 			else:
 				for dl in activeDls:
-					dl.step()
-					self.callbackGroup(dl.getStatus())
+					if self.maxSpeed == 0:
+						dl.step()
+					else:
+						before = time.time()
+						dl.step()
+						after = time.time()
+						self.callbackGroup(dl.getStatus())
+						dled = dl.getLastStepLength()
+						pause = pause+(dled/(1.0*self.maxSpeed))-(after-before)
+				if self.maxSpeed > 0 or pause < 0.33:
+					time.sleep(pause)
+					pause = 0
 			stopDls(self.downloadToStop)
 		#Arrêt de tout les téléchargements
 		for dl in self.downloads:
@@ -138,6 +159,7 @@ class Download :
 		self.num = num
 		self.status = DownloadStatus(num, DownloadStatus.QUEUED, fichier.nom, 0)
 		self.outfile = None
+		self.lastStepLength = 0
 	
 	def start(self):
 		try:
@@ -165,9 +187,13 @@ class Download :
 	def resume(self):
 		self.status.status = DownloadStatus.DOWN
 	
+	def getLastStepLength(self):
+		return self.lastStepLength
+	
 	## Télécharge un bout du fichier.
 	# @return True si réussit, False en cas d'échec, None en cas de fin de flux
 	def step(self):
+		self.lastStepLength = 0
 		data = self.dler.read(Download.STEP_SIZE)
 		if data == None:
 			self.status.status = DownloadStatus.FAILED
@@ -177,6 +203,7 @@ class Download :
 			self.status.status = DownloadStatus.COMPLETED
 			return None
 		else:
+			self.lastStepLength = dled
 			self.status.status = DownloadStatus.DOWN
 			self.outfile.write(data)
 			self.status.downloaded = self.status.downloaded+dled
