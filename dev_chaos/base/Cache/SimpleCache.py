@@ -17,7 +17,7 @@ logger = logging.getLogger( "base.Cache.SimpleCache" )
 class SimpleCache( object ):
 	"""
 	Very simple cache decorator for class functions
-	N.B : all function arguments must be hashable
+	N.B : all function arguments must be hashable and kwards musn't be used
 	"""
 	def __init__( self ):
 		# Cache dictionnary
@@ -28,13 +28,11 @@ class SimpleCache( object ):
 		Decorator
 		"""
 		@functools.wraps( fnct )
-		def fnctCall( inst, *args, **kwargs ):
-			fkwargs = frozenset( kwargs.items() )
-			if( self.cacheDict.has_key( ( args, fkwargs ) ) ):
-				result = self.cacheDict[ ( args, fkwargs ) ]
-				log.warning( "Found in cache" )
+		def fnctCall( inst, *args ):
+			if( self.cacheDict.has_key( args ):
+				result = self.cacheDict[ args ]
 			else:
-				result = fnct( inst, *args, **kwargs )
-				self.cacheDict[ ( args, fkwargs ) ] = result
+				result = fnct( inst )
+				self.cacheDict[ args ] = result
 			return result
 		return fnctCall

@@ -38,25 +38,28 @@ class BrowserCache( object ):
 		Decorator
 		"""
 		@functools.wraps( fnct )
-		def fnctCall( inst, url, *args, **kwargs ):
-			if( self.cacheDict.has_key( url ) ):
+		def fnctCall( inst, url, data = None ):
+			if( self.cacheDict.has_key( url ) and data is None ):
 				logger.debug( "GET %s" %( url ) )
 				data = self.cacheDict[ url ]
 				self.cacheDict[ url ] = data
 				return data
 			else:
-				result = fnct( inst, url, *args, **kwargs )
+				result = fnct( inst, url, data )
 				size   = sys.getsizeof( result )
-				if( self.isAccepted( url, size ) ):
+				if( self.isAccepted( url, data, size ) ):
 					self.cacheDict[ url ] = result
 					self.clean()
 				return result
 		return fnctCall
 	
-	def isAccepted( self, url, size ):
+	def isAccepted( self, url, data, size ):
 		"""
 		Check if this file can be added to cache
 		"""
+		# Reject file with data
+		if( data is not None ):
+			return False
 		# Check file size : can't be exceeded 10% of max size
 		if( size > ( self.maxSize / 10 ) ):
 			return False
