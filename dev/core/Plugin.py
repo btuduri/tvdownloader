@@ -23,7 +23,7 @@ from tvdcore import *
 
 ## Classe abstraite Plugin dont doit heriter chacun des plugins.
 #
-# Les plugins doivent hériter de cette classe et redéfinir les méthodes #listerChaines, #listerEmissions et #listerFichiers.
+# Les plugins doivent hériter de cette classe et redéfinir les méthodes #listerChaines, #listerEmissions et #listerFichiers. Dans ces méthodes il faut procéder au téléchargement des données demandées et les ajouter si ce n'est déjà fait via les méthodes #ajouterChaine, #ajouterEmission et #ajouterFichier.
 # La méthode #listerOptions est optionnellement à redéfinir (dans le cas où il y aurai des options).
 class Plugin(object):
 	

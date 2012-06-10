@@ -33,7 +33,7 @@ class CanalPlus( tvdcore.Plugin ):
 	def __init__( self ):
 		tvdcore.Plugin.__init__( self, "Canal+", "http://www.canalplus.fr/", 7, "CanalPlus.jpg" )
 		self.listeProgrammes    = {} # { Nom chaine : { Nom emission : ID emission } }
-		listeEmissionsCourantes = {}
+		self.listeEmissionsCourantes = {}
 		# Charge le cache
 		if( os.path.exists( self.fichierCache ) ):
 			self.listeProgrammes = self.chargerCache()

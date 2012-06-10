@@ -38,7 +38,7 @@ class DownloadManager(threading.Thread):
 		self.downloadToStop = []
 		self.callbackGroup = CallbackGroup("downloadStatus")
 		self.maxDownloads = 2
-		self.maxSpeed = 200000
+		self.maxSpeed = 0
 		self.stopped = False
 		self.nextNumDownload = 0
 
@@ -81,7 +81,11 @@ class DownloadManager(threading.Thread):
 	
 	@Synchronized
 	def getActiveDownloads(self):
-		pass
+		res = []
+		for dl in self.downloads:
+			if dl.getStatus().status in [DownloadStatus.PAUSED, DownloadStatus.DOWN, DownloadStatus.QUEUED]:
+				res.append(dl.getNum())
+		return res
 	
 	def run(self):
 		@SynchronizedWith(self)
@@ -102,6 +106,9 @@ class DownloadManager(threading.Thread):
 				newDl.start()
 				if newDl.getStatus().getStatus() == DownloadStatus.DOWN:
 					activeDls.append(newDl)
+				else:
+					logger.warning("Echec de lancement du téléchargement pour \""+str(newDl.getStatus().getName())+"\"")
+					newDl.getStatus().status = DownloadStatus.FAILED
 				self.callbackGroup(newDl.getStatus())
 			return activeDls
 		@SynchronizedWith(self)
@@ -133,7 +140,8 @@ class DownloadManager(threading.Thread):
 						after = time.time()
 						self.callbackGroup(dl.getStatus())
 						dled = dl.getLastStepLength()
-						pause = pause+(dled/(1.0*self.maxSpeed))-(after-before)
+						if self.maxSpeed > 0:
+							pause = pause+(dled/(1.0*self.maxSpeed))-(after-before)
 				if self.maxSpeed > 0 or pause < 0.33:
 					time.sleep(pause)
 					pause = 0
@@ -162,6 +170,8 @@ class Download :
 		self.lastStepLength = 0
 	
 	def start(self):
+		if self.dler == None:
+			return False
 		try:
 			self.outfile = open(self.fichier.nomFichierSortie, "w")#TODO Dossier de téléchargement !!
 		except Exception:
