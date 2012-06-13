@@ -39,30 +39,35 @@ class BrowserCache( object ):
 		"""
 		@functools.wraps( fnct )
 		def fnctCall( inst, url, data = None ):
-			if( self.cacheDict.has_key( url ) and data is None ):
-				logger.debug( "GET %s" %( url ) )
-				data = self.cacheDict[ url ]
-				self.cacheDict[ url ] = data
-				return data
+			# Transform data to frozenset
+			if( data is None ):
+				fdata = None
 			else:
-				result = fnct( inst, url, data )
-				size   = sys.getsizeof( result )
-				if( self.isAccepted( url, data, size ) ):
-					self.cacheDict[ url ] = result
+				fdata = frozenset( data.items() )
+			# Get page
+			if( self.cacheDict.has_key( ( url, fdata ) ) ):
+				logger.debug( "GET %s" %( url ) )
+				page = self.cacheDict[ ( url, fdata ) ]
+				self.cacheDict[ ( url, fdata ) ] = page
+			else:
+				page = fnct( inst, url, data )
+				size = sys.getsizeof( page )
+				if( self.isAccepted( url, size ) ):
+					self.cacheDict[ ( url, fdata ) ] = page
 					self.clean()
-				return result
+			return page
 		return fnctCall
 	
-	def isAccepted( self, url, data, size ):
+	def isAccepted( self, url, size ):
 		"""
 		Check if this file can be added to cache
 		"""
-		# Reject file with data
-		if( data is not None ):
-			return False
 		# Check file size : can't be exceeded 10% of max size
 		if( size > ( self.maxSize / 10 ) ):
 			return False
+		# Check if it's a php page
+		if( url[ -4 : ] == ".php" ):
+			return True
 		# Check file type
 		urlType = mimetypes.guess_type( url )
 		if( ( urlType is None ) or ( urlType[ 0 ] is None ) or ( urlType[ 0 ].split( "/" )[ 0 ] not in self.acceptedTypes ) ):
