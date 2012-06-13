@@ -19,6 +19,7 @@ import re
 import StringIO
 import struct
 import sys
+import threading
 import urllib
 import urllib2
 import xml.etree.ElementTree
@@ -38,23 +39,23 @@ logger = logging.getLogger( "pluzzdl" )
 
 class PluzzDL( object ):
 	
-	def __init__( self, url, useFragments = False, proxy = None, progressbar = False, resume = False ):
-		self.url              = url
-		self.useFragments     = useFragments
-		self.proxy            = proxy
-		self.progressbar      = progressbar
-		self.resume           = resume
-		self.navigateur       = Navigateur( self.proxy )
-		self.historique       = Historique()
-		self.configuration    = Configuration()
+	def __init__( self, url, useFragments = False, proxy = None, resume = False, progressFnct = lambda x : None, stopDownloadEvent = threading.Event() ):
+		self.url               = url
+		self.useFragments      = useFragments
+		self.proxy             = proxy
+		self.resume            = resume
+		self.progressFnct      = progressFnct
+		self.stopDownloadEvent = stopDownloadEvent
+		self.navigateur        = Navigateur( self.proxy )
+		self.historique        = Historique()
+		self.configuration     = Configuration()
+		self.lienMMS           = None
+		self.lienRTMP          = None
+		self.manifestURL       = None
+		self.drm               = None
 		
-		self.lienMMS          = None
-		self.lienRTMP         = None
-		self.manifestURL      = None
-		self.drm              = None
-		
-		self.hmacKey          = self.configuration[ "hmac_key" ].decode( "hex" )
-		self.playerHash       = self.configuration[ "player_hash" ]
+		self.hmacKey           = self.configuration[ "hmac_key" ].decode( "hex" )
+		self.playerHash        = self.configuration[ "player_hash" ]
 		
 		if( re.match( "http://www.pluzz.fr/[^\.]+?\.html", self.url ) ):
 			# Recupere l'ID de l'emission
@@ -139,20 +140,18 @@ class PluzzDL( object ):
 		# Calcul l'estimation du nombre de fragments
 		self.nbFragMax = round( self.duree / 6 )
 		logger.debug( "Estimation du nombre de fragments : %d" %( self.nbFragMax ) )
-		if( self.progressbar and self.nbFragMax != 0 ):
-			self.progression = Progression( self.nbFragMax, self.premierFragment )
-		else:
-			self.progression = ProgressionVide( self.nbFragMax, self.premierFragment )
 		
 		# Ajout des fragments
 		logger.info( "Début du téléchargement des fragments" )
 		try :
-			for i in xrange( self.premierFragment, 99999 ):
+			i = self.premierFragment
+			while( not self.stopDownloadEvent.isSet() ):
 				frag  = self.navigateur.getFichier( "%s%d?%s&%s&%s" %( self.urlFrag, i, self.pvtoken, self.hdntl, self.hdnea ) )
 				debut = self.debutVideo( i, frag )
 				self.fichierVideo.write( frag[ debut : ] )
 				# Affichage de la progression
-				self.progression.afficher()
+				self.progressFnct( min( int( ( i / self.nbFragMax ) * 100 ), 100 ) )
+				i += 1
 		except urllib2.URLError, e :
 			if( hasattr( e, 'code' ) ):
 				if( e.code == 403 ):
@@ -168,7 +167,7 @@ class PluzzDL( object ):
 					else:
 						logger.critical( "Impossible de charger la vidéo" )
 				elif( e.code == 404 ):
-					self.progression.afficherFin()
+					self.progressFnct( 100 )
 					self.telechargementFini = True
 					logger.info( "Fin du téléchargement" )
 		except KeyboardInterrupt:
@@ -307,33 +306,3 @@ class PluzzDLInfosHandler( xml.sax.handler.ContentHandler ):
 			self.isUrl = False
 		elif( name == "drm" ):
 			self.isDRM = False
-
-class ProgressionVide( object ):
-	
-	def __init__( self, nbMax, indice = 1 ):
-		self.nbMax  = nbMax
-		self.indice = indice
-		self.old    = 0
-		self.new    = 0
-	
-	def afficher( self ):
-		pass
-		
-	def afficherFin( self ):
-		pass
-	
-class Progression( ProgressionVide ):
-	
-	def __init__( self, nbMax, indice ):
-		ProgressionVide.__init__( self, nbMax, indice )
-		
-	def afficher( self ):
-		self.new = min( int( ( self.indice / self.nbMax ) * 100 ), 100 )
-		if( self.new != self.old ):
-			logger.info( "Avancement : %3d %%" %( self.new ) )
-			self.old = self.new
-		self.indice += 1
-	
-	def afficherFin( self ):
-		if( self.old < 100 ):
-			logger.info( "Avancement : %3d %%" %( 100 ) )

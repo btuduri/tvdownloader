@@ -68,7 +68,13 @@ if( __name__ == "__main__" ) :
 	if( args.proxy is not None and re.match( "http://[^:]+?:\d+", args.proxy ) is None ):
 		logger.error( "Le proxy \"%s\" n'est pas valide" %( args.proxy ) )
 		sys.exit( -1 )
-	
+
+	# Fonction d'affichage de l'avancement du téléchargement
+	if( args.progressbar ):
+		progressFnct = lambda x : logger.info( "Avancement : %3d %%" %( x ) )
+	else:
+		progressFnct = lambda x : None
+
 	# Creation du repertoire de travail
 	if( os.name == "nt" ):
 		pluzzdlDir = os.path.join( os.getenv( "APPDATA" ), "pluzzdl" )
@@ -80,5 +86,5 @@ if( __name__ == "__main__" ) :
 	PluzzDL( url          = args.urlEmission,
 			 useFragments = args.fragments,
 			 proxy        = args.proxy,
-			 progressbar  = args.progressbar,
-			 resume       = args.resume )
+			 resume       = args.resume,
+			 progressFnct = progressFnct )
