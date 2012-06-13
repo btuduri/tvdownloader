@@ -26,6 +26,10 @@ class QtLogWidget( QtGui.QTableWidget ):
 		self.setHorizontalHeaderItem( 2, QtGui.QTableWidgetItem( "Message" ) )
 		# Hide rows names
 		self.verticalHeader().setVisible( False )
-		# Always select all the line
+		# Always select one line
 		self.setSelectionBehavior( QtGui.QAbstractItemView.SelectRows )
-	
+		self.setSelectionMode( QtGui.QAbstractItemView.SingleSelection )
+		# Hide grid
+		self.setShowGrid( False )
+		# Last column takes all free space
+		self.horizontalHeader().setStretchLastSection( True )

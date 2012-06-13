@@ -7,6 +7,8 @@
 
 import logging
 
+from QtString import stringToQstring
+
 from PyQt4 import QtCore
 from PyQt4 import QtGui
 
@@ -35,7 +37,7 @@ class QtLogHandler( logging.Handler ):
 		"""
 		Create new item to display
 		"""
-		item = QtGui.QTableWidgetItem( text )
+		item = QtGui.QTableWidgetItem( stringToQstring( text ) )
 		item.setBackground( color )
 		item.setFlags( QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled )
 		return item
