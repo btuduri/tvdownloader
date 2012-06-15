@@ -58,3 +58,7 @@ tar :
 	@mv manuel.pdf $(PLUZZDL_REPERTOIRE)
 	@tar czf pluzzdl_$(PLUZZDL_VERSION).orig.tar.gz $(PLUZZDL_REPERTOIRE)
 	@rm -rf $(PLUZZDL_REPERTOIRE)
+
+# Manuel:
+manual :
+	@man -t ./pluzzdl.1 | ps2pdf14 - manuel.pdf

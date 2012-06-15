@@ -90,14 +90,30 @@ class MainWindow( QtGui.QMainWindow ):
 								QtCore.SIGNAL( "clicked()" ),
 								self.openVideoFolder )
 		QtCore.QObject.connect( self, 
-								QtCore.SIGNAL( "updateDownloadProgressBar(int)" ),
+								QtCore.SIGNAL( "updateProgressBar(int)" ),
 								self.downloadProgressBar.setValue )
+		QtCore.QObject.connect( self, 
+								QtCore.SIGNAL( "stopDownload()" ),
+								self.stopDownload )
 		
 		self.downloadThread    = None 
 		self.stopDownloadEvent = threading.Event()	
 
+	def checkUrl( self, url ):
+		if( re.match( "http://www.pluzz.fr/[^\.]+?\.html", url ) is None 
+		and re.match( "http://www.francetv.fr/[^\.]+?", url ) is None ):
+			self.startStopPushButton.setEnabled( False )
+		else:
+			self.startStopPushButton.setEnabled( True )		
+
 	def startStopDownload( self ):
-		
+		if( self.downloadInProgress is True ):
+			self.stopDownload()
+		else:
+			self.startDownload()
+	
+	def startDownload( self ):
+
 		def dlVideo( url ):
 			PluzzDL( url          = url,
 					 useFragments = True,
@@ -105,30 +121,30 @@ class MainWindow( QtGui.QMainWindow ):
 					 resume    	  = True,
 					 progressFnct = self.updateProgressBar,
 					 stopDownloadEvent = self.stopDownloadEvent )
-		
-		if( self.downloadInProgress is True ):
-			self.stopDownloadEvent.set()
-			self.downloadThread.join()
-			self.downloadInProgress = False
-			self.startStopPushButton.setIcon( self.startIcon )
-			self.startStopPushButton.setText( "Start" )
-		else:
-			self.stopDownloadEvent.clear()
-			self.downloadThread = threading.Thread( target = dlVideo, args = ( qstringToString( self.urlLineEdit.text() ), ) )
-			self.downloadThread.start()
-			self.downloadInProgress = True
+			self.emit( QtCore.SIGNAL( "stopDownload()" ) )
+
+		self.stopDownloadEvent.clear()
+		self.downloadThread = threading.Thread( target = dlVideo, args = ( qstringToString( self.urlLineEdit.text() ), ) )
+		self.downloadThread.start()
+		self.downloadInProgress = True
+		self.updateButtons()
+	
+	def stopDownload( self ):
+		self.stopDownloadEvent.set()
+		self.downloadThread.join()
+		self.downloadInProgress = False
+		self.updateButtons()
+
+	def updateButtons( self ):
+		if( self.downloadInProgress ):
 			self.startStopPushButton.setIcon( self.stopIcon )
 			self.startStopPushButton.setText( "Stop" )
-	
-	def checkUrl( self, url ):
-		if( re.match( "http://www.pluzz.fr/[^\.]+?\.html", url ) is None 
-		and re.match( "http://www.francetv.fr/[^\.]+?", url ) is None ):
-			self.startStopPushButton.setEnabled( False )
 		else:
-			self.startStopPushButton.setEnabled( True )		
+			self.startStopPushButton.setIcon( self.startIcon )
+			self.startStopPushButton.setText( "Start" )	
 	
 	def openVideoFolder( self ):
 		QtGui.QDesktopServices.openUrl( QtCore.QUrl.fromLocalFile( "." ) )
 		
 	def updateProgressBar( self, value ):
-		self.emit( QtCore.SIGNAL( "updateDownloadProgressBar(int)" ), value )
+		self.emit( QtCore.SIGNAL( "updateProgressBar(int)" ), value )
