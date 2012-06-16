@@ -39,13 +39,14 @@ logger = logging.getLogger( "pluzzdl" )
 
 class PluzzDL( object ):
 	
-	def __init__( self, url, useFragments = False, proxy = None, resume = False, progressFnct = lambda x : None, stopDownloadEvent = threading.Event() ):
+	def __init__( self, url, useFragments = False, proxy = None, resume = False, progressFnct = lambda x : None, stopDownloadEvent = threading.Event(), outDir = "." ):
 		self.url               = url
 		self.useFragments      = useFragments
 		self.proxy             = proxy
 		self.resume            = resume
 		self.progressFnct      = progressFnct
 		self.stopDownloadEvent = stopDownloadEvent
+		self.outDir            = outDir
 		self.navigateur        = Navigateur( self.proxy )
 		self.historique        = Historique()
 		self.configuration     = Configuration()
@@ -80,7 +81,7 @@ class PluzzDL( object ):
 			if( self.manifestURL is None ):
 				logger.critical( "Pas de lien vers le manifest" )
 				sys.exit( -1 )
-			self.nomFichier         = "%s.flv" %( re.findall( "http://www.pluzz.fr/([^\.]+?)\.html", self.url )[ 0 ] )
+			self.nomFichier = os.path.join( self.outDir, "%s.flv" %( re.findall( "http://www.pluzz.fr/([^\.]+?)\.html", self.url )[ 0 ] ) )
 		else:
 			page = self.navigateur.getFichier( self.url )
 			try:
@@ -89,9 +90,9 @@ class PluzzDL( object ):
 				logger.critical( "Pas de lien vers le manifest" )
 				sys.exit( -1 )
 			try:
-				self.nomFichier         = "%s.flv" %( self.url.split( "/" )[ -1 ] )
+				self.nomFichier = os.path.join( self.outDir, "%s.flv" %( self.url.split( "/" )[ -1 ] ) )
 			except:
-				self.nomFichier = "video.flv"
+				self.nomFichier = os.path.join( self.outDir, "video.flv" )
 			
 		# Verifie si le lien du manifest contient la chaine "media-secure"
 		if( self.manifestURL.find( "media-secure" ) != -1 ):

@@ -6,6 +6,7 @@
 #
 
 import logging
+import os
 import re
 import sys
 sys.path.append( ".." ) 
@@ -97,7 +98,13 @@ class MainWindow( QtGui.QMainWindow ):
 								self.stopDownload )
 		
 		self.downloadThread    = None 
-		self.stopDownloadEvent = threading.Event()	
+		self.stopDownloadEvent = threading.Event()
+		self.downloadDir       = os.path.join( os.path.expanduser( "~" ), "pluzzdl" )
+
+	def closeEvent( self, evt ):
+		if( self.downloadInProgress is True ):
+			self.stopDownload()
+		evt.accept()
 
 	def checkUrl( self, url ):
 		if( re.match( "http://www.pluzz.fr/[^\.]+?\.html", url ) is None 
@@ -115,12 +122,16 @@ class MainWindow( QtGui.QMainWindow ):
 	def startDownload( self ):
 
 		def dlVideo( url ):
-			PluzzDL( url          = url,
-					 useFragments = True,
-					 proxy        = None,
-					 resume    	  = True,
-					 progressFnct = self.updateProgressBar,
-					 stopDownloadEvent = self.stopDownloadEvent )
+			try:
+				PluzzDL( url          = url,
+						 useFragments = True,
+						 proxy        = None,
+						 resume    	  = True,
+						 progressFnct = self.updateProgressBar,
+						 stopDownloadEvent = self.stopDownloadEvent,
+						 outDir = self.downloadDir )
+			except:
+				pass
 			self.emit( QtCore.SIGNAL( "stopDownload()" ) )
 
 		self.stopDownloadEvent.clear()

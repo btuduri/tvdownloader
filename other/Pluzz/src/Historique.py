@@ -52,7 +52,7 @@ class Historique( object ):
 			try:
 				with open( self.fichierCache, "r" ) as fichier:
 					self.historique = pickle.load( fichier )
-					logger.info( "Historique chargé" )
+					logger.debug( "Historique chargé" )
 			except:
 				self.historique = []
 				logger.warning( "Impossible de lire le fichier d'historique %s, création d'un nouveau fichier" %( self.fichierCache ) )
@@ -65,7 +65,7 @@ class Historique( object ):
 		try:
 			with open( self.fichierCache, "w" ) as fichier:
 				pickle.dump( self.historique, fichier )
-				logger.info( "Historique sauvé" )
+				logger.debug( "Historique sauvé" )
 		except:
 			logger.warning( "Impossible d'écrire le fichier d'historique %s" %( self.fichierCache ) )
 
