@@ -21,7 +21,7 @@ import py2exe
 # Icones
 listeIcones = []
 for fichier in os.listdir( "ico" ):
-	if( fichier[ -4 : ] == ".png" or fichier[ -4 : ] == ".svg" ):
+	if( fichier[ -4 : ] == ".png" or fichier[ -4 : ] == ".svg" or fichier[ -4 : ] == ".ico" ):
 		listeIcones.append( "ico/" + fichier )
 
 setup( name = "pluzzdl",
@@ -30,7 +30,7 @@ setup( name = "pluzzdl",
 	   url = "http://code.google.com/p/tvdownloader/",
 	   license = "GNU General Public License 2(GPL 2)",
 	   options = { "py2exe" : { "includes" : [ "sip" ] } },
-	   data_files = [ ( "", [ "COPYING", "manuel.pdf", "pluzzdl_default.cfg" ] ),
+	   data_files = [ ( "", [ "COPYING", "pluzzdl_default.cfg" ] ),
 					  ( "ico", listeIcones )
 					],
 	   scripts = [ "mainGui.py" ],

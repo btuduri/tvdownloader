@@ -19,23 +19,23 @@ logger = logging.getLogger( "pluzzdl" )
 
 class Configuration( object ):
 	
-	configDefaultFileName = "%s/pluzzdl_default.cfg" %( os.path.dirname( os.path.abspath( __file__ ) ) )
-	
 	def __init__( self ):
-		# Le chemin du fichier de configuration est different selon l'OS utilise
+		# Les chemins sont differents selon l'OS utilise
 		if( os.name == "nt" ):
+			self.configDefaultFileName = "pluzzdl_default.cfg"
 			self.configFileName = os.path.join( os.getenv( "APPDATA" ), "pluzzdl", "pluzzdl.cfg" )
 		else:
-			self.configFileName = os.path.join( os.path.expanduser( "~" ), ".config", "pluzzdl.cfg" )			
+			self.configDefaultFileName = os.path.join( os.path.dirname( os.path.abspath( __file__ ) ), "pluzzdl_default.cfg" )
+			self.configFileName = os.path.join( os.path.expanduser( "~" ), ".config", "pluzzdl.cfg" )		
 		# Si le fichier de configuration n'est pas present dans le repertoire de l'utilisateur ou si celui par defaut est plus recent
 		if( ( not os.path.exists( self.configFileName ) ) or ( os.path.getmtime( self.configDefaultFileName ) > os.path.getmtime( self.configFileName ) ) ):
-				# Copie du fichier par defaut
-				logger.info( "Copie du fichier de configuration par défaut" )
-				try:
-					shutil.copyfile( self.configDefaultFileName, self.configFileName )
-				except:
-					logger.error( "Impossible de copier le fichier de configuration par défaut dans le home de l'utilisateur" )
-					sys.exit( 1 )
+			# Copie du fichier par defaut
+			logger.info( "Copie du fichier de configuration par défaut" )
+			try:
+				shutil.copyfile( self.configDefaultFileName, self.configFileName )
+			except:
+				logger.error( "Impossible de copier le fichier de configuration par défaut dans le home de l'utilisateur" )
+				sys.exit( 1 )
 		# Parser
 		self.configParser = ConfigParser.RawConfigParser()
 		# Options

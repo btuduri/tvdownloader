@@ -155,7 +155,7 @@ class MainWindow( QtGui.QMainWindow ):
 			self.startStopPushButton.setText( "Start" )	
 	
 	def openVideoFolder( self ):
-		QtGui.QDesktopServices.openUrl( QtCore.QUrl.fromLocalFile( "." ) )
+		QtGui.QDesktopServices.openUrl( QtCore.QUrl.fromLocalFile( self.downloadDir ) )
 		
 	def updateProgressBar( self, value ):
 		self.emit( QtCore.SIGNAL( "updateProgressBar(int)" ), value )
