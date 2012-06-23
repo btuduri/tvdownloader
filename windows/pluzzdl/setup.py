@@ -21,7 +21,7 @@ import py2exe
 # Icones
 listeIcones = []
 for fichier in os.listdir( "ico" ):
-	if( fichier[ -4 : ] == ".png" or fichier[ -4 : ] == ".svg" or fichier[ -4 : ] == ".ico" ):
+	if( fichier[ -4 : ] == ".png" or fichier[ -4 : ] == ".ico" ):
 		listeIcones.append( "ico/" + fichier )
 
 setup( name = "pluzzdl",

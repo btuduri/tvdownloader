@@ -33,9 +33,9 @@ class MainWindow( QtGui.QMainWindow ):
 		
 		# App icons
 		self.tvdIcon    = QtGui.QIcon( "ico/tvdownloader.png" )
-		self.startIcon  = QtGui.QIcon( "ico/gtk-media-play-ltr.svg" )
-		self.stopIcon   = QtGui.QIcon( "ico/gtk-media-stop.svg" )
-		self.folderIcon = QtGui.QIcon( "ico/gtk-folder.svg" )
+		self.startIcon  = QtGui.QIcon( "ico/gtk-media-play-ltr.png" )
+		self.stopIcon   = QtGui.QIcon( "ico/gtk-media-stop.png" )
+		self.folderIcon = QtGui.QIcon( "ico/gtk-folder.png" )
 		
 		# Main window properties
 		self.setWindowTitle( "pluzzdl %s" %( pluzzdlVersion ) )

@@ -7,7 +7,7 @@
 
 import logging
 
-from QtString import stringToQstring
+from base.qt.qtString import stringToQstring
 
 from PyQt4 import QtCore
 from PyQt4 import QtGui
