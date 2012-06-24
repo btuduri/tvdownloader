@@ -1,0 +1,7 @@
+syntax: glob
+.metadata
+.project
+.pydevproject
+.settings
+*.pyc
+*.pyo
