@@ -36,7 +36,7 @@ class QtTable( QtGui.QTableWidget ):
 		"""
 		Resize all columns
 		"""
-		QtGui.QTableWidget.resizeColumnsToContents()
+		QtGui.QTableWidget.resizeColumnsToContents( self )
 		if( not self.isHorizontalScrollBarVisible() ):
 			self.horizontalHeader().setStretchLastSection( True )
 

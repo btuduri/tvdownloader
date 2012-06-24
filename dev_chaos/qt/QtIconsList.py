@@ -40,20 +40,32 @@ class QtIconsList( QtGui.QScrollArea ):
 		QtCore.QObject.connect( self.buttonGroup,
 								QtCore.SIGNAL( "buttonClicked(int)" ),
 								self.buttonClicked )
-			
-	def addIcon( self, name, icon ):
+	
+	def clear( self ):
+		"""
+		Clear icons list
+		"""
+		self.buttonsNames = []
+		for button in self.buttonGroup.buttons():
+			self.layout.removeWidget( button )
+			self.buttonGroup.removeButton( button )
+		
+	def addIcon( self, name, icon = None ):
 		"""
 		Add an icon to the list
 		icon must be a QIcon
 		"""
-		button = QtGui.QPushButton( icon, "", self.widget )
-		button.setIconSize( self.iconsSize )
+		if( icon ):
+			button = QtGui.QPushButton( icon, "", self.widget )
+			button.setIconSize( self.iconsSize )
+		else:
+			button = QtGui.QPushButton( stringToQstring( name ), self.widget )
 		button.setFlat( True )
 		button.setCheckable( True )
 		button.setToolTip( stringToQstring( name ) )
 		self.layout.addWidget( button )
-		self.buttonsNames.append( name )
 		self.buttonGroup.addButton( button, len( self.buttonsNames ) - 1 )
+		self.buttonsNames.append( name )
 	
 	def buttonClicked( self, buttonId ):
 		"""
