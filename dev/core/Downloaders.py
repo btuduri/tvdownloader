@@ -112,7 +112,7 @@ class MsdlDownloader (DownloaderInterface) :
 	
 	@staticmethod
 	def canDownload (url) :
-		return url[:4] == "mms:"
+		return url[:4] in ["mms:", "rtmp"]
 
 class HttpDownloader (DownloaderInterface) :
 	def __init__(self, url) :

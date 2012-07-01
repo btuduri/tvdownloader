@@ -13,6 +13,8 @@ logger = logging.getLogger( "TVDownloader" )
 # L'instance doit posséder un attribut RLOCK affecté à une instance de
 # threading.RLock. Ne peut décorer les méthodes __new__ ou __init__.
 def SynchronizedMethod(meth):
+	logger.warning("Le décorateur SynchronizedMethod a été remplacée par Synchronized.")
+	return Synchronized(meth)
 	def local(self, *arg):
 		if hasattr(self, "RLOCK"):
 			self.RLOCK.acquire()

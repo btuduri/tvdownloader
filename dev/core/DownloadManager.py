@@ -125,7 +125,6 @@ class DownloadManager(threading.Thread):
 					self.callbackGroup(dl.getStatus())
 					return
 		pause = 0
-		print "Actif..."
 		while not(self.stopped):
 			activeDls = retrieveDls()
 			if len(activeDls) == 0:
