@@ -40,8 +40,8 @@ install :
 	$(INSTALL) src/* $(DESTDIR)$(DATADIR)/pluzzdl/
 	
 	# Met en place le manpage
-	mkdir -p /usr/share/man/fr/man1/
-	$(INSTALL) pluzzdl.1.gz /usr/share/man/fr/man1/
+	mkdir -p $(DESTDIR)$(DATADIR)/man/fr/man1/
+	$(INSTALL) pluzzdl.1.gz $(DESTDIR)$(DATADIR)/man/fr/man1/
 
 # Nettoyage
 clean : 
@@ -54,6 +54,7 @@ tar :
 	@mkdir -p $(PLUZZDL_REPERTOIRE)/src
 	@cp src/*.py $(PLUZZDL_REPERTOIRE)/src/
 	@cp src/pluzzdl_default.cfg $(PLUZZDL_REPERTOIRE)/src/
+	@cp pluzzdl.1 $(PLUZZDL_REPERTOIRE)
 	@man -t ./pluzzdl.1 | ps2pdf14 - manuel.pdf
 	@mv manuel.pdf $(PLUZZDL_REPERTOIRE)
 	@tar czf pluzzdl_$(PLUZZDL_VERSION).orig.tar.gz $(PLUZZDL_REPERTOIRE)
