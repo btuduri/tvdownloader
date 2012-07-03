@@ -29,11 +29,13 @@ from MainWindow import MainWindow
 if( __name__ == "__main__" ) :
 	
 	# Creation des repertoires de travail
-	if( os.name != "nt" ):
+	if( os.name == "nt" ):
+		pluzzdlDirs = [ "Videos" ]
+	else:
 		pluzzdlDirs = [ os.path.join( os.path.expanduser( "~" ), "pluzzdl" ) ]
-		for pluzzdlDir in pluzzdlDirs:
-			if( not os.path.isdir( pluzzdlDir ) ):
-				os.makedirs( pluzzdlDir )
+	for pluzzdlDir in pluzzdlDirs:
+		if( not os.path.isdir( pluzzdlDir ) ):
+			os.makedirs( pluzzdlDir )
 	
 	# Lancement de la GUI
 	app = QtGui.QApplication( sys.argv )

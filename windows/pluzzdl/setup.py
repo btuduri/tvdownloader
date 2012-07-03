@@ -34,4 +34,4 @@ setup( name = "pluzzdl",
 					  ( "ico", listeIcones )
 					],
 	   scripts = [ "mainGui.py" ],
-	   windows = [ { "script" : "mainGui.py" } ] )
+	   windows = [ { "script" : "mainGui.py", "icon_resources" : [ ( 1, "ico/tvdownloader.ico" ) ] } ] )

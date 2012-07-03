@@ -100,7 +100,7 @@ class MainWindow( QtGui.QMainWindow ):
 		self.downloadThread    = None 
 		self.stopDownloadEvent = threading.Event()
 		if( os.name == "nt" ):
-			self.downloadDir = "."
+			self.downloadDir = "Videos"
 		else:
 			self.downloadDir = os.path.join( os.path.expanduser( "~" ), "pluzzdl" )
 
