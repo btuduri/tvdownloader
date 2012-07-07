@@ -20,6 +20,7 @@ class QtLogHandler( logging.Handler ):
 	"""
 	Display Python logging messages with Qt ; use it with a QTableWidget widget
 	"""
+	
 	# Colors
 	red    = QtGui.QColor( 255, 0, 0, 127 )
 	yellow = QtGui.QColor( 255, 255, 0, 127 )

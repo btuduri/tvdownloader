@@ -11,8 +11,9 @@ import threading
 import sys
 sys.path.append( ".." ) 
 
-from base.qt.qtString import qstringToString
-from base.qt.qtString import stringToQstring
+from base.qt.QtFolderChooser import QtFolderChooser
+from base.qt.qtString        import qstringToString
+from base.qt.qtString        import stringToQstring
 
 from PyQt4 import QtCore
 from PyQt4 import QtGui
@@ -37,13 +38,24 @@ class MainWindow( QtGui.QMainWindow ):
 		QtGui.QMainWindow.__init__( self )
 		
 		#
+		# Fonts
+		#
+		
+		# Font pour les titres
+		self.titreFont = QtGui.QFont()
+		self.titreFont.setPointSize( 11 )
+		self.titreFont.setWeight( 75 )
+		self.titreFont.setBold( True )
+		
+		#
 		# Icones
 		#
 		
-		self.tvdIco   = QtGui.QIcon( "qt/ico/TVDownloader.png" )
-		# self.addIco   = QtGui.QIcon( "qt/ico/gtk-add.svg" )
-		# self.applyIco = QtGui.QIcon( "qt/ico/gtk-apply.svg" )
-		# self.fileIco  = QtGui.QIcon( "qt/ico/gtk-file.svg" )
+		self.tvdIco   = QtGui.QIcon( "ico/TVDownloader.png" )
+		self.folderIco = QtGui.QIcon( "ico/gtk-folder.svg" )
+		# self.addIco   = QtGui.QIcon( "ico/gtk-add.svg" )
+		# self.applyIco = QtGui.QIcon( "ico/gtk-apply.svg" )
+		# self.fileIco  = QtGui.QIcon( "ico/gtk-file.svg" )
 		
 		#
 		# Signaux
@@ -94,7 +106,7 @@ class MainWindow( QtGui.QMainWindow ):
 		self.tabWidget.addTab( self.fichiersSplitter, u"Choix des fichiers" )
 		
 		# Onglet Telechargements
-		self.telechargementsWidget = QtGui.QWidget( self.centralWidget )
+		self.telechargementsWidget = QtGui.QScrollArea( self.centralWidget )
 		self.tabWidget.addTab( self.telechargementsWidget, u"Téléchargements" )
 		
 		# Onglet Parametres
@@ -145,6 +157,42 @@ class MainWindow( QtGui.QMainWindow ):
 		self.fichierTableWidget.setHorizontalHeaderItem( 1, self.fichierTableWidget.createItem( "Date" ) )
 		self.fichierTableWidget.setHorizontalHeaderItem( 2, self.fichierTableWidget.createItem( "Emission" ) )
 		self.fichierLayout.addWidget( self.fichierTableWidget )
+		
+		#
+		# Onglet Parametres
+		#
+		
+		# Layout de forumlaire
+		self.parametresLayout = QtGui.QFormLayout( self.parametresWidget )
+		
+		# Titre Repertoire
+		self.titreRepertoireLabel = QtGui.QLabel( self.parametresWidget )
+		self.titreRepertoireLabel.setFont( self.titreFont )
+		self.titreRepertoireLabel.setText( u"Répertoires :" )
+		self.parametresLayout.addRow( self.titreRepertoireLabel, None )		
+		
+		# Repertoire par defaut pour les videos
+		self.choixRepertoire = QtFolderChooser( self.parametresWidget, self.folderIco )
+		self.parametresLayout.addRow( u"Répertoire de téléchargement :", self.choixRepertoire )
+		
+		# Titre Internet
+		self.titreInternetLabel = QtGui.QLabel( self.parametresWidget )
+		self.titreInternetLabel.setFont( self.titreFont )
+		self.titreInternetLabel.setText( u"Paramètres Internet :" )
+		self.parametresLayout.addRow( self.titreInternetLabel, None )
+		
+		# Time out du navigateur
+		self.timeOutSpinBox = QtGui.QSpinBox( self.parametresWidget )
+		self.timeOutSpinBox.setMinimum( 1 )
+		self.timeOutSpinBox.setMaximum( 60 )
+		self.parametresLayout.addRow( u"Time out (en s) :", self.timeOutSpinBox )
+		
+		# Nombre de threads du navigateur
+		self.threadSpinBox = QtGui.QSpinBox( self.parametresWidget )
+		self.threadSpinBox.setMinimum( 1 )
+		self.threadSpinBox.setMaximum( 100 )
+		self.parametresLayout.addRow( u"Nombre de threads max :", self.threadSpinBox )
+		
 		
 		#
 		# Debut
@@ -227,7 +275,6 @@ class MainWindow( QtGui.QMainWindow ):
 		listeEmissions.sort()
 		self.emissionComboBox.clear()
 		map( lambda x : self.emissionComboBox.addItem( stringToQstring( x ) ), listeEmissions )
-		
 		
 if __name__ == "__main__" :
 	app = QtGui.QApplication( sys.argv )
