@@ -84,6 +84,12 @@ class TVDContext(object):
 		except Exception as e:
 			logger.warn("Erreur de déverrouillage les fichiers de configuration")
 			return
+		
+		self.initialized = False
+		
+		self.downloadManager = None
+		self.pluginManager = None
+		self.historique = None
 	
 	## Force la libération des ressourses.
 	# Libèration forcée des fichiers de configuration de TVD.

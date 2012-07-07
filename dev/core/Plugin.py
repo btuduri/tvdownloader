@@ -23,8 +23,22 @@ from tvdcore import *
 
 ## Classe abstraite Plugin dont doit heriter chacun des plugins.
 #
-# Les plugins doivent hériter de cette classe et redéfinir les méthodes #listerChaines, #listerEmissions et #listerFichiers. Dans ces méthodes il faut procéder au téléchargement des données demandées et les ajouter si ce n'est déjà fait via les méthodes #ajouterChaine, #ajouterEmission et #ajouterFichier.
-# La méthode #listerOptions est optionnellement à redéfinir (dans le cas où il y aurai des options).
+# Les plugins doivent hériter de cette classe et redéfinir les méthodes
+# #listerChaines, #listerEmissions et #listerFichiers. Dans ces méthodes il faut
+# procéder au téléchargement des données demandées et les ajouter si ce n'est
+# déjà fait via les méthodes #ajouterChaine, #ajouterEmission et #ajouterFichier.
+# Si il n'y a pas nécessité de télécharger des données, utilisez directement les
+# méthode #ajouterChaine, #ajouterEmission et #ajouterFichier dès que vous
+# possédez la donnée (dans #rafraichir par exemple).
+#
+# L'idée est de télécharger les données générales dans #rafraichir et de les
+# mettre en cache. Puis, si pour chaque chaîne ou émission il faut des
+# téléchargements supplémentaires qui seraient trop important pour être tous mis
+# dans #rafraichir, c'est d'utiliser les méthodes lister* pour y faire ces
+# téléchargements (et donc y faire appel à add*).
+#
+# La méthode #listerOptions est optionnellement à redéfinir (dans le cas où il y
+# aurai des options).
 class Plugin(object):
 	
 	NAVIGATEUR = Navigateur()
