@@ -1,11 +1,11 @@
 VERSION=v2.4
 
-prefix=/usr/local
+PREFIX ?= /usr
 
-incdir=$(prefix)/include/librtmp
-bindir=$(prefix)/bin
-libdir=$(prefix)/lib
-mandir=$(prefix)/man
+incdir=$(PREFIX)/include/librtmp
+bindir=$(PREFIX)/bin
+libdir=$(PREFIX)/lib
+mandir=$(PREFIX)/man
 BINDIR=$(DESTDIR)$(bindir)
 INCDIR=$(DESTDIR)$(incdir)
 LIBDIR=$(DESTDIR)$(libdir)
@@ -16,6 +16,7 @@ LD=$(CROSS_COMPILE)ld
 AR=$(CROSS_COMPILE)ar
 
 SYS=posix
+XLIBS=-lm
 CRYPTO=OPENSSL
 #CRYPTO=GNUTLS
 DEF_POLARSSL=-DUSE_POLARSSL
@@ -97,7 +98,7 @@ hashswf.o: hashswf.c http.h rtmp.h rtmp_sys.h Makefile
 parseurl.o: parseurl.c rtmp.h rtmp_sys.h log.h Makefile
 
 librtmp.pc: librtmp.pc.in Makefile
-	sed -e "s;@prefix@;$(prefix);" -e "s;@libdir@;$(libdir);" \
+	sed -e "s;@PREFIX@;$(PREFIX);" -e "s;@libdir@;$(libdir);" \
 		-e "s;@VERSION@;$(VERSION);" \
 		-e "s;@CRYPTO_REQ@;$(CRYPTO_REQ);" \
 		-e "s;@PRIVATE_LIBS@;$(PRIVATE_LIBS);" librtmp.pc.in > $@

@@ -1,0 +1,16 @@
+Source: rtmpdump
+Section: web
+Priority: extra
+Maintainer: Chaoswizard <chaoswizard@gmail.com>
+Build-Depends: debhelper (>= 8.0.0), libgcrypt11-dev, libssl-dev
+Standards-Version: 3.9.2
+Homepage: http://stream-recorder.com/forum/release-unofficial-rtmpdump-binaries-t11030.html
+
+Package: rtmpdump
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libgcrypt11 (>= 1.4.2), libgnutls26 (>= 2.7.14-0), zlib1g (>= 1:1.1.4)
+Description: small dumper for media content streamed over the RTMP protocol
+ A small dumper for media content streamed over the RTMP protocol (like BBC's
+ iPlayer high quality streams). Supplying an RTMP URL will result in a dumped
+ flv file, which can be played/transcoded with standard tools.
+ This is patched version from KSV.

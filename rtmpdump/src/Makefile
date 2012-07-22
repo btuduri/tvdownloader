@@ -1,11 +1,12 @@
 VERSION=v2.4
 
-prefix=/usr/local
+PREFIX ?= /usr
 
 CC=$(CROSS_COMPILE)gcc
 LD=$(CROSS_COMPILE)ld
 
 SYS=posix
+XLIBS=-lm
 #SYS=mingw
 
 CRYPTO=OPENSSL
@@ -24,9 +25,9 @@ OPT=-O2
 CFLAGS=-Wall $(XCFLAGS) $(INC) $(DEF) $(OPT)
 LDFLAGS=-Wall $(XLDFLAGS)
 
-bindir=$(prefix)/bin
-sbindir=$(prefix)/sbin
-mandir=$(prefix)/man
+bindir=$(PREFIX)/bin
+sbindir=$(PREFIX)/sbin
+mandir=$(PREFIX)/man
 
 BINDIR=$(DESTDIR)$(bindir)
 SBINDIR=$(DESTDIR)$(sbindir)
