@@ -88,7 +88,7 @@ if __name__ == "__main__" :
 		if arg.find(UI_ARG) == 0:
 			uiname = arg[len(UI_ARG)+1:]
 			break
-	path = "./uis/"+uiname+"/MainWindow.py"
+	path = "./uis/"+uiname+"/main.py"
 	if not(os.path.isfile(path)):
 		print "L'ui "+uiname+" est introuvable"
 		sys.exit(1)
@@ -139,6 +139,6 @@ if __name__ == "__main__" :
 		manager.shutdown()
 		pluginMan.fermeture()
 		context.release()
-		# context.historique.sauverHistorique()
+		context.historique.sauverHistorique()
 		#unlockLaunch()
 

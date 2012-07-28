@@ -53,11 +53,11 @@ class MainWindow( QtGui.QMainWindow ):
 		# Icones
 		#
 		
-		self.tvdIco   = QtGui.QIcon( "ico/TVDownloader.png" )
-		self.folderIco = QtGui.QIcon( "ico/gtk-folder.svg" )
-		# self.addIco   = QtGui.QIcon( "ico/gtk-add.svg" )
-		# self.applyIco = QtGui.QIcon( "ico/gtk-apply.svg" )
-		# self.fileIco  = QtGui.QIcon( "ico/gtk-file.svg" )
+		self.tvdIco   = QtGui.QIcon( "uis/qt/ico/TVDownloader.png" )
+		self.folderIco = QtGui.QIcon( "uis/qt/ico/gtk-folder.svg" )
+		# self.addIco   = QtGui.QIcon( "uis/qt/ico/gtk-add.svg" )
+		# self.applyIco = QtGui.QIcon( "uis/qt/ico/gtk-apply.svg" )
+		# self.fileIco  = QtGui.QIcon( "uis/qt/ico/gtk-file.svg" )
 		
 		#
 		# Signaux
@@ -195,7 +195,6 @@ class MainWindow( QtGui.QMainWindow ):
 		self.threadSpinBox.setMaximum( 100 )
 		self.parametresLayout.addRow( u"Nombre de threads max :", self.threadSpinBox )
 		
-		
 		#
 		# Debut
 		#
@@ -213,6 +212,12 @@ class MainWindow( QtGui.QMainWindow ):
 		"""
 		Actions a realiser au demarage du programe
 		"""
+		# Recupere l'instance de TVDContext
+		self.tvdContext = tvdcore.TVDContext()
+		# Recupere les instances des classes utiles
+		self.pluginManager = self.tvdContext.pluginManager
+		
+		# Liste les plugins
 		self.listerPlugins()
 	
 	def actionsAvantQuitter( self ):
@@ -226,7 +231,7 @@ class MainWindow( QtGui.QMainWindow ):
 		Fonction qui demande la liste des plugins
 		"""
 		def threadListerPlugins( self ):
-			listePlugins = [ "B", "A", "C", "D" ]
+			listePlugins = self.pluginManager.getPluginListe()
 			self.emit( self.listePluginsSignal, listePlugins )
 		
 		threading.Thread( target = threadListerPlugins, args = ( self, ) ).start()
@@ -237,7 +242,7 @@ class MainWindow( QtGui.QMainWindow ):
 		Si plugin = None, alors elle demande la liste des chaines de tous les plugins
 		"""
 		def threadListerChaines( self, plugin ):
-			listeChaines = [ ( "4", None ), ( "2", None ), ( "3", None ), ( "1", None ), ( "0", None ), ( "42", None ) ]
+			listeChaines = map( lambda x : ( x, None ), self.pluginManager.getPluginListeChaines( plugin ) )
 			self.emit( self.listeChainesSignal, listeChaines )
 		
 		if( plugin ):
@@ -248,11 +253,12 @@ class MainWindow( QtGui.QMainWindow ):
 		"""
 		Fonction qui demande la liste des emissions d'une chaine donnee
 		"""
-		def threadListerEmissions( self, chaine ):
-			listeEmissions = [ "Alpha", "Beta", "Gamma" ]
+		def threadListerEmissions( self, plugin, chaine ):
+			listeEmissions = self.pluginManager.getPluginListeEmissions( plugin, chaine )
 			self.emit( self.listeEmissionsSignal, listeEmissions )
-
-		threading.Thread( target = threadListerEmissions, args = ( self, chaine ) ).start()
+		
+		plugin = qstringToString( self.pluginComboBox.currentText() )
+		threading.Thread( target = threadListerEmissions, args = ( self, plugin, chaine ) ).start()
 		
 	def ajouterPlugins( self, listePlugins ):
 		"""
@@ -277,13 +283,3 @@ class MainWindow( QtGui.QMainWindow ):
 		listeEmissions.sort()
 		self.emissionComboBox.clear()
 		map( lambda x : self.emissionComboBox.addItem( stringToQstring( x ) ), listeEmissions )
-
-ctx = tvdcore.TVDContext()
-if not( ctx.isInitialized() ) and not( ctx.initialize() ):
-	logger.error( "Impossible d'initialiser le context" )
-else:
-	app = QtGui.QApplication( sys.argv )
-	window = MainWindow( "1.0" )
-	window.show()
-	print app.exec_()
-	# sys.exit( app.exec_() )
