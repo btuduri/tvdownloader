@@ -74,6 +74,10 @@ class MainWindow( QtGui.QMainWindow ):
 		# Liste des emissions a mettre en place
 		self.listeEmissionsSignal = QtCore.SIGNAL( "listeEmission(PyQt_PyObject)" )
 		QtCore.QObject.connect( self, self.listeEmissionsSignal , self.ajouterEmissions )
+
+		# Liste des fichiers a mettre en place
+		self.listeFichiersSignal = QtCore.SIGNAL( "listeFichiers(PyQt_PyObject)" )
+		QtCore.QObject.connect( self, self.listeFichiersSignal , self.ajouterFichiers )
 		
 		#
 		# Reglages de la fenetre
@@ -149,6 +153,9 @@ class MainWindow( QtGui.QMainWindow ):
 		
 		# Choix de l'emission
 		self.emissionComboBox = QtGui.QComboBox( self.fichierWidget )
+		QtCore.QObject.connect( self.emissionComboBox,
+								QtCore.SIGNAL( "activated(QString)" ),
+								self.listerFichiers )
 		self.fichierLayout.addWidget( self.emissionComboBox )
 		
 		# Liste des fichiers
@@ -259,6 +266,17 @@ class MainWindow( QtGui.QMainWindow ):
 		
 		plugin = qstringToString( self.pluginComboBox.currentText() )
 		threading.Thread( target = threadListerEmissions, args = ( self, plugin, chaine ) ).start()
+
+	def listerFichiers( self, emission ):
+		"""
+		Fonction qui demande la liste des fichiers d'une emission donnee
+		"""		
+		def threadListerFichiers( self, plugin, emission ):
+			listeFichiers = self.pluginManager.getPluginListeFichiers( plugin, emission )
+			self.emit( self.listeFichiersSignal, listeFichiers )
+		
+		plugin = qstringToString( self.pluginComboBox.currentText() )
+		threading.Thread( target = threadListerFichiers, args = ( self, plugin, emission ) ).start()		
 		
 	def ajouterPlugins( self, listePlugins ):
 		"""
@@ -283,3 +301,20 @@ class MainWindow( QtGui.QMainWindow ):
 		listeEmissions.sort()
 		self.emissionComboBox.clear()
 		map( lambda x : self.emissionComboBox.addItem( stringToQstring( x ) ), listeEmissions )
+	
+	def ajouterFichiers( self, listeFichiers ):
+		"""
+		Met en place la liste des fichiers
+		"""
+		self.fichierTableWidget.clear()
+		ligneCourante = 0
+		for fichier in listeFichiers:
+			self.fichierTableWidget.insertRow( ligneCourante )
+			tableRow = []
+			tableRow.append( self.fichierTableWidget.createItem( "" ) )
+			tableRow.append( self.fichierTableWidget.createItem( fichier.date ) )
+			tableRow.append( self.fichierTableWidget.createItem( fichier.nom ) )
+			self.fichierTableWidget.setLigne( ligneCourante, tableRow )
+			ligneCourante += 1
+		self.fichierTableWidget.resizeColumnsToContents()
+		

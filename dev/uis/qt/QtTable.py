@@ -44,7 +44,8 @@ class QtTable( QtGui.QTableWidget ):
 		"""
 		Clear contents
 		"""
-		QtGui.QTableWidget.clear()
+		for i in range( self.rowCount() - 1, -1, -1 ): # [ nbLignes - 1, nbLignes - 2, ..., 1, 0 ]
+			self.removeRow( i )
 		self.resizeColumnsToContents()
 
 	def isHorizontalScrollBarVisible( self ):

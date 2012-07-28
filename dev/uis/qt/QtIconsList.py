@@ -47,8 +47,8 @@ class QtIconsList( QtGui.QScrollArea ):
 		"""
 		self.buttonsNames = []
 		for button in self.buttonGroup.buttons():
-			self.layout.removeWidget( button )
 			self.buttonGroup.removeButton( button )
+			self.layout.removeWidget( button )
 		
 	def addIcon( self, name, icon = None ):
 		"""
