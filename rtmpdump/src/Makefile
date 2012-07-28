@@ -1,6 +1,6 @@
-VERSION=v2.4
+VERSION=v2.5
 
-PREFIX ?= /usr
+PREFIX ?= /usr/local
 
 CC=$(CROSS_COMPILE)gcc
 LD=$(CROSS_COMPILE)ld
@@ -48,7 +48,7 @@ SLIBS=$(THREADLIB) $(LIBS)
 LIBRTMP=librtmp/librtmp.a
 INCRTMP=librtmp/rtmp_sys.h librtmp/rtmp.h librtmp/log.h librtmp/amf.h
 
-EXT_posix=
+EXT_posix=2.5
 EXT_darwin=
 EXT_mingw=.exe
 EXT=$(EXT_$(SYS))
@@ -60,12 +60,13 @@ all:	$(LIBRTMP) $(PROGS)
 $(PROGS): $(LIBRTMP)
 
 install:	$(PROGS)
-	-mkdir -p $(BINDIR) $(SBINDIR) $(MANDIR)/man1 $(MANDIR)/man8
+	# -mkdir -p $(BINDIR) $(SBINDIR) $(MANDIR)/man1 $(MANDIR)/man8
+	mkdir -p $(BINDIR)
 	cp rtmpdump$(EXT) $(BINDIR)
-	cp rtmpgw$(EXT) rtmpsrv$(EXT) rtmpsuck$(EXT) $(SBINDIR)
-	cp rtmpdump.1 $(MANDIR)/man1
-	cp rtmpgw.8 $(MANDIR)/man8
-	@cd librtmp; $(MAKE) install
+	cp rtmpgw$(EXT) rtmpsrv$(EXT) rtmpsuck$(EXT) $(BINDIR)
+	# cp rtmpdump.1 $(MANDIR)/man1
+	# cp rtmpgw.8 $(MANDIR)/man8
+	# @cd librtmp; $(MAKE) install
 
 clean:
 	rm -f *.o rtmpdump$(EXT) rtmpgw$(EXT) rtmpsrv$(EXT) rtmpsuck$(EXT)

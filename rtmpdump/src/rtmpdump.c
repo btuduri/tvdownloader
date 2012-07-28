@@ -31,6 +31,7 @@
 #include <getopt.h>
 
 #include "librtmp/rtmp_sys.h"
+#include "librtmp/rtmpe10.h"
 #include "librtmp/log.h"
 
 #ifdef WIN32
@@ -796,9 +797,16 @@ main(int argc, char **argv)
       index++;
     }
 
-  RTMP_LogPrintf("RTMPDump %s\n", RTMPDUMP_VERSION);
+  RTMP_LogPrintf("RTMPDump %s GIT-2012-03-31 (Handshake 10 support by Xeebo)\n", RTMPDUMP_VERSION);
   RTMP_LogPrintf
     ("(c) 2010 Andrej Stepanchuk, Howard Chu, The Flvstreamer Team; license: GPL\n");
+
+  if (!InjectFlashPlayerRtmpe10HandshakeCode())
+    {
+      RTMP_Log(RTMP_LOGERROR,
+	  "Couldn't initialize handshake 10 engine, exiting!");
+      return RD_FAILED;
+    }
 
   if (!InitSockets())
     {
@@ -1387,6 +1395,8 @@ clean:
 
   CleanupSockets();
 
+  RemoveFlashPlayerRtmpe10HandshakeCode();
+ 
 #ifdef _DEBUG
   if (netstackdump != 0)
     fclose(netstackdump);

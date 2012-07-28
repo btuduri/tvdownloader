@@ -675,7 +675,7 @@ ServeInvoke(STREAMING_SERVER *server, RTMP * r, RTMPPacket *packet, unsigned int
       if (!(Start->p_type == AMF_INVALID))
         StartFlag = AMFProp_GetNumber(Start);
       r->Link.app = AVcopy(r->Link.app);
-      if (StartFlag == -1000 || (r->Link.app.av_val && strstr(r->Link.app.av_val, "live")))
+      if (StartFlag == -1000 || strstr(r->Link.app.av_val, "live"))
         {
           StartFlag = -1000;
           server->arglen += 7;
@@ -818,43 +818,17 @@ ServeInvoke(STREAMING_SERVER *server, RTMP * r, RTMPPacket *packet, unsigned int
 	    {
 	      strcpy(file+av.av_len-4, ".flv");
 	    }
-          /* Add quotes to the filename */
-          char *quoted = malloc(av.av_len + 3);
-          quoted[0] = '"';
-          memcpy(quoted + 1, file, av.av_len);
-          quoted[av.av_len + 1] = '"';
-          quoted[av.av_len + 2] = '\0';
-          av.av_len += 2;
-          free(file);
-          file = quoted;
-
 	  argv[argc].av_val = ptr + 1;
 	  argv[argc++].av_len = 2;
 	  argv[argc].av_val = file;
 	  argv[argc].av_len = av.av_len;
 #ifdef VLC
-          char *vlc;
-          int didAlloc = FALSE;
-
-          if (getenv("VLC"))
-            vlc = getenv("VLC");
-          else if (getenv("ProgramFiles"))
-            {
-              vlc = malloc(512 * sizeof (char));
-              didAlloc = TRUE;
-              char *ProgramFiles = getenv("ProgramFiles");
-              sprintf(vlc, "%s%s", ProgramFiles, " (x86)\\VideoLAN\\VLC\\vlc.exe");
-              if (!file_exists(vlc))
-                sprintf(vlc, "%s%s", ProgramFiles, "\\VideoLAN\\VLC\\vlc.exe");
-            }
+          if (file_exists("C:\\Program Files (x86)\\VideoLAN\\VLC\\vlc.exe"))
+            ptr += sprintf(ptr, " | %s -", "\"C:\\Program Files (x86)\\VideoLAN\\VLC\\vlc.exe\"");
           else
-            vlc = "C:\\Program Files\\VideoLAN\\VLC\\vlc.exe";
-
-          ptr += sprintf(ptr, " | %s -", vlc);
-          if (didAlloc)
-            free(vlc);
+            ptr += sprintf(ptr, " | %s -", "\"C:\\Program Files\\VideoLAN\\VLC\\vlc.exe\"");
 #else
-          ptr += sprintf(ptr, " -o %s", file);
+	  ptr += sprintf(ptr, " -o %s", file);
 #endif
 	  now = RTMP_GetTime();
 	  if (now - server->filetime < DUPTIME && AVMATCH(&argv[argc], &server->filename))
@@ -877,7 +851,7 @@ ServeInvoke(STREAMING_SERVER *server, RTMP * r, RTMPPacket *packet, unsigned int
               free(vlc_batchcmd);
               spawn_dumper(argc, argv, "VLC.bat");
 #else
-              spawn_dumper(argc, argv, cmd);
+	      spawn_dumper(argc, argv, cmd);
 #endif
 
 #ifdef WIN32

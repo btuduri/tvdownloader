@@ -35,6 +35,7 @@
 #include <assert.h>
 
 #include "librtmp/rtmp_sys.h"
+#include "librtmp/rtmpe10.h"
 #include "librtmp/log.h"
 
 #include "thread.h"
@@ -349,7 +350,7 @@ ServeInvoke(STREAMING_SERVER *server, int which, RTMPPacket *pack, const char *b
       AMFObjectProperty *Start = AMF_GetProp(&obj, NULL, 4);
       if (!(Start->p_type == AMF_INVALID))
         StartFlag = AMFProp_GetNumber(Start);
-      if (StartFlag == -1000 || (server->rc.Link.app.av_val && strstr(server->rc.Link.app.av_val, "live")))
+      if (StartFlag == -1000 || strstr(server->rc.Link.app.av_val, "live"))
         StartFlag = -1000;
       RTMP_LogPrintf("%10s : %s\n", "live", (StartFlag == -1000) ? "yes" : "no");
 
@@ -1217,7 +1218,7 @@ main(int argc, char **argv)
   char *rtmpStreamingDevice = DEFAULT_RTMP_STREAMING_DEVICE;	// streaming device, default 0.0.0.0
   int nRtmpStreamingPort = 1935;	// port
 
-  RTMP_LogPrintf("RTMP Proxy Server %s\n", RTMPDUMP_VERSION);
+  RTMP_LogPrintf("RTMP Proxy Server %s GIT-2012-03-31 (Handshake 10 support by Xeebo)\n", RTMPDUMP_VERSION);
   RTMP_LogPrintf("(c) 2010 Andrej Stepanchuk, Howard Chu; license: GPL\n\n");
 
   RTMP_debuglevel = RTMP_LOGINFO;
@@ -1234,6 +1235,13 @@ main(int argc, char **argv)
   netstackdump = fopen("netstackdump", "wb");
   netstackdump_read = fopen("netstackdump_read", "wb");
 #endif
+
+  if (!InjectFlashPlayerRtmpe10HandshakeCode())
+    {
+      RTMP_Log(RTMP_LOGERROR,
+	  "Couldn't initialize handshake 10 engine, exiting!");
+      return RD_FAILED;
+    }
 
   InitSockets();
 
@@ -1260,6 +1268,8 @@ main(int argc, char **argv)
 
   CleanupSockets();
 
+  RemoveFlashPlayerRtmpe10HandshakeCode();
+ 
 #ifdef _DEBUG
   if (netstackdump != 0)
     fclose(netstackdump);

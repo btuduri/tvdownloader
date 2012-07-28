@@ -1,11 +1,11 @@
-VERSION=v2.4
+VERSION=v2.5
 
-PREFIX ?= /usr
+prefix ?= /usr/local
 
-incdir=$(PREFIX)/include/librtmp
-bindir=$(PREFIX)/bin
-libdir=$(PREFIX)/lib
-mandir=$(PREFIX)/man
+incdir=$(prefix)/include/librtmp
+bindir=$(prefix)/bin
+libdir=$(prefix)/lib
+mandir=$(prefix)/man
 BINDIR=$(DESTDIR)$(bindir)
 INCDIR=$(DESTDIR)$(incdir)
 LIBDIR=$(DESTDIR)$(libdir)
@@ -63,7 +63,7 @@ INSTALL_IMPLIB_darwin=
 INSTALL_IMPLIB_mingw=cp librtmp.dll.a $(LIBDIR)
 INSTALL_IMPLIB=$(INSTALL_IMPLIB_$(SYS))
 
-SHARED=yes
+SHARED=no
 SODEF_yes=-fPIC
 SOLIB_yes=librtmp.$(SO_EXT)
 SOINST_yes=install_so
@@ -77,7 +77,7 @@ CFLAGS=-Wall $(XCFLAGS) $(INC) $(DEF) $(OPT) $(SO_DEF)
 LDFLAGS=$(XLDFLAGS)
 
 
-OBJS=rtmp.o log.o amf.o hashswf.o parseurl.o
+OBJS=rtmp.o log.o amf.o hashswf.o parseurl.o rtmpe10.o
 
 all:	librtmp.a $(SO_LIB)
 
@@ -96,9 +96,10 @@ rtmp.o: rtmp.c rtmp.h rtmp_sys.h handshake.h dh.h log.h amf.h Makefile
 amf.o: amf.c amf.h bytes.h log.h Makefile
 hashswf.o: hashswf.c http.h rtmp.h rtmp_sys.h Makefile
 parseurl.o: parseurl.c rtmp.h rtmp_sys.h log.h Makefile
+rtmpe10.o: rtmpe10.c rtmpe10.h Makefile
 
 librtmp.pc: librtmp.pc.in Makefile
-	sed -e "s;@PREFIX@;$(PREFIX);" -e "s;@libdir@;$(libdir);" \
+	sed -e "s;@prefix@;$(prefix);" -e "s;@libdir@;$(libdir);" \
 		-e "s;@VERSION@;$(VERSION);" \
 		-e "s;@CRYPTO_REQ@;$(CRYPTO_REQ);" \
 		-e "s;@PRIVATE_LIBS@;$(PRIVATE_LIBS);" librtmp.pc.in > $@
