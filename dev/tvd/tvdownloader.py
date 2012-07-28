@@ -139,6 +139,6 @@ if __name__ == "__main__" :
 		manager.shutdown()
 		pluginMan.fermeture()
 		context.release()
-		context.historique.sauverHistorique()
+		# context.historique.sauverHistorique()
 		#unlockLaunch()
 

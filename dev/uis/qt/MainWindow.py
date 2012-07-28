@@ -11,6 +11,8 @@ import threading
 import sys
 sys.path.append( ".." ) 
 
+import tvdcore
+
 from base.qt.QtFolderChooser import QtFolderChooser
 from base.qt.qtString        import qstringToString
 from base.qt.qtString        import stringToQstring
@@ -275,9 +277,13 @@ class MainWindow( QtGui.QMainWindow ):
 		listeEmissions.sort()
 		self.emissionComboBox.clear()
 		map( lambda x : self.emissionComboBox.addItem( stringToQstring( x ) ), listeEmissions )
-		
-if __name__ == "__main__" :
+
+ctx = tvdcore.TVDContext()
+if not( ctx.isInitialized() ) and not( ctx.initialize() ):
+	logger.error( "Impossible d'initialiser le context" )
+else:
 	app = QtGui.QApplication( sys.argv )
 	window = MainWindow( "1.0" )
 	window.show()
-	sys.exit( app.exec_() )	
+	print app.exec_()
+	# sys.exit( app.exec_() )
