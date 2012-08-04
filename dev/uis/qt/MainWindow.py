@@ -53,11 +53,13 @@ class MainWindow( QtGui.QMainWindow ):
 		# Icones
 		#
 		
-		self.tvdIco   = QtGui.QIcon( "uis/qt/ico/TVDownloader.png" )
+		self.tvdIco    = QtGui.QIcon( "uis/qt/ico/TVDownloader.png" )
 		self.folderIco = QtGui.QIcon( "uis/qt/ico/gtk-folder.svg" )
-		# self.addIco   = QtGui.QIcon( "uis/qt/ico/gtk-add.svg" )
-		# self.applyIco = QtGui.QIcon( "uis/qt/ico/gtk-apply.svg" )
-		# self.fileIco  = QtGui.QIcon( "uis/qt/ico/gtk-file.svg" )
+		self.startIco  = QtGui.QIcon( "uis/qt/ico/gtk-media-play-ltr.svg" )
+		self.stoprIco  = QtGui.QIcon( "uis/qt/ico/gtk-media-stop.svg" )
+		# self.addIco    = QtGui.QIcon( "uis/qt/ico/gtk-add.svg" )
+		# self.applyIco  = QtGui.QIcon( "uis/qt/ico/gtk-apply.svg" )
+		# self.fileIco   = QtGui.QIcon( "uis/qt/ico/gtk-file.svg" )
 		
 		#
 		# Signaux
@@ -105,7 +107,7 @@ class MainWindow( QtGui.QMainWindow ):
 		
 		# Gestionnaire onglets
 		self.tabWidget = QtGui.QTabWidget( self.centralWidget )
-		self.centralGridLayout.addWidget( self.tabWidget, 0, 0, 1, 1 )
+		self.centralGridLayout.addWidget( self.tabWidget, 0, 0, 1, 2 )
 		
 		# Onglet Fichiers
 		self.fichiersSplitter = QtGui.QSplitter( self.centralWidget )
@@ -201,6 +203,29 @@ class MainWindow( QtGui.QMainWindow ):
 		self.threadSpinBox.setMinimum( 1 )
 		self.threadSpinBox.setMaximum( 100 )
 		self.parametresLayout.addRow( u"Nombre de threads max :", self.threadSpinBox )
+		
+		#
+		# Descriptif des fichiers
+		#
+		
+		#
+		# Barres de progression
+		#
+		
+		self.dlFichierProgressBar = QtGui.QProgressBar( self.centralWidget )
+		self.dlFichierProgressBar.setProperty( "value", 0 )
+		self.centralGridLayout.addWidget( self.dlFichierProgressBar, 2, 0, 1, 2 )
+		
+		self.dlProgressBar = QtGui.QProgressBar( self.centralWidget )
+		self.dlProgressBar.setProperty( "value", 0 )
+		self.centralGridLayout.addWidget( self.dlProgressBar, 3, 0, 1, 2 )
+		
+		#
+		# Bouton de téléchargement
+		#
+		
+		self.lancerPushButton = QtGui.QPushButton( self.startIco, u"Lancer téléchargement", self.centralWidget )
+		self.centralGridLayout.addWidget( self.lancerPushButton, 4, 0, 1, 2 )
 		
 		#
 		# Debut
