@@ -110,8 +110,8 @@ class MainWindow( QtGui.QMainWindow ):
 		self.centralGridLayout.addWidget( self.tabWidget, 0, 0, 1, 2 )
 		
 		# Onglet Fichiers
-		self.fichiersSplitter = QtGui.QSplitter( self.centralWidget )
-		self.tabWidget.addTab( self.fichiersSplitter, u"Choix des fichiers" )
+		self.fichiersWidget = QtGui.QSplitter( QtCore.Qt.Vertical, self.centralWidget )
+		self.tabWidget.addTab( self.fichiersWidget, u"Choix des fichiers" )
 		
 		# Onglet Telechargements
 		self.telechargementsWidget = QtGui.QScrollArea( self.centralWidget )
@@ -125,11 +125,15 @@ class MainWindow( QtGui.QMainWindow ):
 		# Onglet Fichiers
 		#
 		
+		# Widget choix fichiers
+		self.choixFichiersWidget = QtGui.QSplitter( QtCore.Qt.Horizontal, self.fichiersWidget )
+		self.fichiersWidget.addWidget( self.choixFichiersWidget )
+				
 		# Widget choix de la chaine
-		self.chaineWidget = QtGui.QWidget( self.fichiersSplitter )
-		self.fichiersSplitter.addWidget( self.chaineWidget )
+		self.chaineWidget = QtGui.QWidget( self.choixFichiersWidget )
+		self.choixFichiersWidget.addWidget( self.chaineWidget )
 		
-		# Layout vertical
+		# Layout chaine
 		self.chaineLayout = QtGui.QVBoxLayout( self.chaineWidget )
 		
 		# Choix du plugin
@@ -147,10 +151,10 @@ class MainWindow( QtGui.QMainWindow ):
 		self.chaineLayout.addWidget( self.chaineIconsList )
 		
 		# Widget choix des fichiers
-		self.fichierWidget = QtGui.QWidget( self.fichiersSplitter )
-		self.fichiersSplitter.addWidget( self.fichierWidget )
+		self.fichierWidget = QtGui.QWidget( self.choixFichiersWidget )
+		self.choixFichiersWidget.addWidget( self.fichierWidget )
 		
-		# Layout vertical
+		# Layout fichiers
 		self.fichierLayout = QtGui.QVBoxLayout( self.fichierWidget )
 		
 		# Choix de l'emission
@@ -168,6 +172,18 @@ class MainWindow( QtGui.QMainWindow ):
 		self.fichierTableWidget.setHorizontalHeaderItem( 1, self.fichierTableWidget.createItem( "Date" ) )
 		self.fichierTableWidget.setHorizontalHeaderItem( 2, self.fichierTableWidget.createItem( "Emission" ) )
 		self.fichierLayout.addWidget( self.fichierTableWidget )
+
+		# Widget descriptif fichier
+		self.descriptifFichierWidget = QtGui.QSplitter( QtCore.Qt.Horizontal, self.fichiersWidget )
+		self.fichiersWidget.addWidget( self.descriptifFichierWidget )
+		
+		# Label du fichier
+		self.fichierLabel = QtGui.QLabel( self.descriptifFichierWidget )
+		self.descriptifFichierWidget.addWidget( self.fichierLabel )
+		
+		# Descriptif du fichier
+		self.descriptionPlainTextEdit = QtGui.QPlainTextEdit( self.descriptifFichierWidget )
+		self.descriptifFichierWidget.addWidget( self.descriptionPlainTextEdit )
 		
 		#
 		# Onglet Parametres
