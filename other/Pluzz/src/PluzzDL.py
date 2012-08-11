@@ -84,7 +84,7 @@ class PluzzDL( object ):
 				# Nom du fichier
 				self.nomFichier = os.path.join( self.outDir, "%s.mp4" %( re.findall( "http://www.pluzz.fr/([^\.]+?)\.html", self.url )[ 0 ] ) )
 				# Downloader
-				downloader = PluzzDLM3U8( self.m3u8URL, self.nomFichier, self.navigateur )
+				downloader = PluzzDLM3U8( self.m3u8URL, self.nomFichier, self.navigateur, self.stopDownloadEvent, self.progressFnct )
 			elif( self.manifestURL is not None ):
 				# Nom du fichier
 				self.nomFichier = os.path.join( self.outDir, "%s.flv" %( re.findall( "http://www.pluzz.fr/([^\.]+?)\.html", self.url )[ 0 ] ) )
@@ -131,11 +131,41 @@ class PluzzDLM3U8( object ):
 	Telechargement des liens m3u8
 	"""
 	
-	def __init__( self, m3u8URL, nomFichier, navigateur ):
-		self.m3u8URL    = m3u8URL
-		self.nomFichier = nomFichier
-		self.navigateur = navigateur
-	
+	def __init__( self, m3u8URL, nomFichier, navigateur, stopDownloadEvent, progressFnct ):
+		self.m3u8URL           = m3u8URL
+		self.nomFichier        = nomFichier
+		self.navigateur        = navigateur
+		self.stopDownloadEvent = stopDownloadEvent
+		self.progressFnct      = progressFnct
+		
+		self.historique        = Historique()
+
+	def ouvrirNouvelleVideo( self ):
+		"""
+		Creer une nouvelle video
+		"""
+		try :
+			# Ouverture du fichier
+			self.fichierVideo = open( self.nomFichier, "wb" )
+		except :
+			logger.critical( "Impossible d'écrire dans le répertoire %s" %( os.getcwd() ) )
+			sys.exit( -1 )
+		# Ajout de l'en-tête
+		#
+		# TODO
+		#
+
+	def ouvrirVideoExistante( self ):
+		"""
+		Ouvre une video existante
+		"""
+		try :
+			# Ouverture du fichier
+			self.fichierVideo = open( self.nomFichier, "a+b" )
+		except :
+			logger.critical( "Impossible d'écrire dans le répertoire %s" %( os.getcwd() ) )
+			sys.exit( -1 )
+		
 	def telecharger( self ):
 		# Recupere le fichier master.m3u8
 		self.m3u8 = self.navigateur.getFichier( self.m3u8URL )
@@ -149,19 +179,54 @@ class PluzzDLM3U8( object ):
 		self.listeFragmentsPage = self.navigateur.getFichier( self.listeFragmentsURL )
 		# Extrait l'URL de tous les fragments
 		self.listeFragments = re.findall( "http://ftvodhd-i.akamaihd.net.+", self.listeFragmentsPage )
-		# Ouvre le fichier
+		#
+		# Creation de la video
+		#
+		self.premierFragment    = 1
+		self.telechargementFini = False
+		video = self.historique.getVideo( self.listeFragmentsURL )
+		# Si la video est dans l'historique
+		if( video is not None ):
+			# Si la video existe sur le disque
+			if( os.path.exists( self.nomFichier ) ):
+				if( video.finie ):
+					logger.info( "La vidéo a déjà été entièrement téléchargée" )
+					sys.exit( 0 )
+				else:
+					self.ouvrirVideoExistante()
+					self.premierFragment = video.fragments
+					logger.info( "Reprise du téléchargement de la vidéo au fragment %d" %( video.fragments ) )
+			else:
+				self.ouvrirNouvelleVideo()
+				logger.info( "Impossible de reprendre le téléchargement de la vidéo, le fichier %s n'existe pas" %( self.nomFichier ) )
+		else: # Si la video n'est pas dans l'historique
+			self.ouvrirNouvelleVideo()		
+		# Nombre de fragments
+		self.nbFragMax = len( self.listeFragments )
+		logger.debug( "Nombre de fragments : %d" %( self.nbFragMax ) )
+		# Ajout des fragments
+		logger.info( "Début du téléchargement des fragments" )
 		try :
-			# Ouverture du fichier
-			self.fichierVideo = open( self.nomFichier, "wb" )
-		except :
-			logger.critical( "Impossible d'écrire dans le répertoire %s" %( os.getcwd() ) )
-			sys.exit( -1 )
-		# Charge tous les fragments
-		for fragURL in self.listeFragments:
-			frag = self.navigateur.getFichier( fragURL )
-			self.fichierVideo.write( frag )
-		# Fermeture du fichier
-		self.fichierVideo.close()
+			i = self.premierFragment
+			while( i <= self.nbFragMax and not self.stopDownloadEvent.isSet() ):
+				frag = self.navigateur.getFichier( self.listeFragments[ i - 1 ] )
+				self.fichierVideo.write( frag )
+				# Affichage de la progression
+				self.progressFnct( min( int( ( i / self.nbFragMax ) * 100 ), 100 ) )
+				i += 1
+			if( i == self.nbFragMax + 1 ):
+				self.progressFnct( 100 )
+				self.telechargementFini = True
+				logger.info( "Fin du téléchargement" )
+		except KeyboardInterrupt:
+			logger.info( "Interruption clavier" )
+		except:
+			logger.critical( "Erreur inconnue" )
+		finally :
+			# Ajout dans l'historique
+			self.historique.ajouter( Video( lien = self.listeFragmentsURL, fragments = i, finie = self.telechargementFini ) )
+			# Fermeture du fichier
+			self.fichierVideo.close()
 	
 class PluzzDLF4M( object ):
 	"""
@@ -175,10 +240,10 @@ class PluzzDLF4M( object ):
 		self.stopDownloadEvent = stopDownloadEvent
 		self.progressFnct      = progressFnct
 		
-		self.historique    = Historique()
-		self.configuration = Configuration()
-		self.hmacKey       = self.configuration[ "hmac_key" ].decode( "hex" )
-		self.playerHash    = self.configuration[ "player_hash" ]
+		self.historique        = Historique()
+		self.configuration     = Configuration()
+		self.hmacKey           = self.configuration[ "hmac_key" ].decode( "hex" )
+		self.playerHash        = self.configuration[ "player_hash" ]
 		
 	def parseManifest( self ):
 		"""

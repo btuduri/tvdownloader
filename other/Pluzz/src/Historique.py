@@ -89,5 +89,3 @@ class Historique( object ):
 				video = v
 				break
 		return video
-
-
