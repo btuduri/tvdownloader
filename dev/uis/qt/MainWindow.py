@@ -186,6 +186,12 @@ class MainWindow( QtGui.QMainWindow ):
 		self.descriptifFichierWidget.addWidget( self.descriptionPlainTextEdit )
 		
 		#
+		# Onglet Telechargements
+		#
+		
+		
+		
+		#
 		# Onglet Parametres
 		#
 		

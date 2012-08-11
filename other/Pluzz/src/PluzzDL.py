@@ -38,8 +38,12 @@ logger = logging.getLogger( "pluzzdl" )
 #
 
 class PluzzDL( object ):
+	"""
+	Classe principale
+	"""
 	
 	def __init__( self, url, useFragments = False, proxy = None, resume = False, progressFnct = lambda x : None, stopDownloadEvent = threading.Event(), outDir = "." ):
+		# Options
 		self.url               = url
 		self.useFragments      = useFragments
 		self.proxy             = proxy
@@ -47,17 +51,17 @@ class PluzzDL( object ):
 		self.progressFnct      = progressFnct
 		self.stopDownloadEvent = stopDownloadEvent
 		self.outDir            = outDir
+		# Classes
 		self.navigateur        = Navigateur( self.proxy )
-		self.historique        = Historique()
-		self.configuration     = Configuration()
+		# Infos video
+		self.id                = None
 		self.lienMMS           = None
 		self.lienRTMP          = None
 		self.manifestURL       = None
+		self.m3u8URL           = None
 		self.drm               = None
 		
-		self.hmacKey           = self.configuration[ "hmac_key" ].decode( "hex" )
-		self.playerHash        = self.configuration[ "player_hash" ]
-		
+		# Liens pluzz.fr
 		if( re.match( "http://www.pluzz.fr/[^\.]+?\.html", self.url ) ):
 			# Recupere l'ID de l'emission
 			self.getID()
@@ -68,32 +72,209 @@ class PluzzDL( object ):
 			# Petit message en cas de DRM
 			if( self.drm == "oui" ):
 				logger.warning( "La vidéo posséde un DRM ; elle sera sans doute illisible" )
-			# Lien MMS trouve
-			if( self.lienMMS is not None ):
-				logger.info( "Lien MMS : %s\nUtiliser par exemple mimms ou msdl pour la recuperer directement ou l'option -f de pluzzdl pour essayer de la charger via ses fragments" %( self.lienMMS ) )
-			# Lien RTMP trouve
-			if( self.lienRTMP is not None ):
-				logger.info( "Lien RTMP : %s\nUtiliser par exemple rtmpdump pour la recuperer directement ou l'option -f de pluzzdl pour essayer de la charger via ses fragments" %( self.lienRTMP ) )
-			# N'utilise pas les fragments si cela n'a pas ete demande et que des liens directs ont ete trouves
-			if( ( ( self.lienMMS is not None ) or ( self.lienRTMP is not None ) ) and not self.useFragments ):
-				sys.exit( 0 )
-			# Lien du manifest non trouve
-			if( self.manifestURL is None ):
-				logger.critical( "Pas de lien vers le manifest" )
-				sys.exit( -1 )
-			self.nomFichier = os.path.join( self.outDir, "%s.flv" %( re.findall( "http://www.pluzz.fr/([^\.]+?)\.html", self.url )[ 0 ] ) )
+			# Verification qu'un lien existe
+			if( self.m3u8URL is None and
+				self.manifestURL is None and
+				self.lienRTMP is None and
+				self.lienMMS is None ):
+				logger.critical( "Aucun lien vers la vidéo" )
+				sys.exit( -1 )			
+			# Telechargement de la video
+			if( self.m3u8URL is not None ):
+				# Nom du fichier
+				self.nomFichier = os.path.join( self.outDir, "%s.mp4" %( re.findall( "http://www.pluzz.fr/([^\.]+?)\.html", self.url )[ 0 ] ) )
+				# Downloader
+				downloader = PluzzDLM3U8( self.m3u8URL, self.nomFichier, self.navigateur )
+			elif( self.manifestURL is not None ):
+				# Nom du fichier
+				self.nomFichier = os.path.join( self.outDir, "%s.flv" %( re.findall( "http://www.pluzz.fr/([^\.]+?)\.html", self.url )[ 0 ] ) )
+				# Downloader
+				downloader = PluzzDLF4M( self.manifestURL, self.nomFichier, self.navigateur, self.stopDownloadEvent, self.progressFnct )
+			elif( self.lienRTMP is not None ):
+				# Downloader
+				downloader = PluzzDLRTMP( self.lienRTMP )
+			elif( self.lienMMS is not None ):
+				# Downloader
+				downloader = PluzzDLMMS( self.lienMMS )
+			# Lance le téléchargement
+			downloader.telecharger()
+
+	def getID( self ):
+		"""
+		Recupere l'ID de la video
+		"""
+		try :
+			page     = self.navigateur.getFichier( self.url )
+			self.id  = re.findall( r"http://info.francetelevisions.fr/\?id-video=([^\"]+)", page )[ 0 ]
+			logger.debug( "ID de l'émission : %s" %( self.id ) )
+		except :
+			logger.critical( "Impossible de récupérer l'ID de l'émission" )
+			sys.exit( -1 )
+
+	def parseInfos( self ):
+		"""
+		Parse le fichier qui contient les liens
+		"""
+		try : 
+			xml.sax.parseString( self.pageInfos, PluzzDLInfosHandler( self ) )
+			logger.debug( "Lien MMS : %s" %( self.lienMMS ) )
+			logger.debug( "Lien RTMP : %s" %( self.lienRTMP ) )
+			logger.debug( "URL manifest : %s" %( self.manifestURL ) )
+			logger.debug( "URL m3u8 : %s" %( self.m3u8URL ) )
+			logger.debug( "Utilisation de DRM : %s" %( self.drm ) )
+		except :
+			logger.critical( "Impossible de parser le fichier XML de l'émission" )
+			sys.exit( -1 )
+
+class PluzzDLM3U8( object ):
+	"""
+	Telechargement des liens m3u8
+	"""
+	
+	def __init__( self, m3u8URL, nomFichier, navigateur ):
+		self.m3u8URL    = m3u8URL
+		self.nomFichier = nomFichier
+		self.navigateur = navigateur
+	
+	def telecharger( self ):
+		# Recupere le fichier master.m3u8
+		self.m3u8 = self.navigateur.getFichier( self.m3u8URL )
+		# Recupere le lien avec le plus gros bitrate (toujours 1205000 ?)
+		try:
+			self.listeFragmentsURL = re.findall( "http://ftvodhd-i\.akamaihd.net/.+?index_2_av\.m3u8.+", self.m3u8 )[ 0 ]
+		except:
+			logger.critical( "Impossible de trouver le lien vers la liste des fragments" )
+			sys.exit( -1 )
+		# Recupere la liste des fragments
+		self.listeFragmentsPage = self.navigateur.getFichier( self.listeFragmentsURL )
+		# Extrait l'URL de tous les fragments
+		self.listeFragments = re.findall( "http://ftvodhd-i.akamaihd.net.+", self.listeFragmentsPage )
+		# Ouvre le fichier
+		try :
+			# Ouverture du fichier
+			self.fichierVideo = open( self.nomFichier, "wb" )
+		except :
+			logger.critical( "Impossible d'écrire dans le répertoire %s" %( os.getcwd() ) )
+			sys.exit( -1 )
+		# Charge tous les fragments
+		for fragURL in self.listeFragments:
+			frag = self.navigateur.getFichier( fragURL )
+			self.fichierVideo.write( frag )
+		# Fermeture du fichier
+		self.fichierVideo.close()
+	
+class PluzzDLF4M( object ):
+	"""
+	Telechargement des liens f4m
+	"""
+	
+	def __init__( self, manifestURL, nomFichier, navigateur, stopDownloadEvent ):
+		self.manifestURL       = manifestURL
+		self.nomFichier        = nomFichier
+		self.navigateur        = navigateur
+		self.stopDownloadEvent = stopDownloadEvent
+		self.progressFnct      = progressFnct
+		
+		self.historique    = Historique()
+		self.configuration = Configuration()
+		self.hmacKey       = self.configuration[ "hmac_key" ].decode( "hex" )
+		self.playerHash    = self.configuration[ "player_hash" ]
+		
+	def parseManifest( self ):
+		"""
+		Parse le manifest
+		"""
+		try :
+			arbre          = xml.etree.ElementTree.fromstring( self.manifest )
+			# Duree
+			self.duree     = float( arbre.find( "{http://ns.adobe.com/f4m/1.0}duration" ).text )
+			self.pv2       = arbre.find( "{http://ns.adobe.com/f4m/1.0}pv-2.0" ).text
+			media          = arbre.findall( "{http://ns.adobe.com/f4m/1.0}media" )[ -1 ]
+			# Bitrate
+			self.bitrate   = int( media.attrib[ "bitrate" ] )
+			# URL des fragments
+			urlbootstrap   = media.attrib[ "url" ]
+			self.urlFrag   = "%s%sSeg1-Frag" %( self.manifestURLToken[ : self.manifestURLToken.find( "manifest.f4m" ) ], urlbootstrap )
+			# Header du fichier final
+			self.flvHeader = base64.b64decode( media.find( "{http://ns.adobe.com/f4m/1.0}metadata" ).text )
+		except :
+			logger.critical( "Impossible de parser le manifest" )
+			sys.exit( -1 )
+
+	def ouvrirNouvelleVideo( self ):
+		"""
+		Creer une nouvelle video
+		"""
+		try :
+			# Ouverture du fichier
+			self.fichierVideo = open( self.nomFichier, "wb" )
+		except :
+			logger.critical( "Impossible d'écrire dans le répertoire %s" %( os.getcwd() ) )
+			sys.exit( -1 )
+		# Ajout de l'en-tête FLV
+		self.fichierVideo.write( binascii.a2b_hex( "464c56010500000009000000001200010c00000000000000" ) )
+		# Ajout de l'header du fichier
+		self.fichierVideo.write( self.flvHeader )
+		self.fichierVideo.write( binascii.a2b_hex( "00000000" ) ) # Padding pour avoir des blocs de 8
+		
+	def ouvrirVideoExistante( self ):
+		"""
+		Ouvre une video existante
+		"""
+		try :
+			# Ouverture du fichier
+			self.fichierVideo = open( self.nomFichier, "a+b" )
+		except :
+			logger.critical( "Impossible d'écrire dans le répertoire %s" %( os.getcwd() ) )
+			sys.exit( -1 )
+
+	def decompressSWF( self, swfData ):
+		"""
+		Decompresse un fichier swf
+		"""
+		# Adapted from :
+		#    Prozacgod
+		#    http://www.python-forum.org/pythonforum/viewtopic.php?f=2&t=14693
+		if( type( swfData ) is str ):
+			swfData = StringIO.StringIO( swfData )
+
+		swfData.seek( 0, 0 )
+		magic = swfData.read( 3 )
+
+		if( magic == "CWS" ):
+			return "FWS" + swfData.read( 5 ) + zlib.decompress( swfData.read() )
 		else:
-			page = self.navigateur.getFichier( self.url )
-			try:
-				self.manifestURL = re.findall( "(http://.+?manifest.f4m)", page )[ 0 ]
-			except:
-				logger.critical( "Pas de lien vers le manifest" )
-				sys.exit( -1 )
-			try:
-				self.nomFichier = os.path.join( self.outDir, "%s.flv" %( self.url.split( "/" )[ -1 ] ) )
-			except:
-				self.nomFichier = os.path.join( self.outDir, "video.flv" )
-			
+			return None
+
+	def getPlayerHash( self ):
+		"""
+		Recupere le sha256 du player flash
+		"""
+		# Get SWF player
+		playerData = self.navigateur.getFichier( "http://static.francetv.fr/players/Flash.H264/player.swf" )
+		# Uncompress SWF player
+		playerDataUncompress = self.decompressSWF( playerData )
+		# Perform sha256 of uncompressed SWF player
+		hashPlayer = hashlib.sha256( playerDataUncompress ).hexdigest()
+		# Perform base64
+		return base64.encodestring( hashPlayer.decode( 'hex' ) )
+
+	def debutVideo( self, fragID, fragData ):
+		"""
+		Trouve le debut de la video dans un fragment
+		"""
+		# Skip fragment header
+		start = fragData.find( "mdat" ) + 4
+		# For all fragment (except frag1)
+		if( fragID > 1 ):
+			# Skip 2 FLV tags
+			for dummy in range( 2 ):
+				tagLen, = struct.unpack_from( ">L", fragData, start ) # Read 32 bits (big endian)
+				tagLen &= 0x00ffffff                                  # Take the last 24 bits
+				start  += tagLen + 11 + 4                             # 11 = tag header len ; 4 = tag footer len
+		return start
+	
+	def telecharger( self ):
 		# Verifie si le lien du manifest contient la chaine "media-secure"
 		if( self.manifestURL.find( "media-secure" ) != -1 ):
 			logger.critical( "pluzzdl ne sait pas encore gérer ce type de vidéo..." )
@@ -116,26 +297,22 @@ class PluzzDL( object ):
 		self.premierFragment    = 1
 		self.telechargementFini = False
 		
-		# S'il faut reprendre le telechargement
-		if( self.resume ):
-			video = self.historique.getVideo( self.urlFrag )
-			# Si la video est dans l'historique
-			if( video is not None ):
-				# Si la video existe sur le disque
-				if( os.path.exists( self.nomFichier ) ):
-					if( video.finie ):
-						logger.info( "La vidéo a déjà été entièrement téléchargée" )
-						sys.exit( 0 )
-					else:
-						self.ouvrirVideoExistante()
-						self.premierFragment = video.fragments
-						logger.info( "Reprise du téléchargement de la vidéo au fragment %d" %( video.fragments ) )
+		video = self.historique.getVideo( self.urlFrag )
+		# Si la video est dans l'historique
+		if( video is not None ):
+			# Si la video existe sur le disque
+			if( os.path.exists( self.nomFichier ) ):
+				if( video.finie ):
+					logger.info( "La vidéo a déjà été entièrement téléchargée" )
+					sys.exit( 0 )
 				else:
-					self.ouvrirNouvelleVideo()
-					logger.info( "Impossible de reprendre le téléchargement de la vidéo, le fichier %s n'existe pas" %( self.nomFichier ) )
-			else: # Si la video n'est pas dans l'historique
+					self.ouvrirVideoExistante()
+					self.premierFragment = video.fragments
+					logger.info( "Reprise du téléchargement de la vidéo au fragment %d" %( video.fragments ) )
+			else:
 				self.ouvrirNouvelleVideo()
-		else: # S'il ne faut pas reprendre le telechargement
+				logger.info( "Impossible de reprendre le téléchargement de la vidéo, le fichier %s n'existe pas" %( self.nomFichier ) )
+		else: # Si la video n'est pas dans l'historique
 			self.ouvrirNouvelleVideo()
 			
 		# Calcul l'estimation du nombre de fragments
@@ -180,104 +357,33 @@ class PluzzDL( object ):
 			self.historique.ajouter( Video( lien = self.urlFrag, fragments = i, finie = self.telechargementFini ) )
 			# Fermeture du fichier
 			self.fichierVideo.close()
-
-	def getPlayerHash( self ):
-		# Get SWF player
-		playerData = self.navigateur.getFichier( "http://www.pluzz.fr/layoutftv/players/h264/player.swf" )
-		# Uncompress SWF player
-		playerDataUncompress = self.decompressSWF( playerData )
-		# Perform sha256 of uncompressed SWF player
-		hashPlayer = hashlib.sha256( playerDataUncompress ).hexdigest()
-		# Perform base64
-		return base64.encodestring( hashPlayer.decode( 'hex' ) )
-
-	def decompressSWF( self, swfData ):
-		# Adapted from :
-		#    Prozacgod
-		#    http://www.python-forum.org/pythonforum/viewtopic.php?f=2&t=14693
-		if( type( swfData ) is str ):
-			swfData = StringIO.StringIO( swfData )
-
-		swfData.seek( 0, 0 )
-		magic = swfData.read( 3 )
-
-		if( magic == "CWS" ):
-			return "FWS" + swfData.read( 5 ) + zlib.decompress( swfData.read() )
-		else:
-			return None
-
-	def debutVideo( self, fragID, fragData ):
-		# Skip fragment header
-		start = fragData.find( "mdat" ) + 4
-		# For all fragment (except frag1)
-		if( fragID > 1 ):
-			# Skip 2 FLV tags
-			for dummy in range( 2 ):
-				tagLen, = struct.unpack_from( ">L", fragData, start ) # Read 32 bits (big endian)
-				tagLen &= 0x00ffffff                                  # Take the last 24 bits
-				start  += tagLen + 11 + 4                             # 11 = tag header len ; 4 = tag footer len
-		return start
-		
-	def getID( self ):
-		try :
-			page     = self.navigateur.getFichier( self.url )
-			self.id  = re.findall( r"http://info.francetelevisions.fr/\?id-video=([^\"]+)", page )[ 0 ]
-			logger.debug( "ID de l'émission : %s" %( self.id ) )
-		except :
-			logger.critical( "Impossible de récupérer l'ID de l'émission" )
-			sys.exit( -1 )
-		
-	def parseInfos( self ):
-		try : 
-			xml.sax.parseString( self.pageInfos, PluzzDLInfosHandler( self ) )
-			logger.debug( "Lien MMS : %s" %( self.lienMMS ) )
-			logger.debug( "Lien RTMP : %s" %( self.lienRTMP ) )
-			logger.debug( "URL manifest : %s" %( self.manifestURL ) )
-			logger.debug( "Utilisation de DRM : %s" %( self.drm ) )
-		except :
-			logger.critical( "Impossible de parser le fichier XML de l'émission" )
-			sys.exit( -1 )
 	
-	def parseManifest( self ):
-		try :
-			arbre          = xml.etree.ElementTree.fromstring( self.manifest )
-			# Duree
-			self.duree     = float( arbre.find( "{http://ns.adobe.com/f4m/1.0}duration" ).text )
-			self.pv2       = arbre.find( "{http://ns.adobe.com/f4m/1.0}pv-2.0" ).text
-			media          = arbre.findall( "{http://ns.adobe.com/f4m/1.0}media" )[ -1 ]
-			# Bitrate
-			self.bitrate   = int( media.attrib[ "bitrate" ] )
-			# URL des fragments
-			urlbootstrap   = media.attrib[ "url" ]
-			self.urlFrag   = "%s%sSeg1-Frag" %( self.manifestURLToken[ : self.manifestURLToken.find( "manifest.f4m" ) ], urlbootstrap )
-			# Header du fichier final
-			self.flvHeader = base64.b64decode( media.find( "{http://ns.adobe.com/f4m/1.0}metadata" ).text )
-		except :
-			logger.critical( "Impossible de parser le manifest" )
-			sys.exit( -1 )
+class PluzzDLRTMP( object ):
+	"""
+	Telechargement des liens rtmp
+	"""
 
-	def ouvrirNouvelleVideo( self ):
-		try :
-			# Ouverture du fichier
-			self.fichierVideo = open( self.nomFichier, "wb" )
-		except :
-			logger.critical( "Impossible d'écrire dans le répertoire %s" %( os.getcwd() ) )
-			sys.exit( -1 )
-		# Ajout de l'en-tête FLV
-		self.fichierVideo.write( binascii.a2b_hex( "464c56010500000009000000001200010c00000000000000" ) )
-		# Ajout de l'header du fichier
-		self.fichierVideo.write( self.flvHeader )
-		self.fichierVideo.write( binascii.a2b_hex( "00000000" ) ) # Padding pour avoir des blocs de 8
-		
-	def ouvrirVideoExistante( self ):
-		try :
-			# Ouverture du fichier
-			self.fichierVideo = open( self.nomFichier, "a+b" )
-		except :
-			logger.critical( "Impossible d'écrire dans le répertoire %s" %( os.getcwd() ) )
-			sys.exit( -1 )
-		
+	def __init__( self, lienRTMP ):
+		self.lien = lienRTMP
+	
+	def telecharger( self ):
+		logger.info( "Lien RTMP : %s\nUtiliser par exemple rtmpdump pour la recuperer directement" %( self.lien ) )
+	
+class PluzzDLMMS( object ):
+	"""
+	Telechargement des liens mms
+	"""
+	
+	def __init__( self, lienMMS ):
+		self.lien = lienMMS
+	
+	def telecharger( self ):
+		logger.info( "Lien MMS : %s\nUtiliser par exemple mimms ou msdl pour la recuperer directement" %( self.lien ) )
+	
 class PluzzDLInfosHandler( xml.sax.handler.ContentHandler ):
+	"""
+	Handler pour parser le XML
+	"""
 	
 	def __init__( self, pluzzdl ):
 		self.pluzzdl = pluzzdl
@@ -299,6 +405,8 @@ class PluzzDLInfosHandler( xml.sax.handler.ContentHandler ):
 				self.pluzzdl.lienRTMP = data
 			elif( data[ -3 : ] == "f4m" ):
 				self.pluzzdl.manifestURL = data
+			elif( data[ -4 : ] == "m3u8" ):
+				self.pluzzdl.m3u8URL = data
 		elif( self.isDRM ):
 			self.pluzzdl.drm = data
 			
