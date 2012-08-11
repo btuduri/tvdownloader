@@ -202,7 +202,7 @@ class PluzzDLM3U8( object ):
 		else: # Si la video n'est pas dans l'historique
 			self.ouvrirNouvelleVideo()		
 		# Nombre de fragments
-		self.nbFragMax = len( self.listeFragments )
+		self.nbFragMax = float( len( self.listeFragments ) )
 		logger.debug( "Nombre de fragments : %d" %( self.nbFragMax ) )
 		# Ajout des fragments
 		logger.info( "Début du téléchargement des fragments" )
