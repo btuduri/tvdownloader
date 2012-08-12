@@ -170,7 +170,7 @@ class PluzzDLM3U8( object ):
 		"""
 		logger.info( "Création du fichier MKV (vidéo finale)" )
 		try:
-			commande = "ffmpeg -i %s -vcodec copy -acodec copy %s &> /dev/null" %( self.nomFichier, self.nomFichierFinal )
+			commande = "ffmpeg -i %s -vcodec copy -acodec copy %s 1>/dev/null 2>/dev/null" %( self.nomFichier, self.nomFichierFinal )
 			os.system( commande )
 			os.remove( self.nomFichier )
 		except:
