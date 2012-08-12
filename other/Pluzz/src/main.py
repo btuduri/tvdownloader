@@ -7,7 +7,7 @@
 
 __author__  = "Chaoswizard"
 __license__ = "GPL 2"
-__version__ = "0.8.5"
+__version__ = "0.9"
 __url__     = "http://code.google.com/p/tvdownloader/"
 
 #
@@ -33,8 +33,6 @@ if( __name__ == "__main__" ) :
 	# Arguments de la ligne de commande
 	usage   = "pluzzdl [options] urlEmission"
 	parser  = argparse.ArgumentParser( usage = usage, description = "Télécharge les émissions de Pluzz" )
-	parser.add_argument( "-f", "--fragments",   action = "store_true", default = False, help = 'télécharge la vidéo via ses fragments même si un lien direct existe' )
-	parser.add_argument( "-r", "--resume",      action = "store_true", default = False, help = 'essaye de reprendre un téléchargement interrompu' )
 	parser.add_argument( "-b", "--progressbar", action = "store_true", default = False, help = 'affiche la progression du téléchargement' )
 	parser.add_argument( "-p", "--proxy", dest = "proxy", metavar = "PROXY",            help = 'utilise un proxy HTTP au format suivant http://URL:PORT' )	
 	parser.add_argument( "-v", "--verbose",     action = "store_true", default = False, help = 'affiche les informations de debugage' )
@@ -59,8 +57,7 @@ if( __name__ == "__main__" ) :
 	logger.debug( "pluzzdl %s avec Python %s" %( __version__, platform.python_version() ) )
 	
 	# Verification de l'URL
-	if( re.match( "http://www.pluzz.fr/[^\.]+?\.html", args.urlEmission ) is None 
-	and re.match( "http://www.francetv.fr/[^\.]+?", args.urlEmission ) is None ):
+	if( re.match( "http://www.pluzz.fr/[^\.]+?\.html", args.urlEmission ) is None ):
 		logger.error( "L'URL \"%s\" n'est pas valide" %( args.urlEmission ) )
 		sys.exit( -1 )
 	
@@ -77,7 +74,5 @@ if( __name__ == "__main__" ) :
 	
 	# Telechargement de la video
 	PluzzDL( url          = args.urlEmission,
-			 useFragments = args.fragments,
 			 proxy        = args.proxy,
-			 resume       = args.resume,
 			 progressFnct = progressFnct )

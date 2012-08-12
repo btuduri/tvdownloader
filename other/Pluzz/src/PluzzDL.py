@@ -42,12 +42,10 @@ class PluzzDL( object ):
 	Classe principale
 	"""
 	
-	def __init__( self, url, useFragments = False, proxy = None, resume = False, progressFnct = lambda x : None, stopDownloadEvent = threading.Event(), outDir = "." ):
+	def __init__( self, url, proxy = None, progressFnct = lambda x : None, stopDownloadEvent = threading.Event(), outDir = "." ):
 		# Options
 		self.url               = url
-		self.useFragments      = useFragments
 		self.proxy             = proxy
-		self.resume            = resume
 		self.progressFnct      = progressFnct
 		self.stopDownloadEvent = stopDownloadEvent
 		self.outDir            = outDir
@@ -82,7 +80,7 @@ class PluzzDL( object ):
 			# Telechargement de la video
 			if( self.m3u8URL is not None ):
 				# Nom du fichier
-				self.nomFichier = os.path.join( self.outDir, "%s.mp4" %( re.findall( "http://www.pluzz.fr/([^\.]+?)\.html", self.url )[ 0 ] ) )
+				self.nomFichier = os.path.join( self.outDir, "%s.ts" %( re.findall( "http://www.pluzz.fr/([^\.]+?)\.html", self.url )[ 0 ] ) )
 				# Downloader
 				downloader = PluzzDLM3U8( self.m3u8URL, self.nomFichier, self.navigateur, self.stopDownloadEvent, self.progressFnct )
 			elif( self.manifestURL is not None ):
@@ -139,6 +137,8 @@ class PluzzDLM3U8( object ):
 		self.progressFnct      = progressFnct
 		
 		self.historique        = Historique()
+		
+		self.nomFichierFinal   = "%s.mkv" %( self.nomFichier[ : -3 ] )
 
 	def ouvrirNouvelleVideo( self ):
 		"""
@@ -151,9 +151,7 @@ class PluzzDLM3U8( object ):
 			logger.critical( "Impossible d'écrire dans le répertoire %s" %( os.getcwd() ) )
 			sys.exit( -1 )
 		# Ajout de l'en-tête
-		#
-		# TODO
-		#
+		#	Fait dans creerMKV
 
 	def ouvrirVideoExistante( self ):
 		"""
@@ -164,6 +162,19 @@ class PluzzDLM3U8( object ):
 			self.fichierVideo = open( self.nomFichier, "a+b" )
 		except :
 			logger.critical( "Impossible d'écrire dans le répertoire %s" %( os.getcwd() ) )
+			sys.exit( -1 )
+	
+	def creerMKV( self ):
+		"""
+		Creer un mkv a partir de la video existante (cree l'en-tete de la video)
+		"""
+		logger.info( "Création du fichier MKV (vidéo finale)" )
+		try:
+			commande = "ffmpeg -i %s -vcodec copy -acodec copy %s &> /dev/null" %( self.nomFichier, self.nomFichierFinal )
+			os.system( commande )
+			os.remove( self.nomFichier )
+		except:
+			logger.error( "Impossible de créer la vidéo finale" )
 			sys.exit( -1 )
 		
 	def telecharger( self ):
@@ -188,9 +199,11 @@ class PluzzDLM3U8( object ):
 		# Si la video est dans l'historique
 		if( video is not None ):
 			# Si la video existe sur le disque
-			if( os.path.exists( self.nomFichier ) ):
+			if( os.path.exists( self.nomFichier ) or os.path.exists( self.nomFichierFinal ) ):
 				if( video.finie ):
 					logger.info( "La vidéo a déjà été entièrement téléchargée" )
+					if( not os.path.exists( self.nomFichierFinal ) ):
+						self.creerMKV()
 					sys.exit( 0 )
 				else:
 					self.ouvrirVideoExistante()
@@ -218,6 +231,7 @@ class PluzzDLM3U8( object ):
 				self.progressFnct( 100 )
 				self.telechargementFini = True
 				logger.info( "Fin du téléchargement" )
+				self.creerMKV()
 		except KeyboardInterrupt:
 			logger.info( "Interruption clavier" )
 		except:
