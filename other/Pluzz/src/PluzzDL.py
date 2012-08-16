@@ -78,16 +78,16 @@ class PluzzDL( object ):
 				logger.critical( "Aucun lien vers la vidéo" )
 				sys.exit( -1 )			
 			# Telechargement de la video
-			if( self.m3u8URL is not None ):
+			if( self.manifestURL is not None ):
+				# Nom du fichier
+				self.nomFichier = os.path.join( self.outDir, "%s.flv" %( re.findall( "http://www.pluzz.fr/([^\.]+?)\.html", self.url )[ 0 ] ) )
+				# Downloader
+				downloader = PluzzDLF4M( self.manifestURL, self.nomFichier, self.navigateur, self.stopDownloadEvent, self.progressFnct )			
+			elif( self.m3u8URL is not None ):
 				# Nom du fichier
 				self.nomFichier = os.path.join( self.outDir, "%s.ts" %( re.findall( "http://www.pluzz.fr/([^\.]+?)\.html", self.url )[ 0 ] ) )
 				# Downloader
 				downloader = PluzzDLM3U8( self.m3u8URL, self.nomFichier, self.navigateur, self.stopDownloadEvent, self.progressFnct )
-			elif( self.manifestURL is not None ):
-				# Nom du fichier
-				self.nomFichier = os.path.join( self.outDir, "%s.flv" %( re.findall( "http://www.pluzz.fr/([^\.]+?)\.html", self.url )[ 0 ] ) )
-				# Downloader
-				downloader = PluzzDLF4M( self.manifestURL, self.nomFichier, self.navigateur, self.stopDownloadEvent, self.progressFnct )
 			elif( self.lienRTMP is not None ):
 				# Downloader
 				downloader = PluzzDLRTMP( self.lienRTMP )
@@ -248,7 +248,9 @@ class PluzzDLF4M( object ):
 	Telechargement des liens f4m
 	"""
 	
-	def __init__( self, manifestURL, nomFichier, navigateur, stopDownloadEvent ):
+	adobePlayer = "http://fpdownload.adobe.com/strobe/FlashMediaPlayback_101.swf"
+	
+	def __init__( self, manifestURL, nomFichier, navigateur, stopDownloadEvent, progressFnct ):
 		self.manifestURL       = manifestURL
 		self.nomFichier        = nomFichier
 		self.navigateur        = navigateur
@@ -403,8 +405,10 @@ class PluzzDLF4M( object ):
 		logger.info( "Début du téléchargement des fragments" )
 		try :
 			i = self.premierFragment
+			self.navigateur.appendCookie( "hdntl", self.hdntl )
 			while( not self.stopDownloadEvent.isSet() ):
-				frag  = self.navigateur.getFichier( "%s%d?%s&%s&%s" %( self.urlFrag, i, self.pvtoken, self.hdntl, self.hdnea ) )
+				# frag  = self.navigateur.getFichier( "%s%d?%s&%s&%s" %( self.urlFrag, i, self.pvtoken, self.hdntl, self.hdnea ) )
+				frag  = self.navigateur.getFichier( "%s%d" %( self.urlFrag, i ), referer = self.adobePlayer )
 				debut = self.debutVideo( i, frag )
 				self.fichierVideo.write( frag[ debut : ] )
 				# Affichage de la progression

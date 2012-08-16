@@ -41,10 +41,12 @@ class Navigateur:
 		# Spoof de l'user-agent
 		self.urlOpener.addheaders = [ ( 'User-agent', random.choice( self.listeUserAgents ) ) ]		
 
-	def getFichier( self, url ):
+	def getFichier( self, url, referer = None ):
 		try:
 			logger.debug( "GET %s" %( url ) )
 			requete = urllib2.Request( url )
+			if( referer is not None ):
+				requete.add_header( "Referer", referer )
 			page    = self.urlOpener.open( requete, timeout = self.timeOut )
 			donnees = page.read()
 			return donnees
