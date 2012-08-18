@@ -8,5 +8,5 @@ Homepage: http://code.google.com/p/tvdownloader/
 
 Package: pluzzdl
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, python (>= 2.6)
+Depends: ${shlibs:Depends}, ${misc:Depends}, python (>= 2.6), libav-tools
 Description: Permet de récupérer les vidéos Pluzz

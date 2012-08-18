@@ -13,7 +13,7 @@
 	Name "pluzzdl"
 
 	; Nom de l'executable
-	OutFile "pluzzdl_0.8.5.exe"
+	OutFile "pluzzdl_0.9.1.exe"
 
 	; Dossier d'installation par defaut
 	InstallDir "$PROGRAMFILES\pluzzdl"

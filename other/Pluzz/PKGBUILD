@@ -1,6 +1,6 @@
 pkgname=pluzzdl
 pkgver=0.9.1
-pkgrel=2
+pkgrel=1
 pkgdesc="Software to retreive videos from French website pluzz."
 url="http://code.google.com/p/tvdownloader/"
 depends=('python2' 'python2-crypto' 'ffmpeg')

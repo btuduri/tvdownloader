@@ -110,8 +110,7 @@ class MainWindow( QtGui.QMainWindow ):
 		evt.accept()
 
 	def checkUrl( self, url ):
-		if( re.match( "http://www.pluzz.fr/[^\.]+?\.html", url ) is None 
-		and re.match( "http://www.francetv.fr/[^\.]+?", url ) is None ):
+		if( re.match( "http://www.pluzz.fr/[^\.]+?\.html", url ) is None ):
 			self.startStopPushButton.setEnabled( False )
 		else:
 			self.startStopPushButton.setEnabled( True )		
@@ -127,9 +126,7 @@ class MainWindow( QtGui.QMainWindow ):
 		def dlVideo( url ):
 			try:
 				PluzzDL( url          = url,
-						 useFragments = True,
 						 proxy        = None,
-						 resume    	  = True,
 						 progressFnct = self.updateProgressBar,
 						 stopDownloadEvent = self.stopDownloadEvent,
 						 outDir = self.downloadDir )
