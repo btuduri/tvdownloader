@@ -9,6 +9,8 @@
 import cookielib
 import random
 import urllib2
+import socks
+import socket
 
 import logging
 logger = logging.getLogger( "pluzzdl" )
@@ -29,7 +31,7 @@ class Navigateur:
 						'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.12 Safari/535.11',
 						'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.8 (KHTML, like Gecko) Chrome/17.0.940.0 Safari/535.8' ]
 	
-	def __init__( self, proxy = None ):
+	def __init__( self, proxy = None, proxySock = False ):
 		self.proxy = proxy
 		
 		# Cookiejar + urlopener
@@ -37,7 +39,13 @@ class Navigateur:
 		if( proxy is None ):
 			self.urlOpener        = urllib2.build_opener( urllib2.HTTPCookieProcessor( self.cookiejar ) )
 		else:
-			self.urlOpener        = urllib2.build_opener( urllib2.HTTPCookieProcessor( self.cookiejar ), urllib2.ProxyHandler( { 'http' : self.proxy } ) )
+			if( proxySock ):
+				sockAddr, sockPort = self.proxy.split( ":" )
+				socks.setdefaultproxy( socks.PROXY_TYPE_SOCKS5, sockAddr, sockPort )
+				socket.socket = socks.socksocket
+				self.urlOpener    = urllib2.build_opener( urllib2.HTTPCookieProcessor( self.cookiejar ) )
+			else:
+				self.urlOpener    = urllib2.build_opener( urllib2.HTTPCookieProcessor( self.cookiejar ), urllib2.ProxyHandler( { 'http' : self.proxy } ) )
 		# Spoof de l'user-agent
 		self.urlOpener.addheaders = [ ( 'User-agent', random.choice( self.listeUserAgents ) ) ]		
 

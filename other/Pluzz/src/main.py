@@ -7,7 +7,7 @@
 
 __author__  = "Chaoswizard"
 __license__ = "GPL 2"
-__version__ = "0.9.1"
+__version__ = "0.9.2"
 __url__     = "http://code.google.com/p/tvdownloader/"
 
 #
@@ -35,6 +35,7 @@ if( __name__ == "__main__" ) :
 	parser  = argparse.ArgumentParser( usage = usage, description = "Télécharge les émissions de Pluzz" )
 	parser.add_argument( "-b", "--progressbar", action = "store_true", default = False, help = 'affiche la progression du téléchargement' )
 	parser.add_argument( "-p", "--proxy", dest = "proxy", metavar = "PROXY",            help = 'utilise un proxy HTTP au format suivant http://URL:PORT' )	
+	parser.add_argument( "-s", "--sock",        action = "store_true", default = False, help = 'si un proxy est fourni avec l\'option -p, un proxy SOCKS5 est utilisé au format suivant ADRESSE:PORT' )	
 	parser.add_argument( "-v", "--verbose",     action = "store_true", default = False, help = 'affiche les informations de debugage' )
 	parser.add_argument( "--nocolor",           action = 'store_true', default = False, help = 'désactive la couleur dans le terminal' )
 	parser.add_argument( "--version",           action = 'version', version = "pluzzdl %s" %( __version__ ) )
@@ -62,10 +63,16 @@ if( __name__ == "__main__" ) :
 		sys.exit( -1 )
 	
 	# Verification du proxy
-	if( args.proxy is not None and re.match( "http://[^:]+?:\d+", args.proxy ) is None ):
-		logger.error( "Le proxy \"%s\" n'est pas valide" %( args.proxy ) )
-		sys.exit( -1 )
-
+	if( args.proxy is not None ):
+		if( args.sock ):
+			if( re.match( '[0-9]+(?:\.[0-9]+){3}:[0-9]+', args.proxy ) is None ):
+				logger.error( "Le proxy SOCK \"%s\" n'est pas valide" %( args.proxy ) )
+				sys.exit( -1 )				
+		else:
+			if( re.match( "http://[^:]+?:\d+", args.proxy ) is None ):
+				logger.error( "Le proxy HTML \"%s\" n'est pas valide" %( args.proxy ) )
+				sys.exit( -1 )
+	
 	# Fonction d'affichage de l'avancement du téléchargement
 	if( args.progressbar ):
 		progressFnct = lambda x : logger.info( "Avancement : %3d %%" %( x ) )
@@ -75,4 +82,5 @@ if( __name__ == "__main__" ) :
 	# Telechargement de la video
 	PluzzDL( url          = args.urlEmission,
 			 proxy        = args.proxy,
+			 proxySock    = args.sock,
 			 progressFnct = progressFnct )

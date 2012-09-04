@@ -7,7 +7,7 @@
 
 .SH UTILISATION
 .HP 1
-\fBpluzzdl [ -bv ] [ -p \fIproxy\fB ] \fIurlEmission\fR\fR
+\fBpluzzdl [ -bv ] [ -p \fIproxy\fB [ -s ] ] \fIurlEmission\fR\fR
 .PP
 où \fIurlEmission\fR doit être de la forme :
 .TP
@@ -26,7 +26,10 @@ Affiche le pourcentage de progression du téléchargement
 Mode verbeux (à utiliser pour obtenir des informations de debugage)
 .TP
 \fB\-p \fIproxy\fB\fr
-Permet d'utiliser un proxy HTTP au format http://URL:PORT
+Permet d'utiliser un proxy HTTP au format http://URL:PORT ou, si utilisé avec l'option \fB\-s\fR, d'utiliser un proxy SOCKS5 au format ADRESSE:PORT
+.TP
+\fB\-s\fr
+Si un proxy est fourni avec l'option \fB\-p\fR, il est utilisé comme un proxy SOCKS5. Le proxy doit être au format ADRESSE:PORT.
 .TP
 \fB\-\-nocolor\fr
 Désactive la couleur dans le terminal (particulierement utile si le terminal ne supporte pas la couleur)
@@ -51,6 +54,8 @@ Les vidéos comportant des DRMs ou les vidéos utilisant un manifest de type med
 Python 2
 .TP
 PyCrypto
+.TP
+SocksiPy (python-socksipy)
 .TP
 FFmpeg
 

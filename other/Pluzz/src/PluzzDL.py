@@ -42,7 +42,7 @@ class PluzzDL( object ):
 	Classe principale
 	"""
 	
-	def __init__( self, url, proxy = None, progressFnct = lambda x : None, stopDownloadEvent = threading.Event(), outDir = "." ):
+	def __init__( self, url, proxy = None, proxySock = False, progressFnct = lambda x : None, stopDownloadEvent = threading.Event(), outDir = "." ):
 		# Options
 		self.url               = url
 		self.proxy             = proxy
@@ -50,7 +50,7 @@ class PluzzDL( object ):
 		self.stopDownloadEvent = stopDownloadEvent
 		self.outDir            = outDir
 		# Classes
-		self.navigateur        = Navigateur( self.proxy )
+		self.navigateur        = Navigateur( self.proxy, proxySock )
 		# Infos video
 		self.id                = None
 		self.lienMMS           = None
@@ -359,7 +359,7 @@ class PluzzDLF4M( object ):
 	def telecharger( self ):
 		# Verifie si le lien du manifest contient la chaine "media-secure"
 		if( self.manifestURL.find( "media-secure" ) != -1 ):
-			logger.critical( "pluzzdl ne sait pas encore gérer ce type de vidéo..." )
+			logger.critical( "pluzzdl ne sait pas gérer ce type de vidéo (utilisation de DRMs)..." )
 			sys.exit( 0 )
 		# Lien du manifest (apres le token)
 		self.manifestURLToken = self.navigateur.getFichier( "http://hdfauth.francetv.fr/esi/urltokengen2.html?url=%s" %( self.manifestURL[ self.manifestURL.find( "/z/" ) : ] ) )
