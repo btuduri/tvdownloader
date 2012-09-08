@@ -5,6 +5,7 @@
 # Modules #
 ###########
 
+import datetime
 import os.path
 import time
 
@@ -32,7 +33,7 @@ class Fichier(object):
 	# @param nomFichierSortie Nom du fichier de sortie
 	# @param urlImage         URL de l'image a afficher
 	# @param descriptif       Texte descriptif a afficher
-	def __init__( self, nom, date = int( time.time() ), lien = "", nomFichierSortie = "", urlImage = "", descriptif = "" ):
+	def __init__( self, nom, date = datetime.datetime.now(), lien = "", nomFichierSortie = "", urlImage = "", descriptif = "" ):
 		self.nom              = util.html.supprimeBalisesHTML( nom )
 		self.date             = date
 		self.lien             = lien

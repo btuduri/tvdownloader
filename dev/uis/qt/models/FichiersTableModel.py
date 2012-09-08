@@ -5,6 +5,8 @@
 # Modules
 #
 
+import datetime
+
 from base.qt.qtString import stringToQstring
 
 from PyQt4 import QtCore
@@ -44,14 +46,19 @@ class FichiersTableModel( QtCore.QAbstractTableModel ):
 			return QtCore.QVariant()
 		elif( role == QtCore.Qt.BackgroundRole ):
 			if( index.row() % 2 == 0 ):
-				return QtGui.QColor( QtCore.Qt.gray )
+				return QtGui.QColor( QtCore.Qt.white )
 			else:
 				return QtGui.QColor( QtCore.Qt.lightGray )			
 		elif( role == QtCore.Qt.DisplayRole ):
 			if( index.column() == 0 ):
 				return QtCore.QVariant( "" )
 			elif( index.column() == 1 ):
-				return QtCore.QVariant( stringToQstring( self.listeFichiers[ index.row() ].date ) )
+				date = self.listeFichiers[ index.row() ].date
+				if( isinstance( date, datetime.date ) ):
+					dateOk = date.strftime( "%a %d %b %H:%M:%S" )
+				else:
+					dateOk = date
+				return QtCore.QVariant( stringToQstring( dateOk ) )
 			else:
 				return QtCore.QVariant( stringToQstring( self.listeFichiers[ index.row() ].nom ) )
 		else:
