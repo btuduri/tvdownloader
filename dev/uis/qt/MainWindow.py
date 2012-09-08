@@ -20,8 +20,11 @@ from base.qt.qtString        import stringToQstring
 from PyQt4 import QtCore
 from PyQt4 import QtGui
 
-from uis.qt.QtIconsList import QtIconsList
-from uis.qt.QtTable     import QtTable
+from uis.qt.QtIconsList   import QtIconsList
+from uis.qt.QtTable       import QtTable
+from uis.qt.QtTableView   import QtTableView
+
+from uis.qt.models.FichiersTableModel import FichiersTableModel
 
 #
 # Classe
@@ -165,13 +168,10 @@ class MainWindow( QtGui.QMainWindow ):
 		self.fichierLayout.addWidget( self.emissionComboBox )
 		
 		# Liste des fichiers
-		self.fichierTableWidget = QtTable( self.fichierWidget )
-		self.fichierTableWidget.setColumnCount( 3 ) # 3 colonnes
-		self.fichierTableWidget.setRowCount( 0 )    # 0 ligne
-		self.fichierTableWidget.setHorizontalHeaderItem( 0, self.fichierTableWidget.createItem( "" ) )
-		self.fichierTableWidget.setHorizontalHeaderItem( 1, self.fichierTableWidget.createItem( "Date" ) )
-		self.fichierTableWidget.setHorizontalHeaderItem( 2, self.fichierTableWidget.createItem( "Emission" ) )
-		self.fichierLayout.addWidget( self.fichierTableWidget )
+		self.fichierTableView = QtTableView( self.fichierWidget )
+		fichierTableModel = FichiersTableModel()
+		self.fichierTableView.setModel( fichierTableModel )
+		self.fichierLayout.addWidget( self.fichierTableView )
 
 		# Widget descriptif fichier
 		self.descriptifFichierWidget = QtGui.QSplitter( QtCore.Qt.Horizontal, self.fichiersWidget )
@@ -280,7 +280,14 @@ class MainWindow( QtGui.QMainWindow ):
 		
 		# Liste les plugins
 		self.listerPlugins()
-	
+		
+		#
+		# TO REMOVE
+		#
+		
+		l = [ "A", "B", "C", "D" ]
+		self.fichierTableView.model().changeFiles( l )
+		
 	def actionsAvantQuitter( self ):
 		"""
 		Actions a realiser avant de quitter le programme
@@ -360,17 +367,8 @@ class MainWindow( QtGui.QMainWindow ):
 		"""
 		Met en place la liste des fichiers
 		"""
-		self.fichierTableWidget.clear()
-		ligneCourante = 0
-		for fichier in listeFichiers:
-			self.fichierTableWidget.insertRow( ligneCourante )
-			tableRow = []
-			tableRow.append( self.fichierTableWidget.createItem( "" ) )
-			tableRow.append( self.fichierTableWidget.createItem( fichier.date ) )
-			tableRow.append( self.fichierTableWidget.createItem( fichier.nom ) )
-			self.fichierTableWidget.setLigne( ligneCourante, tableRow )
-			ligneCourante += 1
-		self.fichierTableWidget.resizeColumnsToContents()
+		self.fichierTableView.model().changeFiles( listeFichiers )
+		self.fichierTableView.resizeColumnsToContents()
 	
 	def ajouterTelechargement( self, fichier ):
 		"""
