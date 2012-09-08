@@ -281,13 +281,6 @@ class MainWindow( QtGui.QMainWindow ):
 		# Liste les plugins
 		self.listerPlugins()
 		
-		#
-		# TO REMOVE
-		#
-		
-		l = [ "A", "B", "C", "D" ]
-		self.fichierTableView.model().changeFiles( l )
-		
 	def actionsAvantQuitter( self ):
 		"""
 		Actions a realiser avant de quitter le programme
@@ -337,7 +330,7 @@ class MainWindow( QtGui.QMainWindow ):
 			self.emit( self.listeFichiersSignal, listeFichiers )
 		
 		plugin = qstringToString( self.pluginComboBox.currentText() )
-		threading.Thread( target = threadListerFichiers, args = ( self, plugin, emission ) ).start()		
+		threading.Thread( target = threadListerFichiers, args = ( self, plugin, qstringToString( emission ) ) ).start()		
 		
 	def ajouterPlugins( self, listePlugins ):
 		"""

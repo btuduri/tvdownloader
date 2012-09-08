@@ -65,8 +65,8 @@ class QtIconsList( QtGui.QScrollArea ):
 		button.setCheckable( True )
 		button.setToolTip( stringToQstring( name ) )
 		self.layout.addWidget( button )
-		self.buttonGroup.addButton( button, len( self.buttonsNames ) - 1 )
 		self.buttonsNames.append( name )
+		self.buttonGroup.addButton( button, len( self.buttonsNames ) - 1 )
 	
 	def buttonClicked( self, buttonId ):
 		"""

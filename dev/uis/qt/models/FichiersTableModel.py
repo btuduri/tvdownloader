@@ -48,8 +48,11 @@ class FichiersTableModel( QtCore.QAbstractTableModel ):
 			else:
 				return QtGui.QColor( QtCore.Qt.lightGray )			
 		elif( role == QtCore.Qt.DisplayRole ):
-			return QtCore.QVariant( stringToQstring( self.listeFichiers[ index.row() ] ) )
-			# return QtCore.QVariant( stringToQstring( self.listeFichiers[ index.row() ].nom ) )
-			# return QVariant( self.listeFichiers[ index.row() ][ index.column() ] )			
+			if( index.column() == 0 ):
+				return QtCore.QVariant( "" )
+			elif( index.column() == 1 ):
+				return QtCore.QVariant( stringToQstring( self.listeFichiers[ index.row() ].date ) )
+			else:
+				return QtCore.QVariant( stringToQstring( self.listeFichiers[ index.row() ].nom ) )
 		else:
 			return QtCore.QVariant()
