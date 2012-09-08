@@ -20,8 +20,11 @@ from base.qt.qtString        import stringToQstring
 from PyQt4 import QtCore
 from PyQt4 import QtGui
 
-from uis.qt.QtIconsList import QtIconsList
-from uis.qt.QtTable     import QtTable
+from uis.qt.QtIconsList   import QtIconsList
+from uis.qt.QtTable       import QtTable
+from uis.qt.QtTableView   import QtTableView
+
+from uis.qt.models.FichiersTableModel import FichiersTableModel
 
 #
 # Classe
@@ -114,7 +117,7 @@ class MainWindow( QtGui.QMainWindow ):
 		self.tabWidget.addTab( self.fichiersWidget, u"Choix des fichiers" )
 		
 		# Onglet Telechargements
-		self.telechargementsWidget = QtGui.QScrollArea( self.centralWidget )
+		self.telechargementsWidget = QtTable( self.centralWidget )
 		self.tabWidget.addTab( self.telechargementsWidget, u"Téléchargements" )
 		
 		# Onglet Parametres
@@ -165,13 +168,10 @@ class MainWindow( QtGui.QMainWindow ):
 		self.fichierLayout.addWidget( self.emissionComboBox )
 		
 		# Liste des fichiers
-		self.fichierTableWidget = QtTable( self.fichierWidget )
-		self.fichierTableWidget.setColumnCount( 3 ) # 3 colonnes
-		self.fichierTableWidget.setRowCount( 0 )    # 0 ligne
-		self.fichierTableWidget.setHorizontalHeaderItem( 0, self.fichierTableWidget.createItem( "" ) )
-		self.fichierTableWidget.setHorizontalHeaderItem( 1, self.fichierTableWidget.createItem( "Date" ) )
-		self.fichierTableWidget.setHorizontalHeaderItem( 2, self.fichierTableWidget.createItem( "Emission" ) )
-		self.fichierLayout.addWidget( self.fichierTableWidget )
+		self.fichierTableView = QtTableView( self.fichierWidget )
+		fichierTableModel = FichiersTableModel()
+		self.fichierTableView.setModel( fichierTableModel )
+		self.fichierLayout.addWidget( self.fichierTableView )
 
 		# Widget descriptif fichier
 		self.descriptifFichierWidget = QtGui.QSplitter( QtCore.Qt.Horizontal, self.fichiersWidget )
@@ -188,8 +188,14 @@ class MainWindow( QtGui.QMainWindow ):
 		#
 		# Onglet Telechargements
 		#
-		
-		
+
+		# Liste des telechargements
+		self.telechargementsWidget.setColumnCount( 4 ) # 4 colonnes
+		self.telechargementsWidget.setRowCount( 0 )    # 0 ligne
+		self.telechargementsWidget.setHorizontalHeaderItem( 0, self.telechargementsWidget.createItem( "Nom" ) )
+		self.telechargementsWidget.setHorizontalHeaderItem( 1, self.telechargementsWidget.createItem( "Avancement" ) )
+		self.telechargementsWidget.setHorizontalHeaderItem( 2, self.telechargementsWidget.createItem( "Vitesse" ) )		
+		self.telechargementsWidget.setHorizontalHeaderItem( 3, self.telechargementsWidget.createItem( "Stopper" ) )		
 		
 		#
 		# Onglet Parametres
@@ -269,11 +275,19 @@ class MainWindow( QtGui.QMainWindow ):
 		# Recupere l'instance de TVDContext
 		self.tvdContext = tvdcore.TVDContext()
 		# Recupere les instances des classes utiles
-		self.pluginManager = self.tvdContext.pluginManager
+		self.pluginManager   = self.tvdContext.pluginManager
+		self.downloadManager = self.tvdContext.downloadManager
 		
 		# Liste les plugins
 		self.listerPlugins()
-	
+		
+		#
+		# TO REMOVE
+		#
+		
+		l = [ "A", "B", "C", "D" ]
+		self.fichierTableView.model().changeFiles( l )
+		
 	def actionsAvantQuitter( self ):
 		"""
 		Actions a realiser avant de quitter le programme
@@ -353,15 +367,22 @@ class MainWindow( QtGui.QMainWindow ):
 		"""
 		Met en place la liste des fichiers
 		"""
-		self.fichierTableWidget.clear()
-		ligneCourante = 0
-		for fichier in listeFichiers:
-			self.fichierTableWidget.insertRow( ligneCourante )
-			tableRow = []
-			tableRow.append( self.fichierTableWidget.createItem( "" ) )
-			tableRow.append( self.fichierTableWidget.createItem( fichier.date ) )
-			tableRow.append( self.fichierTableWidget.createItem( fichier.nom ) )
-			self.fichierTableWidget.setLigne( ligneCourante, tableRow )
-			ligneCourante += 1
-		self.fichierTableWidget.resizeColumnsToContents()
-		
+		self.fichierTableView.model().changeFiles( listeFichiers )
+		self.fichierTableView.resizeColumnsToContents()
+	
+	def ajouterTelechargement( self, fichier ):
+		"""
+		Met en place la liste des telechargements
+		"""
+		# Ajoute le fichier a la GUI
+		ligneCourante = self.telechargementsWidget.rowCount()
+		self.telechargementsWidget.insertRow( ligneCourante )
+		tableRow = []
+		tableRow.append( self.telechargementsWidget.createItem( fichier.nom ) )
+		tableRow.append( self.telechargementsWidget.createItem( "0" ) )
+		tableRow.append( self.telechargementsWidget.createItem( "0" ) )
+		tableRow.append( self.telechargementsWidget.createItem( "Stop" ) )
+		self.telechargementsWidget.setLigne( ligneCourante, tableRow )
+		self.telechargementsWidget.resizeColumnsToContents()
+		# Ajoute le fichier au downloadManager
+		self.downloadManager.download( fichier )
