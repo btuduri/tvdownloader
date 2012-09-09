@@ -9,7 +9,7 @@ import functools
 import mimetypes
 import sys
 
-from base.Cache.CacheDict import CacheDict
+from base.cache.CacheDict import CacheDict
 
 import logging
 logger = logging.getLogger( "base.Cache.BrowserCache" )

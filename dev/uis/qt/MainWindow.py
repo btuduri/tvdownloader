@@ -12,6 +12,7 @@ import sys
 sys.path.append( ".." ) 
 
 import tvdcore
+from base.Browser import Browser
 
 from base.qt.QtFolderChooser import QtFolderChooser
 from base.qt.qtString        import qstringToString
@@ -298,7 +299,7 @@ class MainWindow( QtGui.QMainWindow ):
 		# Recupere les instances des classes utiles
 		self.pluginManager   = self.tvdContext.pluginManager
 		self.downloadManager = self.tvdContext.downloadManager
-		self.navigateur      = tvdcore.Navigateur()
+		self.navigateur      = Browser()
 		
 		# Liste les plugins
 		self.listerPlugins()
@@ -422,7 +423,7 @@ class MainWindow( QtGui.QMainWindow ):
 		Affiche les informations du fichier selectionne
 		"""
 		def threadRecupererImageDescription( self, urlImage ):
-			imageData = self.navigateur.getPicture( urlImage )
+			imageData = self.navigateur.getFile( urlImage )
 			image = QtGui.QPixmap()
 			image.loadFromData( imageData )
 			self.emit( QtCore.SIGNAL( "nouvelleImageDescription(PyQt_PyObject)" ), image )

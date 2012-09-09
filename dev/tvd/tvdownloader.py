@@ -93,7 +93,7 @@ if __name__ == "__main__" :
 		print "L'ui "+uiname+" est introuvable"
 		sys.exit(1)
 
-	# Mise en place du logger
+	# Mise en place du logger de TVDownloader
 	logger  = logging.getLogger( "TVDownloader" )
 	console = logging.StreamHandler( sys.stdout )
 	# if( options.verbose ):
@@ -105,6 +105,19 @@ if __name__ == "__main__" :
 		console.setLevel( logging.INFO )
 	console.setFormatter( tvdcore.ColorFormatter( True ) )
 	logger.addHandler( console )
+	
+	# Mise en place du logger des fichiers de base
+	loggerBase  = logging.getLogger( "base" )
+	consoleBase = logging.StreamHandler( sys.stdout )
+	# if( options.verbose ):
+	if( True ):
+		loggerBase.setLevel( logging.DEBUG )
+		consoleBase.setLevel( logging.DEBUG )
+	else:
+		loggerBase.setLevel( logging.INFO )
+		consoleBase.setLevel( logging.INFO )
+	consoleBase.setFormatter( tvdcore.ColorFormatter( True ) )
+	loggerBase.addHandler( consoleBase )
 	
 	if isLaunched():
 		#TODO Appel au laucher d'ui dans le processus lancé

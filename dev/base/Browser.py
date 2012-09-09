@@ -11,7 +11,7 @@ import threading
 import urllib
 import urllib2
 
-from base.Cache.BrowserCache import BrowserCache
+from base.cache.BrowserCache import BrowserCache
 from base.Patterns import Singleton
 
 import logging
