@@ -172,6 +172,14 @@ class MainWindow( QtGui.QMainWindow ):
 		fichierTableModel = FichiersTableModel()
 		self.fichierTableView.setModel( fichierTableModel )
 		self.fichierLayout.addWidget( self.fichierTableView )
+		
+		QtCore.QObject.connect( self.fichierTableView,
+								QtCore.SIGNAL( "clicked(const QModelIndex &)" ),
+								self.afficherDescriptionFichier )	
+		
+		# QtCore.QObject.connect( self.fichierTableView,
+								# QtCore.SIGNAL( "doubleClicked(const QModelIndex &)" ),
+								# self.gererTelechargement )	
 
 		# Widget descriptif fichier
 		self.descriptifFichierWidget = QtGui.QSplitter( QtCore.Qt.Horizontal, self.fichiersWidget )
@@ -180,7 +188,12 @@ class MainWindow( QtGui.QMainWindow ):
 		# Label du fichier
 		self.fichierLabel = QtGui.QLabel( self.descriptifFichierWidget )
 		self.descriptifFichierWidget.addWidget( self.fichierLabel )
-		
+
+		# Logo par defaut
+		self.logoDefautPixmap = QtGui.QPixmap()
+		self.logoDefautPixmap.load( "uis/qt/ico/gtk-dialog-question.svg" )
+		self.afficherImageDescription( self.logoDefautPixmap )
+
 		# Descriptif du fichier
 		self.descriptionPlainTextEdit = QtGui.QPlainTextEdit( self.descriptifFichierWidget )
 		self.descriptifFichierWidget.addWidget( self.descriptionPlainTextEdit )
@@ -196,7 +209,7 @@ class MainWindow( QtGui.QMainWindow ):
 		self.telechargementsWidget.setHorizontalHeaderItem( 1, self.telechargementsWidget.createItem( "Avancement" ) )
 		self.telechargementsWidget.setHorizontalHeaderItem( 2, self.telechargementsWidget.createItem( "Vitesse" ) )		
 		self.telechargementsWidget.setHorizontalHeaderItem( 3, self.telechargementsWidget.createItem( "Stopper" ) )		
-		
+				
 		#
 		# Onglet Parametres
 		#
@@ -256,6 +269,14 @@ class MainWindow( QtGui.QMainWindow ):
 		self.centralGridLayout.addWidget( self.lancerPushButton, 4, 0, 1, 2 )
 		
 		#
+		# Signaux de TVDownloader
+		#
+
+		QtCore.QObject.connect( self,
+								QtCore.SIGNAL( "nouvelleImageDescription(PyQt_PyObject)" ),
+								self.afficherImageDescription )	
+		
+		#
 		# Debut
 		#
 		
@@ -277,6 +298,7 @@ class MainWindow( QtGui.QMainWindow ):
 		# Recupere les instances des classes utiles
 		self.pluginManager   = self.tvdContext.pluginManager
 		self.downloadManager = self.tvdContext.downloadManager
+		self.navigateur      = tvdcore.Navigateur()
 		
 		# Liste les plugins
 		self.listerPlugins()
@@ -339,6 +361,13 @@ class MainWindow( QtGui.QMainWindow ):
 		listePlugins.sort()
 		self.pluginComboBox.clear()
 		map( lambda x : self.pluginComboBox.addItem( stringToQstring( x ) ), listePlugins )
+		# S'il n'y a qu'un seul plugin
+		if( self.pluginComboBox.count() == 1 ):
+			# Lance le listage des chaines
+			self.listerChaines( self.pluginComboBox.currentText() )
+		else:
+			# Ne selectionne pas le plugin
+			self.pluginComboBox.setCurrentIndex( -1 )	
 	
 	def ajouterChaines( self, listeChaines ):
 		"""
@@ -354,7 +383,15 @@ class MainWindow( QtGui.QMainWindow ):
 		"""
 		listeEmissions.sort()
 		self.emissionComboBox.clear()
+		self.ajouterFichiers( [] )
 		map( lambda x : self.emissionComboBox.addItem( stringToQstring( x ) ), listeEmissions )
+		# S'il n'y a qu'une seule emission
+		if( self.emissionComboBox.count() == 1 ):
+			# Lance le listage des fichiers
+			self.listerFichiers( self.emissionComboBox.currentText() )
+		else:
+			# Ne selectionne pas le plugin
+			self.emissionComboBox.setCurrentIndex( -1 )	
 	
 	def ajouterFichiers( self, listeFichiers ):
 		"""
@@ -379,3 +416,32 @@ class MainWindow( QtGui.QMainWindow ):
 		self.telechargementsWidget.resizeColumnsToContents()
 		# Ajoute le fichier au downloadManager
 		self.downloadManager.download( fichier )
+	
+	def afficherDescriptionFichier( self, index ):
+		"""
+		Affiche les informations du fichier selectionne
+		"""
+		def threadRecupererImageDescription( self, urlImage ):
+			imageData = self.navigateur.getPicture( urlImage )
+			image = QtGui.QPixmap()
+			image.loadFromData( imageData )
+			self.emit( QtCore.SIGNAL( "nouvelleImageDescription(PyQt_PyObject)" ), image )
+
+		fichier = self.fichierTableView.model().listeFichiers[ index.row() ]
+		# Affiche la description
+		self.descriptionPlainTextEdit.clear()
+		if( fichier.descriptif != "" ):
+			self.descriptionPlainTextEdit.appendPlainText( stringToQstring( fichier.descriptif ) )
+		else:
+			self.plainTextEdit.appendPlainText( u"Aucune information disponible" )
+		# Recupere l'image
+		if( fichier.urlImage != "" ):
+			threading.Thread( target = threadRecupererImageDescription, args = ( self, fichier.urlImage ) ).start()
+		else:
+			self.afficherImageDescription( self.logoDefautPixmap )
+
+	def afficherImageDescription( self, image ):
+		"""
+		Affiche l'image de description du fichier selectionne
+		"""
+		self.fichierLabel.setPixmap( image.scaled( QtCore.QSize( 150, 150 ), QtCore.Qt.KeepAspectRatio ) )
