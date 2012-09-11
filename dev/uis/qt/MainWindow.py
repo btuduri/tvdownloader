@@ -26,6 +26,7 @@ from uis.qt.QtTable       import QtTable
 from uis.qt.QtTableView   import QtTableView
 
 from uis.qt.models.FichiersTableModel import FichiersTableModel
+from uis.qt.models.TelechargementsTableModel import TelechargementsTableModel
 
 #
 # Classe
@@ -118,7 +119,7 @@ class MainWindow( QtGui.QMainWindow ):
 		self.tabWidget.addTab( self.fichiersWidget, u"Choix des fichiers" )
 		
 		# Onglet Telechargements
-		self.telechargementsWidget = QtTable( self.centralWidget )
+		self.telechargementsWidget = QtTableView( self.centralWidget )
 		self.tabWidget.addTab( self.telechargementsWidget, u"Téléchargements" )
 		
 		# Onglet Parametres
@@ -178,9 +179,9 @@ class MainWindow( QtGui.QMainWindow ):
 								QtCore.SIGNAL( "clicked(const QModelIndex &)" ),
 								self.afficherDescriptionFichier )	
 		
-		# QtCore.QObject.connect( self.fichierTableView,
-								# QtCore.SIGNAL( "doubleClicked(const QModelIndex &)" ),
-								# self.gererTelechargement )	
+		QtCore.QObject.connect( self.fichierTableView,
+								QtCore.SIGNAL( "doubleClicked(const QModelIndex &)" ),
+								self.ajouterTelechargement)	
 
 		# Widget descriptif fichier
 		self.descriptifFichierWidget = QtGui.QSplitter( QtCore.Qt.Horizontal, self.fichiersWidget )
@@ -204,12 +205,8 @@ class MainWindow( QtGui.QMainWindow ):
 		#
 
 		# Liste des telechargements
-		self.telechargementsWidget.setColumnCount( 4 ) # 4 colonnes
-		self.telechargementsWidget.setRowCount( 0 )    # 0 ligne
-		self.telechargementsWidget.setHorizontalHeaderItem( 0, self.telechargementsWidget.createItem( "Nom" ) )
-		self.telechargementsWidget.setHorizontalHeaderItem( 1, self.telechargementsWidget.createItem( "Avancement" ) )
-		self.telechargementsWidget.setHorizontalHeaderItem( 2, self.telechargementsWidget.createItem( "Vitesse" ) )		
-		self.telechargementsWidget.setHorizontalHeaderItem( 3, self.telechargementsWidget.createItem( "Stopper" ) )		
+		telechargementsTableModel = TelechargementsTableModel()
+		self.telechargementsWidget.setModel( telechargementsTableModel )
 				
 		#
 		# Onglet Parametres
@@ -401,22 +398,16 @@ class MainWindow( QtGui.QMainWindow ):
 		self.fichierTableView.model().changeFiles( listeFichiers )
 		self.fichierTableView.resizeColumnsToContents()
 	
-	def ajouterTelechargement( self, fichier ):
+	def ajouterTelechargement( self, index ):
 		"""
 		Met en place la liste des telechargements
 		"""
 		# Ajoute le fichier a la GUI
-		ligneCourante = self.telechargementsWidget.rowCount()
-		self.telechargementsWidget.insertRow( ligneCourante )
-		tableRow = []
-		tableRow.append( self.telechargementsWidget.createItem( fichier.nom ) )
-		tableRow.append( self.telechargementsWidget.createItem( "0" ) )
-		tableRow.append( self.telechargementsWidget.createItem( "0" ) )
-		tableRow.append( self.telechargementsWidget.createItem( "Stop" ) )
-		self.telechargementsWidget.setLigne( ligneCourante, tableRow )
-		self.telechargementsWidget.resizeColumnsToContents()
+		fichier = self.fichierTableView.model().listeFichiers[ index.row() ]
+		self.telechargementsWidget.model().addFile( fichier )
+		# self.telechargementsWidget.resizeColumnsToContents()
 		# Ajoute le fichier au downloadManager
-		self.downloadManager.download( fichier )
+		# self.downloadManager.download( fichier )
 	
 	def afficherDescriptionFichier( self, index ):
 		"""
@@ -424,9 +415,7 @@ class MainWindow( QtGui.QMainWindow ):
 		"""
 		def threadRecupererImageDescription( self, urlImage ):
 			imageData = self.navigateur.getFile( urlImage )
-			image = QtGui.QPixmap()
-			image.loadFromData( imageData )
-			self.emit( QtCore.SIGNAL( "nouvelleImageDescription(PyQt_PyObject)" ), image )
+			self.emit( QtCore.SIGNAL( "nouvelleImageDescription(PyQt_PyObject)" ), imageData )
 
 		fichier = self.fichierTableView.model().listeFichiers[ index.row() ]
 		# Affiche la description
@@ -445,4 +434,9 @@ class MainWindow( QtGui.QMainWindow ):
 		"""
 		Affiche l'image de description du fichier selectionne
 		"""
-		self.fichierLabel.setPixmap( image.scaled( QtCore.QSize( 150, 150 ), QtCore.Qt.KeepAspectRatio ) )
+		if( not isinstance( image, QtGui.QPixmap ) ):
+			imageOk = QtGui.QPixmap()
+			imageOk.loadFromData( image )
+		else:
+			imageOk = image
+		self.fichierLabel.setPixmap( imageOk.scaled( QtCore.QSize( 150, 150 ), QtCore.Qt.KeepAspectRatio ) )
