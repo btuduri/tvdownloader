@@ -8,6 +8,7 @@
 import operator
 import threading
 
+import os
 import sys
 sys.path.append( ".." ) 
 
@@ -18,12 +19,15 @@ from base.qt.QtFolderChooser import QtFolderChooser
 from base.qt.qtString        import qstringToString
 from base.qt.qtString        import stringToQstring
 
+import core.Constantes as Constantes
+
 from PyQt4 import QtCore
 from PyQt4 import QtGui
 
 from uis.qt.QtIconsList   import QtIconsList
 from uis.qt.QtTable       import QtTable
 from uis.qt.QtTableView   import QtTableView
+from uis.qt.QtProgressBarDelegate import QtProgressBarDelegate
 
 from uis.qt.models.FichiersTableModel import FichiersTableModel
 from uis.qt.models.TelechargementsTableModel import TelechargementsTableModel
@@ -91,7 +95,7 @@ class MainWindow( QtGui.QMainWindow ):
 		#
 		
 		# Nom de la fenetre
-		self.setWindowTitle( "TVDownloader %s" %( tvdVersion ) )
+		self.setWindowTitle( "%s %s" %( Constantes.TVD_NOM, Constantes.TVD_VERSION ) )
 		# Mise en place de son icone
 		self.setWindowIcon( self.tvdIco )
 		
@@ -207,6 +211,7 @@ class MainWindow( QtGui.QMainWindow ):
 		# Liste des telechargements
 		telechargementsTableModel = TelechargementsTableModel()
 		self.telechargementsWidget.setModel( telechargementsTableModel )
+		self.telechargementsWidget.setItemDelegateForColumn( 1, QtProgressBarDelegate() )
 				
 		#
 		# Onglet Parametres
@@ -223,6 +228,9 @@ class MainWindow( QtGui.QMainWindow ):
 		
 		# Repertoire par defaut pour les videos
 		self.choixRepertoire = QtFolderChooser( self.parametresWidget, self.folderIco )
+		QtCore.QObject.connect( self.choixRepertoire,
+								QtCore.SIGNAL( "valueChanged(PyQt_PyObject)" ),
+								lambda valeur : self.enregistrerConfiguration( "Telechargements", "dossier", valeur ) )
 		self.parametresLayout.addRow( u"Répertoire de téléchargement :", self.choixRepertoire )
 		
 		# Titre Internet
@@ -230,17 +238,23 @@ class MainWindow( QtGui.QMainWindow ):
 		self.titreInternetLabel.setFont( self.titreFont )
 		self.titreInternetLabel.setText( u"Paramètres Internet :" )
 		self.parametresLayout.addRow( self.titreInternetLabel, None )
-		
+
 		# Time out du navigateur
 		self.timeOutSpinBox = QtGui.QSpinBox( self.parametresWidget )
 		self.timeOutSpinBox.setMinimum( 1 )
 		self.timeOutSpinBox.setMaximum( 60 )
+		QtCore.QObject.connect( self.timeOutSpinBox,
+								QtCore.SIGNAL( "valueChanged(int)" ),
+								lambda valeur : self.enregistrerConfiguration( "Navigateur", "timeout", str( valeur ) ) )
 		self.parametresLayout.addRow( u"Time out (en s) :", self.timeOutSpinBox )
 		
 		# Nombre de threads du navigateur
 		self.threadSpinBox = QtGui.QSpinBox( self.parametresWidget )
 		self.threadSpinBox.setMinimum( 1 )
 		self.threadSpinBox.setMaximum( 100 )
+		QtCore.QObject.connect( self.threadSpinBox,
+								QtCore.SIGNAL( "valueChanged(int)" ),
+								lambda valeur : self.enregistrerConfiguration( "Navigateur", "threads", str( valeur ) ) )
 		self.parametresLayout.addRow( u"Nombre de threads max :", self.threadSpinBox )
 		
 		#
@@ -301,10 +315,22 @@ class MainWindow( QtGui.QMainWindow ):
 		# Liste les plugins
 		self.listerPlugins()
 		
+		# Variables
+		self.fichierAffiche = None
+		
+		#
+		# A deplacer
+		#
+		from core.Configuration import Configuration
+		
+		self.config = Configuration()
+		self.afficherConfiguration()
+		
 	def actionsAvantQuitter( self ):
 		"""
 		Actions a realiser avant de quitter le programme
 		"""
+		self.config.save()
 		print "Bye bye"
 		
 	def listerPlugins( self ):
@@ -405,9 +431,9 @@ class MainWindow( QtGui.QMainWindow ):
 		# Ajoute le fichier a la GUI
 		fichier = self.fichierTableView.model().listeFichiers[ index.row() ]
 		self.telechargementsWidget.model().addFile( fichier )
-		# self.telechargementsWidget.resizeColumnsToContents()
+		self.telechargementsWidget.resizeColumnsToContents()
 		# Ajoute le fichier au downloadManager
-		# self.downloadManager.download( fichier )
+		self.downloadManager.download( fichier )
 	
 	def afficherDescriptionFichier( self, index ):
 		"""
@@ -417,18 +443,20 @@ class MainWindow( QtGui.QMainWindow ):
 			imageData = self.navigateur.getFile( urlImage )
 			self.emit( QtCore.SIGNAL( "nouvelleImageDescription(PyQt_PyObject)" ), imageData )
 
-		fichier = self.fichierTableView.model().listeFichiers[ index.row() ]
-		# Affiche la description
-		self.descriptionPlainTextEdit.clear()
-		if( fichier.descriptif != "" ):
-			self.descriptionPlainTextEdit.appendPlainText( stringToQstring( fichier.descriptif ) )
-		else:
-			self.plainTextEdit.appendPlainText( u"Aucune information disponible" )
-		# Recupere l'image
-		if( fichier.urlImage != "" ):
-			threading.Thread( target = threadRecupererImageDescription, args = ( self, fichier.urlImage ) ).start()
-		else:
-			self.afficherImageDescription( self.logoDefautPixmap )
+		fichier = self.fichierTableView.model().listeFichiers[ index.row() ]		
+		if( self.fichierAffiche != fichier ):
+			self.fichierAffiche = fichier
+			# Affiche la description
+			self.descriptionPlainTextEdit.clear()
+			if( fichier.descriptif != "" ):
+				self.descriptionPlainTextEdit.appendPlainText( stringToQstring( fichier.descriptif ) )
+			else:
+				self.descriptionPlainTextEdit.appendPlainText( u"Aucune information disponible" )
+			# Recupere l'image
+			if( fichier.urlImage != "" ):
+				threading.Thread( target = threadRecupererImageDescription, args = ( self, fichier.urlImage ) ).start()
+			else:
+				self.afficherImageDescription( self.logoDefautPixmap )
 
 	def afficherImageDescription( self, image ):
 		"""
@@ -440,3 +468,23 @@ class MainWindow( QtGui.QMainWindow ):
 		else:
 			imageOk = image
 		self.fichierLabel.setPixmap( imageOk.scaled( QtCore.QSize( 150, 150 ), QtCore.Qt.KeepAspectRatio ) )
+	
+	def afficherConfiguration( self ):
+		"""
+		Affiche la configuration
+		"""
+		# Repertoire de telechargement
+		repertoire = self.config.get( "Telechargements", "dossier" )
+		self.choixRepertoire.setDir( repertoire )
+		# Timeout du navigateur
+		timeout = self.config.get( "Navigateur", "timeout" )
+		self.timeOutSpinBox.setValue( int( timeout ) )
+		# Nombre de threads max du navigateur
+		threadMax = self.config.get( "Navigateur", "threads" )
+		self.threadSpinBox.setValue( int( threadMax ) )
+	
+	def enregistrerConfiguration( self, section, option, valeur ):
+		"""
+		Enregistre la configuration
+		"""
+		self.config.set( section, option, valeur )

@@ -50,6 +50,7 @@ class QtFolderChooser( QtGui.QWidget ):
 													)
 		if( os.path.isdir( currenDir ) ):
 			self.folderChooserLineEdit.setText( currenDir )
+			self.emit( QtCore.SIGNAL( "valueChanged(PyQt_PyObject)" ), currenDir )
 	
 	def getDir( self ):
 		"""
