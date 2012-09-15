@@ -24,12 +24,16 @@ class TelechargementsTableModel( QtCore.QAbstractTableModel ):
 		self.listeStatus = listeStatus
 		self.header = [ "Nom", "Avancement", "Taille", "Etat", "Stopper" ]
 
-	def addStatus( self, status ):
+	def changeStatus( self, status ):
 		if( status not in self.listeStatus ):
+			self.beginInsertRows( QtCore.QModelIndex(), len( self.listeStatus ) - 1, len( self.listeStatus ) -1 )
 			self.listeStatus.append( status )
+			self.endInsertRows()
 		else:
 			self.listeStatus[ self.listeStatus.index( status ) ] = status
-		self.reset()
+			indexTopLeft     = self.index( self.listeStatus.index( status ), 0 )
+			indexBottomRight = self.index( self.listeStatus.index( status ), len( self.header ) - 1 )
+			self.emit( QtCore.SIGNAL( "dataChanged(const QModelIndex &, const QModelIndex &)" ), indexTopLeft, indexBottomRight )
 					
 	def rowCount( self, parent ):
 		return len( self.listeStatus )
@@ -43,7 +47,7 @@ class TelechargementsTableModel( QtCore.QAbstractTableModel ):
 		return QtCore.QVariant()
 		
 	def data( self, index, role ):
-		if( not index.isValid ):
+		if( not index.isValid() ):
 			return QtCore.QVariant()
 		elif( role == QtCore.Qt.BackgroundRole ):
 			if( index.row() % 2 == 0 ):

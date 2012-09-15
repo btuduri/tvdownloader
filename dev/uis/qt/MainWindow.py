@@ -338,6 +338,8 @@ class MainWindow( QtGui.QMainWindow ):
 		Actions a realiser avant de quitter le programme
 		"""
 		self.config.save()
+		# Supprime la callback
+		self.downloadManager.removeDownloadCallback( self.telechargementsCallback )
 		# Stoppe le download manager
 		self.downloadManager.stop()
 		print "Bye bye"
@@ -504,4 +506,4 @@ class TelechargementsCallback( DownloadCallback ):
 		self.telechargementsWidget = telechargementsWidget
 	
 	def downloadStatus( self, status ):
-		self.telechargementsWidget.model().addStatus( status )
+		self.telechargementsWidget.model().changeStatus( status )

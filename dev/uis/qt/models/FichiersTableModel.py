@@ -42,7 +42,7 @@ class FichiersTableModel( QtCore.QAbstractTableModel ):
 		return QtCore.QVariant()
 		
 	def data( self, index, role ):
-		if( not index.isValid ):
+		if( not index.isValid() ):
 			return QtCore.QVariant()
 		elif( role == QtCore.Qt.BackgroundRole ):
 			if( index.row() % 2 == 0 ):
