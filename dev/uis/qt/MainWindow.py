@@ -20,6 +20,7 @@ from base.qt.qtString        import qstringToString
 from base.qt.qtString        import stringToQstring
 
 import core.Constantes as Constantes
+from core.DownloadManager import DownloadCallback
 
 from PyQt4 import QtCore
 from PyQt4 import QtGui
@@ -33,7 +34,7 @@ from uis.qt.models.FichiersTableModel import FichiersTableModel
 from uis.qt.models.TelechargementsTableModel import TelechargementsTableModel
 
 #
-# Classe
+# Classes
 #
 
 class MainWindow( QtGui.QMainWindow ):
@@ -211,7 +212,7 @@ class MainWindow( QtGui.QMainWindow ):
 		# Liste des telechargements
 		telechargementsTableModel = TelechargementsTableModel()
 		self.telechargementsWidget.setModel( telechargementsTableModel )
-		self.telechargementsWidget.setItemDelegateForColumn( 1, QtProgressBarDelegate() )
+		# self.telechargementsWidget.setItemDelegateForColumn( 1, QtProgressBarDelegate() )
 				
 		#
 		# Onglet Parametres
@@ -318,6 +319,12 @@ class MainWindow( QtGui.QMainWindow ):
 		# Variables
 		self.fichierAffiche = None
 		
+		# Ajout une callback pour le download manager
+		self.telechargementsCallback = TelechargementsCallback( self.telechargementsWidget )
+		self.downloadManager.addDownloadCallback( self.telechargementsCallback )
+		# Demarre le download manager
+		self.downloadManager.start()
+		
 		#
 		# A deplacer
 		#
@@ -331,6 +338,8 @@ class MainWindow( QtGui.QMainWindow ):
 		Actions a realiser avant de quitter le programme
 		"""
 		self.config.save()
+		# Stoppe le download manager
+		self.downloadManager.stop()
 		print "Bye bye"
 		
 	def listerPlugins( self ):
@@ -428,12 +437,9 @@ class MainWindow( QtGui.QMainWindow ):
 		"""
 		Met en place la liste des telechargements
 		"""
-		# Ajoute le fichier a la GUI
-		fichier = self.fichierTableView.model().listeFichiers[ index.row() ]
-		self.telechargementsWidget.model().addFile( fichier )
-		self.telechargementsWidget.resizeColumnsToContents()
 		# Ajoute le fichier au downloadManager
-		self.downloadManager.download( fichier )
+		fichier = self.fichierTableView.model().listeFichiers[ index.row() ]
+		idTelechargement = self.downloadManager.download( fichier )
 	
 	def afficherDescriptionFichier( self, index ):
 		"""
@@ -488,3 +494,14 @@ class MainWindow( QtGui.QMainWindow ):
 		Enregistre la configuration
 		"""
 		self.config.set( section, option, valeur )
+
+class TelechargementsCallback( DownloadCallback ):
+	"""
+	Callback appelee lors de la mise a jour d'un telechargement
+	"""
+	def __init__( self, telechargementsWidget ):
+		DownloadCallback.__init__( self )
+		self.telechargementsWidget = telechargementsWidget
+	
+	def downloadStatus( self, status ):
+		self.telechargementsWidget.model().addStatus( status )
