@@ -63,13 +63,15 @@ class MainWindow( QtGui.QMainWindow ):
 		# Icones
 		#
 		
-		self.tvdIco    = QtGui.QIcon( "uis/qt/ico/TVDownloader.png" )
-		self.folderIco = QtGui.QIcon( "uis/qt/ico/gtk-folder.svg" )
-		self.startIco  = QtGui.QIcon( "uis/qt/ico/gtk-media-play-ltr.svg" )
-		self.stoprIco  = QtGui.QIcon( "uis/qt/ico/gtk-media-stop.svg" )
-		# self.addIco    = QtGui.QIcon( "uis/qt/ico/gtk-add.svg" )
-		# self.applyIco  = QtGui.QIcon( "uis/qt/ico/gtk-apply.svg" )
-		# self.fileIco   = QtGui.QIcon( "uis/qt/ico/gtk-file.svg" )
+		self.tvdIco      = QtGui.QIcon( "uis/qt/ico/TVDownloader.png" )
+		self.folderIco   = QtGui.QIcon( "uis/qt/ico/gtk-folder.svg" )
+		self.startIco    = QtGui.QIcon( "uis/qt/ico/gtk-media-play-ltr.svg" )
+		self.settingsIco = QtGui.QIcon( "uis/qt/ico/gtk-preferences.svg" )
+		self.fileIco     = QtGui.QIcon( "uis/qt/ico/gtk-file.svg" )
+		self.downloadIco = QtGui.QIcon( "uis/qt/ico/fr_stock_add.svg" )
+		self.pauseIco    = QtGui.QIcon( "uis/qt/ico/gtk-media-pause.svg" )
+		self.cancelIco   = QtGui.QIcon( "uis/qt/ico/gtk-cancel.svg" )
+		self.deleteIco   = QtGui.QIcon( "uis/qt/ico/gtk-delete-full.svg" )
 		
 		#
 		# Signaux
@@ -121,15 +123,15 @@ class MainWindow( QtGui.QMainWindow ):
 		
 		# Onglet Fichiers
 		self.fichiersWidget = QtGui.QSplitter( QtCore.Qt.Vertical, self.centralWidget )
-		self.tabWidget.addTab( self.fichiersWidget, u"Choix des fichiers" )
+		self.tabWidget.addTab( self.fichiersWidget, self.fileIco, u"Choix des fichiers" )
 		
 		# Onglet Telechargements
 		self.telechargementsWidget = QtTableView( self.centralWidget )
-		self.tabWidget.addTab( self.telechargementsWidget, u"Téléchargements" )
+		self.tabWidget.addTab( self.telechargementsWidget, self.downloadIco, u"Téléchargements" )
 		
 		# Onglet Parametres
 		self.parametresWidget = QtGui.QWidget( self.centralWidget )
-		self.tabWidget.addTab( self.parametresWidget, u"Paramètres" )
+		self.tabWidget.addTab( self.parametresWidget, self.settingsIco, u"Paramètres" )
 		
 		#
 		# Onglet Fichiers
@@ -213,6 +215,27 @@ class MainWindow( QtGui.QMainWindow ):
 		telechargementsTableModel = TelechargementsTableModel()
 		self.telechargementsWidget.setModel( telechargementsTableModel )
 		# self.telechargementsWidget.setItemDelegateForColumn( 1, QtProgressBarDelegate() )
+		
+		# Menu clic droit sur la liste des telechargements
+		self.telechargementsWidget.setContextMenuPolicy( QtCore.Qt.ActionsContextMenu )
+		
+		# self.telechargementsWidget.addAction( QtGui.QAction( self.pauseIco, stringToQstring( "Susprendre le téléchargement" ), self.telechargementsWidget ) )
+		
+		# self.telechargementsWidget.addAction( QtGui.QAction( self.startIco, stringToQstring( "Reprendre le téléchargement" ), self.telechargementsWidget ) )
+		
+		# Action pour annuler un telechargement
+		cancelAction = QtGui.QAction( self.cancelIco, stringToQstring( "Annuler le téléchargement" ), self.telechargementsWidget )
+		self.telechargementsWidget.addAction( cancelAction )
+		QtCore.QObject.connect( cancelAction,
+								QtCore.SIGNAL( "triggered()" ),
+								self.supprimerTelechargement )		
+		
+		# Action pour effacer les telechargement termines de la liste
+		clearListAction = QtGui.QAction( self.deleteIco, stringToQstring( "Effacer les téléchargements terminées de la liste" ), self.telechargementsWidget )
+		self.telechargementsWidget.addAction( clearListAction )
+		QtCore.QObject.connect( clearListAction,
+								QtCore.SIGNAL( "triggered()" ),
+								telechargementsTableModel.clearList )
 				
 		#
 		# Onglet Parametres
@@ -496,6 +519,32 @@ class MainWindow( QtGui.QMainWindow ):
 		Enregistre la configuration
 		"""
 		self.config.set( section, option, valeur )
+
+	def getCurrentSelectedDownload( self ):
+		"""
+		Renvoie l'indice du telechargement selectionne
+		"""
+		rows = self.telechargementsWidget.selectionModel().selectedRows()
+		if( len( rows ) == 1 ):
+			return rows[ 0 ].row()
+		else:
+			return -1
+	
+	# def suspendreTelechargement( self ):
+		# """
+		# Suspend le telechargement selectionne
+		# """		
+		# row = self.getCurrentSelectedDownload()
+		# if( row != -1 ):
+		
+	def supprimerTelechargement( self ):
+		"""
+		Supprime le telechargement selectionne
+		"""
+		row = self.getCurrentSelectedDownload()
+		if( row != -1 ):
+			self.downloadManager.stopDownload( self.telechargementsWidget.model().listeStatus[ row ].num )
+			self.telechargementsWidget.model().removeDownload( row )
 
 class TelechargementsCallback( DownloadCallback ):
 	"""

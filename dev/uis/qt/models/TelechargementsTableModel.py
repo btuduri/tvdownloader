@@ -22,11 +22,14 @@ class TelechargementsTableModel( QtCore.QAbstractTableModel ):
 	def __init__( self, listeStatus = [], parent = None ):
 		QtCore.QAbstractTableModel.__init__( self, parent )
 		self.listeStatus = listeStatus
-		self.header = [ "Nom", "Avancement", "Taille", "Etat", "Stopper" ]
+		self.header = [ "Nom", "Avancement", "Reçu", "Etat" ]
 
 	def changeStatus( self, status ):
+		"""
+		Ajoute ou met a jour le status d'un telechargement
+		"""
 		if( status not in self.listeStatus ):
-			self.beginInsertRows( QtCore.QModelIndex(), len( self.listeStatus ) - 1, len( self.listeStatus ) -1 )
+			self.beginInsertRows( QtCore.QModelIndex(), len( self.listeStatus ), len( self.listeStatus ) )
 			self.listeStatus.append( status )
 			self.endInsertRows()
 		else:
@@ -34,7 +37,26 @@ class TelechargementsTableModel( QtCore.QAbstractTableModel ):
 			indexTopLeft     = self.index( self.listeStatus.index( status ), 0 )
 			indexBottomRight = self.index( self.listeStatus.index( status ), len( self.header ) - 1 )
 			self.emit( QtCore.SIGNAL( "dataChanged(const QModelIndex &, const QModelIndex &)" ), indexTopLeft, indexBottomRight )
-					
+	
+	def clearList( self ):
+		"""
+		Supprime de la liste les telechargements termines
+		"""
+		for i in range( len( self.listeStatus ) - 1, -1, -1 ):
+			if( self.listeStatus[ i ].getStatusText() == "COMPLETED" ):
+				self.beginRemoveRows( QtCore.QModelIndex(), i, i )
+				del self.listeStatus[ i ]
+				self.endRemoveRows()
+	
+	def removeDownload( self, index ):
+		"""
+		Supprime un telechargement
+		"""
+		if( index != -1 ):
+			self.beginRemoveRows( QtCore.QModelIndex(), index, index )
+			del self.listeStatus[ index ]
+			self.endRemoveRows()		
+		
 	def rowCount( self, parent ):
 		return len( self.listeStatus )
 		
@@ -43,7 +65,7 @@ class TelechargementsTableModel( QtCore.QAbstractTableModel ):
 	
 	def headerData( self, section, orientation, role ):
 		if( orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole ):
-			return QtCore.QVariant( self.header[ section ] )
+			return QtCore.QVariant( stringToQstring( self.header[ section ] ) )
 		return QtCore.QVariant()
 		
 	def data( self, index, role ):
@@ -65,7 +87,7 @@ class TelechargementsTableModel( QtCore.QAbstractTableModel ):
 				else:
 					pourcent = "%.2f %%" %( 100 * taille / float( tailleTotale ) )
 				return QtCore.QVariant( stringToQstring( pourcent ) )
-			elif( index.column() == 2 ): # Taille
+			elif( index.column() == 2 ): # Recu
 				taille = self.listeStatus[ index.row() ].downloaded
 				if( taille < 1024 ):
 					tailleString = "%.2f o" %( taille )
@@ -76,8 +98,6 @@ class TelechargementsTableModel( QtCore.QAbstractTableModel ):
 				return QtCore.QVariant( stringToQstring( tailleString ) )
 			elif( index.column() == 3 ): # Etat
 				return QtCore.QVariant( stringToQstring( self.listeStatus[ index.row() ].getStatusText().title() ) )
-			elif( index.column() == 4 ): # Stopper
-				return QtCore.QVariant( stringToQstring( "Pas encore..." ) )
 		else:
 			return QtCore.QVariant()
 
