@@ -172,7 +172,7 @@ class Plugin(object):
 	def afficher(self, text, ligne=None):
 		if ligne != None:
 			logger.warn("Le paramètre ligne n'a plus aucun effet.")
-		logger.info(self.nom+":"+text)
+		logger.info(self.nom+": "+text)
 	
 	## Sauvegarde les options.
 	#
@@ -221,8 +221,8 @@ class Plugin(object):
 			file = open(self.fichierCache, "w")
 			pickle.dump(objet, file)
 			file.close()
-		except:
-			logger.error("Plugin.sauvegarderCache(): Erreur de sauvegarde")
+		except Exception as ex:
+			logger.error("Erreur de sauvegarde: "+ex.message)
 	
 	## Charge le fichier de cache.
 	# @param self le plugin courant
@@ -234,8 +234,8 @@ class Plugin(object):
 				tmp = pickle.load(file)
 				file.close()
 				return tmp
-			except:
-				logger.error("Plugin.chargerCache(): Erreur de chargement")
+			except Exception as ex:
+				logger.error("Erreur de chargement: "+ex.message)
 				return None
 		else:
 			return None

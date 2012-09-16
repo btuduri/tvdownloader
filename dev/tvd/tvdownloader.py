@@ -17,6 +17,11 @@ LAUNCHER_AUTHKEY = "tvdkey"
 LOCK_FILE_PATH = tvdcore.REPERTOIRE_CONFIGURATION+"/LOCK"
 UNLOCK_ARG = "--unlock"
 
+
+# Mise en place du logger de TVDownloader
+logger  = logging.getLogger( "TVDownloader" )
+console = logging.StreamHandler( sys.stdout )
+
 flock = FileLock(tvdcore.REPERTOIRE_CONFIGURATION)
 
 if UNLOCK_ARG in sys.argv:
@@ -56,9 +61,9 @@ class UIRunner(threading.Thread):
 	def run(self):
 		if os.path.isfile(path):
 			runpy.run_path(self.path, init_globals=None, run_name=UI_RUN__NAME__)
-			print "UI "+self.name+" fermée"
+			logger.info("UI "+self.name+" fermée")
 		else:
-			print "L'ui "+self.path+" est introuvable"
+			logger.error("L'ui "+self.path+" est introuvable")
 		self.callback.onEnd(self.name)
 
 class UILauncher(threading.Thread, UICallback):
@@ -70,7 +75,7 @@ class UILauncher(threading.Thread, UICallback):
 	
 	def lauchUI(self, name, path):
 		if name in self.threads:
-			print "L'ui "+name+" est déjà lancée"
+			logger.warning("L'ui "+name+" est déjà lancée")
 		else:
 			self.threads[name] = UIRunner(self, name, path)
 			self.threads[name].start()
@@ -90,13 +95,10 @@ if __name__ == "__main__" :
 			break
 	path = "./uis/"+uiname+"/main.py"
 	if not(os.path.isfile(path)):
-		print "L'ui "+uiname+" est introuvable"
+		logger.error("L'ui "+uiname+" est introuvable")
 		sys.exit(1)
 
-	# Mise en place du logger de TVDownloader
-	logger  = logging.getLogger( "TVDownloader" )
-	console = logging.StreamHandler( sys.stdout )
-	# if( options.verbose ):
+	# if( options.verbose ):#TODO
 	if( True ):
 		logger.setLevel( logging.DEBUG )
 		console.setLevel( logging.DEBUG )
@@ -105,19 +107,6 @@ if __name__ == "__main__" :
 		console.setLevel( logging.INFO )
 	console.setFormatter( tvdcore.ColorFormatter( True ) )
 	logger.addHandler( console )
-	
-	# Mise en place du logger des fichiers de base
-	loggerBase  = logging.getLogger( "base" )
-	consoleBase = logging.StreamHandler( sys.stdout )
-	# if( options.verbose ):
-	if( True ):
-		loggerBase.setLevel( logging.DEBUG )
-		consoleBase.setLevel( logging.DEBUG )
-	else:
-		loggerBase.setLevel( logging.INFO )
-		consoleBase.setLevel( logging.INFO )
-	consoleBase.setFormatter( tvdcore.ColorFormatter( True ) )
-	loggerBase.addHandler( consoleBase )
 	
 	if isLaunched():
 		#TODO Appel au laucher d'ui dans le processus lancé
@@ -151,7 +140,7 @@ if __name__ == "__main__" :
 			time.sleep(0.1)
 		manager.shutdown()
 		pluginMan.fermeture()
-		context.release()
 		context.historique.sauverHistorique()
+		context.release()
 		#unlockLaunch()
 

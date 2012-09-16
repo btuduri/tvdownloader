@@ -84,6 +84,8 @@ class PluginManager( object ):
 				derniereVersion = True
 				# Pour les autres repertoires de plugins
 				for autreRep in ( set( Constantes.REPERTOIRES_PLUGINS ).difference( set( [ rep ] ) ) ):
+					if not os.path.isdir(autreRep):
+						continue
 					# Si le fichier existe dans l'autre repertoire
 					if( fichier in os.listdir( autreRep ) ):
 						# Si la version du plugin de l'autre repertoire est plus recente

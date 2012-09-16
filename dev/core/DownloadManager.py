@@ -7,7 +7,7 @@ from DownloaderFactory import *
 from TVDContext import TVDContext
 
 import logging
-logger = logging.getLogger( "tvd.DownloadManager" )
+logger = logging.getLogger( "TVDownloader" )
 
 class DownloadManager(threading.Thread):
 	BUFFER_SIZE = 8000
@@ -97,17 +97,20 @@ class DownloadManager(threading.Thread):
 			for dl in self.downloads:
 				st = dl.getStatus().getStatus()
 				if st == DownloadStatus.DOWN or st == DownloadStatus.PAUSED:
+					logger.debug("téléchargement actif: "+str(dl.getNum()))
 					activeDls.append(dl)
 			for newDl in self.downloads:
 				if len(activeDls) >= self.maxDownloads:
 					return activeDls
 				if newDl.getStatus().getStatus() != DownloadStatus.QUEUED:
 					continue
+				logger.debug("démarrage du téléchargement: "+str(newDl.getNum()))
 				newDl.start()
 				if newDl.getStatus().getStatus() == DownloadStatus.DOWN:
+					logger.debug("téléchargement en cours: "+str(newDl.getNum()))
 					activeDls.append(newDl)
 				else:
-					logger.warning("Echec de lancement du téléchargement pour \""+str(newDl.getStatus().getName())+"\"")
+					logger.warning("Echec de lancement du téléchargement pour \""+str(newDl.getName())+"\"")
 					newDl.getStatus().status = DownloadStatus.FAILED
 				self.callbackGroup(newDl.getStatus())
 			return activeDls
@@ -115,12 +118,14 @@ class DownloadManager(threading.Thread):
 		def stopDls(nums):
 			for dl in self.downloads:
 				if dl.getStatus().getNum() in nums and isActive(dl):
+					logger.debug("arrêt du téléchargement: "+str(dl.getNum()))
 					dl.stop()
 					self.callbackGroup(dl.getStatus())
 		@SynchronizedWith(self)
 		def stopDl(num):
 			for dl in self.downloads:
 				if dl.getStatus().getNum() == num and isActive(dl):
+					logger.debug("arrêt téléchargement: "+str(dl.getNum()))
 					dl.stop()
 					self.callbackGroup(dl.getStatus())
 					return
@@ -152,6 +157,7 @@ class DownloadManager(threading.Thread):
 	
 	@Synchronized
 	def download (self, fichier) :
+		logger.debug("téléchargement de "+fichier)
 		self.downloads.append(Download(fichier, self.nextNumDownload))
 		res = self.nextNumDownload
 		self.nextNumDownload = self.nextNumDownload+1
@@ -220,6 +226,9 @@ class Download :
 	
 	def getStatus(self):
 		return self.status
+		
+	def getNum(self):
+		return self.status.getNum()
 
 ## Interface des callbacks de DownloaderManager;
 #
