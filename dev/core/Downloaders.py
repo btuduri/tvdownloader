@@ -172,12 +172,19 @@ class RtmpDownloader(DownloaderInterface):
 			fcntl.fcntl( fno, fcntl.F_SETFL, fcntl.fcntl( fno, fcntl.F_GETFL ) | os.O_NDELAY )
 			select.select([fno],[],[], 0.2)#Attente le temps de la connexion au serveur
 			try:
-				while len(select.select([fno],[],[], 0.2)[0]) > 0:#Recherche de la taille du fichier
+				descriptionFound = False
+				while len(select.select([fno],[],[], 0.5)[0]) > 0:#Recherche de la description du fichier
 					line = self.process.stderr.readline()
-					match = re.search(RtmpDownloader.LENGHT_PATTERN, line)
-					if match != None:
-						self.size = float(match.group(1))
+					if "sampledescription:" in line:
+						descriptionFound = True
 						break
+				if descriptionFound:
+					while len(select.select([fno],[],[], 0.5)[0]) > 0:#Recherche de la taille du fichier
+						line = self.process.stderr.readline()
+						match = re.search(RtmpDownloader.LENGHT_PATTERN, line)
+						if match != None:
+							self.size = float(match.group(1))
+							break
 				while len(select.select([fno],[],[], 0.01)[0]) > 0:#On vide le pipe
 					line = self.process.stderr.readline()
 			except Exception, e:

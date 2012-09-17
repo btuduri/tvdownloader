@@ -140,7 +140,7 @@ class DownloadManager(threading.Thread):
 						dl.step()
 					else:
 						before = time.time()
-						dl.step()
+						success = dl.step()
 						after = time.time()
 						dled = dl.getLastStepLength()
 						if self.maxSpeed > 0:
@@ -190,7 +190,7 @@ class Download :
 		self.status.size = self.dler.getSize()
 		return True
 	
-	def stop(self):
+	def interrupt(self):
 		self.outfile.close()
 		self.dler.stop()
 		if self.status.status != DownloadStatus.COMPLETED:
@@ -216,6 +216,7 @@ class Download :
 		dled = len(data)
 		if dled == 0:
 			self.status.status = DownloadStatus.COMPLETED
+			self.dler.stop()
 			return None
 		else:
 			self.lastStepLength = dled
