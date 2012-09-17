@@ -97,7 +97,7 @@ class DownloadManager(threading.Thread):
 			for dl in self.downloads:
 				st = dl.getStatus().getStatus()
 				if st == DownloadStatus.DOWN or st == DownloadStatus.PAUSED:
-					logger.debug("téléchargement actif: "+str(dl.getNum()))
+					#logger.debug("téléchargement actif: "+str(dl.getNum()))
 					activeDls.append(dl)
 			for newDl in self.downloads:
 				if len(activeDls) >= self.maxDownloads:
@@ -157,7 +157,7 @@ class DownloadManager(threading.Thread):
 	
 	@Synchronized
 	def download (self, fichier) :
-		logger.debug("téléchargement de "+fichier)
+		#logger.debug("téléchargement de "+fichier)
 		self.downloads.append(Download(fichier, self.nextNumDownload))
 		res = self.nextNumDownload
 		self.nextNumDownload = self.nextNumDownload+1
