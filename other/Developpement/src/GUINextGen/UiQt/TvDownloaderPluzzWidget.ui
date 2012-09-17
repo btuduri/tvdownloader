@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>TvDownloaderPluzzWidget</class>
+ <widget class="QWidget" name="TvDownloaderPluzzWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>760</width>
+    <height>540</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <widget class="QWidget" name="gridLayoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>10</y>
+     <width>741</width>
+     <height>521</height>
+    </rect>
+   </property>
+   <layout class="QGridLayout" name="gridLayout_TV">
+    <item row="0" column="0">
+     <widget class="QPushButton" name="pushButton_France2">
+      <property name="cursor">
+       <cursorShape>PointingHandCursor</cursorShape>
+      </property>
+      <property name="mouseTracking">
+       <bool>false</bool>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::TabFocus</enum>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string notr="true">France 2</string>
+      </property>
+      <property name="icon">
+       <iconset>
+        <normaloff>img/02_France2_256x256.png</normaloff>img/02_France2_256x256.png</iconset>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>128</width>
+        <height>128</height>
+       </size>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QPushButton" name="pushButton_France3">
+      <property name="cursor">
+       <cursorShape>PointingHandCursor</cursorShape>
+      </property>
+      <property name="mouseTracking">
+       <bool>false</bool>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::TabFocus</enum>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string notr="true">France 3</string>
+      </property>
+      <property name="icon">
+       <iconset>
+        <normaloff>img/03_France3_256x256.png</normaloff>img/03_France3_256x256.png</iconset>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>128</width>
+        <height>128</height>
+       </size>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QPushButton" name="pushButton_France5">
+      <property name="cursor">
+       <cursorShape>PointingHandCursor</cursorShape>
+      </property>
+      <property name="mouseTracking">
+       <bool>false</bool>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::NoFocus</enum>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string notr="true">France 5</string>
+      </property>
+      <property name="icon">
+       <iconset>
+        <normaloff>img/05_France5_256x256.png</normaloff>img/05_France5_256x256.png</iconset>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>128</width>
+        <height>128</height>
+       </size>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="QPushButton" name="pushButton_FranceO">
+      <property name="cursor">
+       <cursorShape>PointingHandCursor</cursorShape>
+      </property>
+      <property name="mouseTracking">
+       <bool>false</bool>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::NoFocus</enum>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string notr="true">France O</string>
+      </property>
+      <property name="icon">
+       <iconset>
+        <normaloff>img/19_FranceO_256x256.png</normaloff>img/19_FranceO_256x256.png</iconset>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>128</width>
+        <height>128</height>
+       </size>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="2">
+     <widget class="QPushButton" name="pushButton_France4">
+      <property name="cursor">
+       <cursorShape>PointingHandCursor</cursorShape>
+      </property>
+      <property name="mouseTracking">
+       <bool>false</bool>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::NoFocus</enum>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string notr="true">France 4</string>
+      </property>
+      <property name="icon">
+       <iconset>
+        <normaloff>img/14_France4_256x256.png</normaloff>img/14_France4_256x256.png</iconset>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>128</width>
+        <height>128</height>
+       </size>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="2">
+     <widget class="QPushButton" name="pushButton_Back">
+      <property name="cursor">
+       <cursorShape>PointingHandCursor</cursorShape>
+      </property>
+      <property name="mouseTracking">
+       <bool>false</bool>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::NoFocus</enum>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string notr="true">Retour</string>
+      </property>
+      <property name="icon">
+       <iconset>
+        <normaloff>ico/gtk-go-back.svg</normaloff>ico/gtk-go-back.svg</iconset>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>128</width>
+        <height>128</height>
+       </size>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>pushButton_Back</sender>
+   <signal>clicked()</signal>
+   <receiver>TvDownloaderPluzzWidget</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>628</x>
+     <y>381</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>379</x>
+     <y>269</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>
