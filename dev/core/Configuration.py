@@ -28,6 +28,10 @@ mutex = threading.Lock()
 class Configuration( object ):
 	__metaclass__ = Singleton
 	
+	TVD_REPERTOIRE_TELECHARGEMENT = ( "Telechargements", "dossier" )
+	NAVIGATEUR_TIMEOUT            = ( "Navigateur", "timeout" )
+	NAVIGATEUR_THREADS            = ( "Navigateur", "threads" )
+	
 	def __init__( self, configFileName = Constantes.FICHIER_CONFIGURATION_TVD, configFileNameDefaut = Constantes.FICHIER_CONFIGURATION_DEFAUT_TVD ):
 		self.configFileName       = configFileName
 		self.configFileNameDefaut = configFileNameDefaut
@@ -56,7 +60,8 @@ class Configuration( object ):
 			self.configParser.write( configFile )
 	
 	@synchronized( mutex )
-	def get( self, section, option ):
+	def get( self, elmt ):
+		( section, option ) = elmt
 		if( self.configParser.has_option( section, option ) ):
 			return self.configParser.get( section, option )
 		else:
@@ -68,7 +73,8 @@ class Configuration( object ):
 				return None
 
 	@synchronized( mutex )
-	def set( self, section, option, value ):
+	def set( self, elmt, value ):
+		( section, option ) = elmt
 		if( not self.configParser.has_section( section ) ):
 			self.configParser.add_section( section )
 		self.configParser.set( section, option, value )

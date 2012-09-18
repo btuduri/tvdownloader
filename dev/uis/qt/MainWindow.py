@@ -19,6 +19,7 @@ from base.qt.QtFolderChooser import QtFolderChooser
 from base.qt.qtString        import qstringToString
 from base.qt.qtString        import stringToQstring
 
+from core.Configuration import Configuration
 import core.Constantes as Constantes
 from core.DownloadManager import DownloadCallback
 
@@ -254,7 +255,7 @@ class MainWindow( QtGui.QMainWindow ):
 		self.choixRepertoire = QtFolderChooser( self.parametresWidget, self.folderIco )
 		QtCore.QObject.connect( self.choixRepertoire,
 								QtCore.SIGNAL( "valueChanged(PyQt_PyObject)" ),
-								lambda valeur : self.enregistrerConfiguration( "Telechargements", "dossier", valeur ) )
+								lambda valeur : self.enregistrerConfiguration( Configuration.TVD_REPERTOIRE_TELECHARGEMENT, valeur ) )
 		self.parametresLayout.addRow( u"Répertoire de téléchargement :", self.choixRepertoire )
 		
 		# Titre Internet
@@ -269,7 +270,7 @@ class MainWindow( QtGui.QMainWindow ):
 		self.timeOutSpinBox.setMaximum( 60 )
 		QtCore.QObject.connect( self.timeOutSpinBox,
 								QtCore.SIGNAL( "valueChanged(int)" ),
-								lambda valeur : self.enregistrerConfiguration( "Navigateur", "timeout", str( valeur ) ) )
+								lambda valeur : self.enregistrerConfiguration( Configuration.NAVIGATEUR_TIMEOUT, str( valeur ) ) )
 		self.parametresLayout.addRow( u"Time out (en s) :", self.timeOutSpinBox )
 		
 		# Nombre de threads du navigateur
@@ -278,7 +279,7 @@ class MainWindow( QtGui.QMainWindow ):
 		self.threadSpinBox.setMaximum( 100 )
 		QtCore.QObject.connect( self.threadSpinBox,
 								QtCore.SIGNAL( "valueChanged(int)" ),
-								lambda valeur : self.enregistrerConfiguration( "Navigateur", "threads", str( valeur ) ) )
+								lambda valeur : self.enregistrerConfiguration( Configuration.NAVIGATEUR_THREADS, str( valeur ) ) )
 		self.parametresLayout.addRow( u"Nombre de threads max :", self.threadSpinBox )
 		
 		#
@@ -351,7 +352,6 @@ class MainWindow( QtGui.QMainWindow ):
 		#
 		# A deplacer
 		#
-		from core.Configuration import Configuration
 		
 		self.config = Configuration()
 		self.afficherConfiguration()
@@ -504,20 +504,20 @@ class MainWindow( QtGui.QMainWindow ):
 		Affiche la configuration
 		"""
 		# Repertoire de telechargement
-		repertoire = self.config.get( "Telechargements", "dossier" )
+		repertoire = self.config.get( Configuration.TVD_REPERTOIRE_TELECHARGEMENT )
 		self.choixRepertoire.setDir( repertoire )
 		# Timeout du navigateur
-		timeout = self.config.get( "Navigateur", "timeout" )
+		timeout = self.config.get( Configuration.NAVIGATEUR_TIMEOUT )
 		self.timeOutSpinBox.setValue( int( timeout ) )
 		# Nombre de threads max du navigateur
-		threadMax = self.config.get( "Navigateur", "threads" )
+		threadMax = self.config.get( Configuration.NAVIGATEUR_THREADS )
 		self.threadSpinBox.setValue( int( threadMax ) )
 	
-	def enregistrerConfiguration( self, section, option, valeur ):
+	def enregistrerConfiguration( self, elmt, valeur ):
 		"""
 		Enregistre la configuration
 		"""
-		self.config.set( section, option, valeur )
+		self.config.set( elmt, valeur )
 
 	def getCurrentSelectedDownload( self ):
 		"""
