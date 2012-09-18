@@ -181,9 +181,9 @@ class MainWindow( QtGui.QMainWindow ):
 		fichierTableModel = FichiersTableModel()
 		self.fichierTableView.setModel( fichierTableModel )
 		self.fichierLayout.addWidget( self.fichierTableView )
-		
-		QtCore.QObject.connect( self.fichierTableView,
-								QtCore.SIGNAL( "clicked(const QModelIndex &)" ),
+
+		QtCore.QObject.connect( self.fichierTableView.selectionModel(),
+								QtCore.SIGNAL( "selectionChanged(const QItemSelection &, const QItemSelection &)" ),
 								self.afficherDescriptionFichier )	
 		
 		QtCore.QObject.connect( self.fichierTableView,
@@ -340,7 +340,7 @@ class MainWindow( QtGui.QMainWindow ):
 		self.listerPlugins()
 		
 		# Variables
-		self.fichierAffiche = None
+		
 		
 		# Ajout une callback pour le download manager
 		self.telechargementsCallback = TelechargementsCallback( self.telechargementsWidget )
@@ -466,17 +466,16 @@ class MainWindow( QtGui.QMainWindow ):
 		fichier = self.fichierTableView.model().listeFichiers[ index.row() ]
 		idTelechargement = self.downloadManager.download( fichier )
 	
-	def afficherDescriptionFichier( self, index ):
+	def afficherDescriptionFichier( self, selected, deselected ):
 		"""
 		Affiche les informations du fichier selectionne
 		"""
 		def threadRecupererImageDescription( self, urlImage ):
 			imageData = self.navigateur.getFile( urlImage )
 			self.emit( QtCore.SIGNAL( "nouvelleImageDescription(PyQt_PyObject)" ), imageData )
-
-		fichier = self.fichierTableView.model().listeFichiers[ index.row() ]		
-		if( self.fichierAffiche != fichier ):
-			self.fichierAffiche = fichier
+		
+		if( selected.indexes() != deselected.indexes() ):
+			fichier = self.fichierTableView.model().listeFichiers[ selected.indexes()[ 0 ].row() ]		
 			# Affiche la description
 			self.descriptionPlainTextEdit.clear()
 			if( fichier.descriptif != "" ):
