@@ -157,11 +157,14 @@ class HttpDownloader (DownloaderInterface) :
 class RtmpDownloader(DownloaderInterface):
 	RTMP_URL_PATTERN = re.compile("(?P<scheme>[^:]*)://(?P<host>[^/^:]*):{0,1}(?P<port>[^/]*)/(?P<app>.*?)/(?P<playpath>\w*?\:.*)", re.DOTALL)
 	LENGHT_PATTERN = re.compile("length[^0-9]*([0-9]*.[0-9]*)")
+	PROGRESS_PATTERN = re.compile("\(([0-9]+[.]?[0-9]*)%\)")
 	
 	def __init__(self, url) :
 		DownloaderInterface.__init__(self)
 		self.command = RtmpDownloader.urlToRtmpdump(url)
+		print self.command
 		self.size = 0
+		self.dled = 0
 		self.process = None
 	
 	def start(self):
@@ -198,12 +201,19 @@ class RtmpDownloader(DownloaderInterface):
 	
 	def read (self, n) :
 		try:
+			line = ""
 			while len(select.select([self.process.stderr.fileno()],[],[], 0.05)[0]) > 0:#On vide le pipe
-				self.process.stderr.readline()
+				line = self.process.stderr.readline()
+			#Récupération de la progression pour estimation de la taille
+			match = re.search(RtmpDownloader.PROGRESS_PATTERN, line)
+			if match != None:
+				self.size = (float(match.group(1))/100)*self.dled
 		except:
 			pass
 		if len(select.select([self.process.stdout.fileno()],[],[], 0.2)[0]) > 0:
-			return self.process.stdout.read(n)
+			data = self.process.stdout.read(n)
+			self.dled = self.dled+len(data)
+			return data
 		else:
 			return ""
 	

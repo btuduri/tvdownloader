@@ -8,6 +8,7 @@ from TVDContext import TVDContext
 
 import logging
 logger = logging.getLogger( "TVDownloader" )
+#dmlogger = logger
 
 class DownloadManager(threading.Thread):
 	BUFFER_SIZE = 8000
@@ -119,36 +120,47 @@ class DownloadManager(threading.Thread):
 			for dl in self.downloads:
 				if dl.getStatus().getNum() in nums and isActive(dl):
 					logger.debug("arrêt du téléchargement: "+str(dl.getNum()))
-					dl.stop()
+					dl.interrupt()
 					self.callbackGroup(dl.getStatus())
 		@SynchronizedWith(self)
 		def stopDl(num):
 			for dl in self.downloads:
 				if dl.getStatus().getNum() == num and isActive(dl):
 					logger.debug("arrêt téléchargement: "+str(dl.getNum()))
-					dl.stop()
+					dl.interrupt()
 					self.callbackGroup(dl.getStatus())
 					return
 		pause = 0
 		while not(self.stopped):
+			#dmlogger.debug("Téléchargement...")
 			activeDls = retrieveDls()
 			if len(activeDls) == 0:
-				time.sleep(0.1)#Utiliser les cond...
+				#dmlogger.debug("Pause, rien a dl")
+				time.sleep(0.5)#Utiliser les cond...
 			else:
 				for dl in activeDls:
-					if self.maxSpeed == 0:
+					if self.maxSpeed <= 0:
+						#dmlogger.debug("step sur téléchargement: "+str(dl.getNum()))
 						dl.step()
 					else:
 						before = time.time()
 						success = dl.step()
 						after = time.time()
-						dled = dl.getLastStepLength()
+						stepLength = dl.getLastStepLength()
+						#dmlogger.debug("step sur téléchargement "+str(dl.getNum())+": "+str(stepLength))
 						if self.maxSpeed > 0:
-							pause = pause+(dled/(1.0*self.maxSpeed))-(after-before)
+							stepDelta = (after-before)#Temps de téléchargement du step
+							stepSpeed = stepLength/stepDelta#Vitesse de téléchargement du step
+							stepMinDelta = (1.0*stepLength)/(1.0*self.maxSpeed)#Temps minimum de téléchargement avec maxSpeed
+							pause = (stepMinDelta-stepDelta)#Ajout de la différence
+							#dmlogger.debug("pause: "+str(pause))
+							if pause > 0:
+								time.sleep(pause)
 					self.callbackGroup(dl.getStatus())
-				if self.maxSpeed > 0 or pause < 0.33:
-					time.sleep(pause)
-					pause = 0
+				#if self.maxSpeed > 0 and pause > 0:
+				#	#dmlogger.debug("pause: "+str(pause))
+				#	time.sleep(pause)
+				#	pause = 0
 			stopDls(self.downloadToStop)
 		#Arrêt de tout les téléchargements
 		for dl in self.downloads:
@@ -157,7 +169,9 @@ class DownloadManager(threading.Thread):
 	
 	@Synchronized
 	def download (self, fichier) :
-		#logger.debug("téléchargement de "+fichier)
+		logger.debug("téléchargement "+str(self.nextNumDownload))
+		logger.debug(fichier.lien)
+		logger.debug(fichier.nomFichierSortie)
 		self.downloads.append(Download(fichier, self.nextNumDownload))
 		res = self.nextNumDownload
 		self.nextNumDownload = self.nextNumDownload+1
@@ -165,7 +179,7 @@ class DownloadManager(threading.Thread):
 
 #TODO Différencier arrêt en cour et fin de dl
 class Download :
-	STEP_SIZE = 16000
+	STEP_SIZE = 32000
 	def __init__(self, fichier, num):
 		self.fichier = fichier
 		self.dler = fichier.getDownloader()
