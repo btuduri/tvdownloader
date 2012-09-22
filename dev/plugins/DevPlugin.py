@@ -46,7 +46,7 @@ class DevPlugin( Plugin ):
 	
 	def listerChaines( self ):
 		for nom in DevPlugin.DATA.keys():
-			self.ajouterChaine(nom)
+			self.ajouterChaine( ( nom, None ) )
 	
 	def listerEmissions( self, chaine ):
 		if DevPlugin.DATA.has_key(chaine):

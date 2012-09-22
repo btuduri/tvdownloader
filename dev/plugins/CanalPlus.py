@@ -5,122 +5,165 @@
 # Modules
 #
 
-import datetime
-import os.path
+import dateutil.parser
+import logging
+logger = logging.getLogger( "TVDownloader" )
+import os
 import re
 import xml.sax
 
 import tvdcore
 
-import logging
-logger = logging.getLogger( "TVDownloader" )
+#
+# Classes
+#
 
 class CanalPlus( tvdcore.Plugin ):
 	
-	urlFichierXMLListeProgrammes = "http://www.canalplus.fr/rest/bootstrap.php?/bigplayer/initPlayer/"
-	regexThematique = re.compile("<THEMATIQUE.*?<NOM>(.*?)</NOM>.*?<SELECTIONS>(.*?)</SELECTIONS>.*?</THEMATIQUE", re.DOTALL)
-	regexSelection = re.compile("<ID>([0-9]+)</ID>.*?<NOM>([^<]+)</NOM>", re.DOTALL)
-	
+	urlFichierXMLListeProgrammes = "http://www.canalplus.fr/rest/bootstrap.php?/bigplayer/initPlayer"
 	urlFichierXMLEmissions       = "http://www.canalplus.fr/rest/bootstrap.php?/bigplayer/getMEAs/"
-	regexMea = re.compile("<ID>(.+?)</ID>")
 	urlFichierXMLFichiers        = "http://www.canalplus.fr/rest/bootstrap.php?/bigplayer/getVideos/"
 	
-	
 	def __init__( self ):
-		tvdcore.Plugin.__init__( self, "Canal+", "http://www.canalplus.fr/", 7, "CanalPlus.jpg" )
+		tvdcore.Plugin.__init__( self, "Canal+", "http://www.canalplus.fr/", 7 )
 		
-		# Charge le cache
-		cache = self.chargerCache() # { Nom chaine : { Nom emission : ID emission } }
-		if cache != None:
-			listeChaines,self.nomEmissionToIdEmission = cache
-			for chaine,emissions in listeChaines:
-				self.ajouterChaine(chaine)
-				for emission in emissions:
-					self.ajouterEmission(chaine, emission)
-			for emission,idEmission in self.nomEmissionToIdEmission:
-				self.ajouterEmission(chaine, emission)
-		else:
-			self.nomEmissionToIdEmission = {}
-	
+		self.listeProgrammes          = {} # { Nom chaine : { Nom emission : ID emission } }
+		self.derniereChaine           = ""
+		
+		if( os.path.exists( self.fichierCache ) ):
+			self.listeProgrammes = self.chargerCache()
+		
 	def rafraichir( self ):
-		data = self.getPage(CanalPlus.urlFichierXMLListeProgrammes)
+		# RAZ de la liste des programmes
+		self.listeProgrammes.clear()
 		
-		thematiques = re.findall(CanalPlus.regexThematique, data)
-		if thematiques == None:
-			logger.warning( "Aucune thématique trouvée." )
+		# Recupere la page qui contient les infos
+		pageXML = self.getPage( self.urlFichierXMLListeProgrammes )
+		
+		# Handler
+		handler = CanalPlusListeProgrammesHandler( self.listeProgrammes )
+		# Parse le fichier xml
+		try:
+			xml.sax.parseString( pageXML, handler )
+		except:
+			logger.error( "Impossible de parser le fichier XML de la liste des programmes" )
 			return
-		listeChaines = {}
-		for thematique in thematiques:
-			selections = re.findall(CanalPlus.regexSelection, thematique[1])
-			chaine = thematique[0].title()
-			listeChaines[chaine] = []
-			self.ajouterChaine(chaine)
-			if selections == None:
-				logger.warning( "Aucune sélection trouvée." )
-				continue
-			for selection in selections:
-				emission = selection[1].title()
-				listeChaines[chaine]+=emission
-				self.nomEmissionToIdEmission[emission] = selection[0]
-				self.ajouterEmission(chaine, emission)
-		self.sauvegarderCache((listeChaines,self.nomEmissionToIdEmission))
-	
+		
+		# Sauvegarde la liste dans le cache
+		self.sauvegarderCache( self.listeProgrammes )
+		
 	def listerChaines( self ):
-		pass
+		map( lambda x : self.ajouterChaine( ( x, None ) ), self.listeProgrammes )
 	
 	def listerEmissions( self, chaine ):
-		pass
+		if( self.listeProgrammes.has_key( chaine ) ):
+			self.derniereChaine = chaine
+			map( lambda x : self.ajouterEmission( chaine, x ), self.listeProgrammes[ chaine ].keys() )
 				
 	def listerFichiers( self, emission ):
-		if emission in self.nomEmissionToIdEmission:
-			data = self.getPage(self.urlFichierXMLEmissions+self.nomEmissionToIdEmission[emission])
-			ids = re.findall(self.regexMea, data)
-			
-			urls = []
-			for idMea in ids:
-				urls.append(self.urlFichierXMLFichiers+idMea )
-			# Recupere les pages correspondantes
-			pages = self.getPages( urls )
-			
-			for url in urls:
-				infosFichier = []
-				handler = CanalPlusListeFichierHandler(infosFichier)
-				try:
-					xml.sax.parseString( pages[url], handler )
-				except:
-					logger.error( "impossible de parser le fichier XML %s" %( url ) )
-					continue
-				nom, date, lienLD, lienMD, lienHD, urlImage, descriptif = infosFichier
-				# Transforme la date en type datetime.date
-				try:
-					dateDecoupee  = map( int, date.split( "/" ) )
-					dateBonFormat = datetime.date( dateDecoupee[ 2 ], dateDecoupee[ 1 ], dateDecoupee[ 0 ] )
-				except:
-					dateBonFormat = datetime.date.today()
-					logger.error( "impossible de transformer la date" )
-				if( lienHD != "" and lienHD[ : 4 ] == "rtmp" ):
-					basename, extension = os.path.splitext( lienHD )
-					self.ajouterFichier( emission, tvdcore.Fichier( "[HD]" + nom, dateBonFormat, lienHD, nom + extension, urlImage, descriptif ) )	
-				if( lienMD != "" and lienMD[ : 4 ] == "rtmp" ):	
-					basename, extension = os.path.splitext( lienMD )
-					self.ajouterFichier( emission, tvdcore.Fichier( "[MD]" + nom, dateBonFormat, lienMD, nom + extension, urlImage, descriptif ) )	
-				if( lienLD != "" and lienLD[ : 4 ] == "rtmp" ):	
-					basename, extension = os.path.splitext( lienLD )
-					self.ajouterFichier( emission, tvdcore.Fichier( "[LD]" + nom, dateBonFormat, lienLD, nom + extension, urlImage, descriptif ) )
-		else:
-			logger.warning( 'emission "%s" introuvable' %( emission ) )
+		if( self.listeProgrammes.has_key( self.derniereChaine ) ):
+			listeEmissions = self.listeProgrammes[ self.derniereChaine ]
+			if( listeEmissions.has_key( emission ) ):
+				IDEmission = listeEmissions[ emission ]
+				# Recupere la page qui contient les ids des fichiers
+				pageXML = self.getPage( self.urlFichierXMLEmissions + IDEmission )
+				# Extrait les ids
+				listeIDs = re.findall( "<ID>(.+?)</ID>", pageXML )
+				# Construit la liste des liens a recuperer
+				listeURL = []
+				for IDFichier in listeIDs:
+					listeURL.append( self.urlFichierXMLFichiers + IDFichier )
+				# Recupere les pages correspondantes
+				pagesXML = self.getPages( listeURL )
+				# Parse chacune de ces pages
+				for URL in listeURL:
+					pageXMLFichier = pagesXML[ URL ]
+					# Handler
+					infosFichier = []
+					handler      = CanalPlusListeFichierHandler( infosFichier )
+					# Parse le fichier xml
+					try:
+						xml.sax.parseString( pageXMLFichier, handler )
+					except:
+						logger.error( "Impossible de parser le fichier XML de la liste des fichiers" )
+						continue
+					# Ajoute le fichier
+					nom, date, lienLD, lienMD, lienHD, urlImage, descriptif = infosFichier
+					if( lienHD != "" and lienHD[ : 4 ] == "rtmp" ):
+						# Extrait l'extension du fichier
+						basename, extension = os.path.splitext( lienHD )
+						self.ajouterFichier( emission, tvdcore.Fichier( "[HD]" + nom, date, lienHD, nom + extension, urlImage, descriptif ) )	
+					elif( lienMD != "" and lienMD[ : 4 ] == "rtmp" ):	
+						# Extrait l'extension du fichier
+						basename, extension = os.path.splitext( lienMD )
+						self.ajouterFichier( emission, tvdcore.Fichier( "[MD]" + nom, date, lienMD, nom + extension, urlImage, descriptif ) )	
+					elif( lienLD != "" and lienLD[ : 4 ] == "rtmp" ):	
+						# Extrait l'extension du fichier
+						basename, extension = os.path.splitext( lienLD )
+						self.ajouterFichier( emission, tvdcore.tvdcore.Fichier( "[LD]" + nom, date, lienLD, nom + extension, urlImage, descriptif ) )
 
+class CanalPlusListeProgrammesHandler( xml.sax.handler.ContentHandler ):
+	"""
+	Classe pour paser le XML qui liste les emissions
+	"""
 
-## Classe qui permet de lire le fichier XML d'un fichier de Canal
+	def __init__( self, listeProgrammes ):
+		# Liste des programmes
+		self.listeProgrammes = listeProgrammes
+		
+		# Liste des emissions d'un programme (temporaire)
+		# Clef : nom emission, Valeur : ID
+		self.listeEmissions  = {}
+		
+		# Initialisation des variables a Faux
+		self.nomChaineConnu   = False
+		self.isNomChaine      = False
+		self.isIDEmission     = False
+		self.nomEmissionConnu = False
+		self.isNomEmission    = False
+
+	def startElement( self, name, attrs ):
+		if( name == "THEMATIQUE" ):
+			pass
+		elif( name == "NOM" and self.nomChaineConnu == False ):
+			self.isNomChaine = True
+		elif( name == "ID" and self.nomChaineConnu == True ):
+			self.isIDEmission = True
+		elif( name == "NOM" and self.nomChaineConnu == True ):
+			self.isNomEmission = True
+
+	def characters( self, data ):
+		if( self.isNomChaine ):
+			self.nomChaine      = data
+			self.nomChaineConnu = True
+			self.isNomChaine    = False
+		elif( self.isIDEmission ):
+			self.IDEmission   = data
+			self.isIDEmission = False
+		elif( self.isNomEmission ):
+			self.nomEmission      = data
+			self.nomEmissionConnu = True
+			self.isNomEmission    = False
+
+	def endElement( self, name ):
+		if( name == "THEMATIQUE" ):
+			self.listeProgrammes[ self.nomChaine.title() ] = self.listeEmissions
+			self.listeEmissions = {}
+			self.nomChaineConnu                            = False
+		elif( name == "NOM" and self.nomEmissionConnu ):
+			self.listeEmissions[ self.nomEmission.title() ] = self.IDEmission
+			self.nomEmissionConnu                           = False
+
 class CanalPlusListeFichierHandler( xml.sax.handler.ContentHandler ):
-
-	# Constructeur
-	# @param infosFichier Infos du fichier que le parser va remplir
+	"""
+	Classe qui parse le XML de description d'un fichier
+	"""
+	
 	def __init__( self, infosFichier ):
 		# Liste des programmes
 		self.infosFichier = infosFichier
 		
-		# Il n'a pas forcement les 3 liens
+		# Il n'y a pas forcement les 3 liens
 		self.lienLD = ""
 		self.lienMD = ""
 		self.lienHD = ""
@@ -134,9 +177,6 @@ class CanalPlusListeFichierHandler( xml.sax.handler.ContentHandler ):
 		self.isLienImage  = False
 		self.isDescriptif = False
 
-	## Methode appelee lors de l'ouverture d'une balise
-	# @param name  Nom de la balise
-	# @param attrs Attributs de cette balise
 	def startElement( self, name, attrs ):
 		if( name == "DESCRIPTION" ):
 			self.descriptif   = ""
@@ -156,8 +196,6 @@ class CanalPlusListeFichierHandler( xml.sax.handler.ContentHandler ):
 		elif( name == "HD" ):
 			self.isLienHD = True
 
-	## Methode qui renvoie les donnees d'une balise
-	# @param data Donnees d'une balise
 	def characters( self, data ):
 		if( self.isDescriptif ):
 			self.descriptif += data
@@ -176,12 +214,14 @@ class CanalPlusListeFichierHandler( xml.sax.handler.ContentHandler ):
 		elif( self.isLienHD ):
 			self.lienHD     = data
 			self.isLienHD   = False
-			 
-	## Methode appelee lors de la fermeture d'une balise
-	# @param name  Nom de la balise
+
 	def endElement( self, name ):
 		if( name == "DESCRIPTION" ):
 			self.isDescriptif = False
 		elif( name == "VIDEO" ):
-			self.infosFichier[:] = self.titre, self.date, self.lienLD, self.lienMD, self.lienHD, self.urlImage, self.descriptif
-
+			# Convertit la date
+			try:
+				self.dateOk = dateutil.parser.parse( self.date )
+			except:
+				self.dateOk = self.date
+			self.infosFichier[ : ] = self.titre, self.dateOk, self.lienLD, self.lienMD, self.lienHD, self.urlImage, self.descriptif

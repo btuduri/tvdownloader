@@ -19,7 +19,7 @@ class QtIconsList( QtGui.QScrollArea ):
 	Widget to display a list of icons (QIcon)
 	"""
 	
-	iconsSize = QtCore.QSize( 100, 100 )
+	iconsSize = QtCore.QSize( 100, 30 )
 	
 	def __init__( self, parent = None ):
 		QtGui.QScrollArea.__init__( self )

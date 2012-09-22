@@ -62,11 +62,14 @@ class BrowserCache( object ):
 		"""
 		Check if this file can be added to cache
 		"""
+		# Check bad url
+		if( url is None or len( url ) == 0 ):
+			return False
 		# Check file size : can't be exceeded 10% of max size
 		if( size > ( self.maxSize / 10 ) ):
 			return False
-		# Check if it's a php page
-		if( url[ -4 : ] == ".php" ):
+		# Check if it's an accepted extension
+		if( url[ -4 : ] in [ ".php", ".xml" ] ):
 			return True
 		# Check file type
 		urlType = mimetypes.guess_type( url )

@@ -58,6 +58,8 @@ class Browser( object ):
 	
 	@BrowserCache( maxSize = 10 * 1024 * 1024, acceptedTypes = [ "text", "image" ] )
 	def getFile( self, url, data = None ):
+		if( url is None or len( url ) == 0 ):
+			return None
 		try:
 			logger.debug( "GET %s" %( url ) )
 			if( data is not None ):
@@ -76,10 +78,10 @@ class Browser( object ):
 		except:
 			raise
 	
-	## Use threads to download several files
+	## Use threads to download several files with data
 	# @param  urlList URL list [ ( url, data ) ]
 	# @return dictionnary { ( url, data ) : page }
-	def getFiles( self, urlList ):
+	def getFilesWithData( self, urlList ):
 		
 		def threadGetFile( self, pageArgs, pagesDict ):
 			# Thread += 1
@@ -120,7 +122,18 @@ class Browser( object ):
 			self.noThreadRunning.wait()
 		
 		return pagesDict
-				
+
+	## Use threads to download several files
+	# @param  urlList URL list [ url ]
+	# @return dictionnary { url : page }	
+	def getFiles( self, urlList ):
+		urlListWithData   = map( lambda x : ( x, None ), urlList )
+		pagesDictWithData = self.getFilesWithData( urlListWithData )
+		pagesDict         = {}
+		for ( url, data ) in pagesDictWithData.keys():
+			pagesDict[ url ] = pagesDictWithData[ ( url, data ) ]
+		return pagesDict
+	
 	def appendCookie( self, cookieName, cookieValue ):
 		for cookie in self.cookiejar:
 			if( cookie.name == cookieName ):

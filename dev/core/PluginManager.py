@@ -390,6 +390,7 @@ class PluginManager( object ):
 	# @return Rien
 	@Synchronized
 	def pluginRafraichir(self, nomPlugin):
+		logger.debug( "Rafraichissement du plugins %s" %( nomPlugin ) )
 		try:
 			if self.listePluginActif.has_key(nomPlugin):
 				for cback in self.callbacks:
@@ -404,6 +405,7 @@ class PluginManager( object ):
 		except Error, er:
 			logger.error("Erreur lors du rafraichissement du plugin",self.listePlugin[nomPlugin].nom+":"+str(ex))
 			print_exc()
+		logger.debug( "Fin du rafraichissement du plugin  %s" %( nomPlugin ) )
 	
 	## Rafraichie tous les plugins qui ont besoin de l'être.
 	#

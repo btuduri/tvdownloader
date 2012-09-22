@@ -5,10 +5,12 @@
 # Modules
 #
 
+import logging
+logger = logging.getLogger( "TVDownloader" )
+import os
 import operator
 import threading
 
-import os
 import sys
 sys.path.append( ".." ) 
 
@@ -383,8 +385,15 @@ class MainWindow( QtGui.QMainWindow ):
 		Si plugin = None, alors elle demande la liste des chaines de tous les plugins
 		"""
 		def threadListerChaines( self, plugin ):
-			listeChaines = map( lambda x : ( x, None ), self.pluginManager.getPluginListeChaines( plugin ) )
-			self.emit( self.listeChainesSignal, listeChaines )
+			listeChaines   = self.pluginManager.getPluginListeChaines( plugin )
+			listeImagesUrl = [ x[ 1 ] for x in listeChaines ]
+			# Charge les images
+			listeImages = self.navigateur.getFiles( listeImagesUrl )
+			# Creer la liste avec les images
+			listeChainesAvecImage = []
+			for ( nom, urlImage ) in listeChaines:
+				listeChainesAvecImage.append( ( nom, listeImages[ urlImage ] ) )
+			self.emit( self.listeChainesSignal, listeChainesAvecImage )
 		
 		if( plugin ):
 			plugin = qstringToString( plugin )
@@ -417,7 +426,7 @@ class MainWindow( QtGui.QMainWindow ):
 		Met en place la liste des plugins donnee
 		"""
 		listePlugins.sort()
-		self.pluginComboBox.clear()
+		self.nettoyerWidgets( plugins = True, chaines = True, emissions = True, fichiers = True, description = True )
 		map( lambda x : self.pluginComboBox.addItem( stringToQstring( x ) ), listePlugins )
 		# S'il n'y a qu'un seul plugin
 		if( self.pluginComboBox.count() == 1 ):
@@ -432,16 +441,24 @@ class MainWindow( QtGui.QMainWindow ):
 		Met en place la liste des chaines donnee sous la forme ( nomChaine, logoChaine )
 		"""
 		listeChaines = sorted( listeChaines, key = operator.itemgetter( 0 ) )
-		self.chaineIconsList.clear()
-		map( lambda ( x, y ) : self.chaineIconsList.addIcon( x, y ), listeChaines )
+		self.nettoyerWidgets( plugins = False, chaines = True, emissions = True, fichiers = True, description = True )
+		for ( nom, imageData ) in listeChaines:
+			if( imageData is None ):
+				self.chaineIconsList.addIcon( nom, None )
+			else:
+				image  = QtGui.QImage()
+				image.loadFromData( imageData )
+				pixmap = QtGui.QPixmap( image )
+				icon   = QtGui.QIcon( pixmap )
+				self.chaineIconsList.addIcon( nom, icon )
+		# map( lambda ( x, y ) : self.chaineIconsList.addIcon( x, y ), listeChaines )
 
 	def ajouterEmissions( self, listeEmissions ):
 		"""
 		Met en place la liste des emissions
 		"""
 		listeEmissions.sort()
-		self.emissionComboBox.clear()
-		self.ajouterFichiers( [] )
+		self.nettoyerWidgets( plugins = False, chaines = False, emissions = True, fichiers = True, description = True )
 		map( lambda x : self.emissionComboBox.addItem( stringToQstring( x ) ), listeEmissions )
 		# S'il n'y a qu'une seule emission
 		if( self.emissionComboBox.count() == 1 ):
@@ -455,6 +472,7 @@ class MainWindow( QtGui.QMainWindow ):
 		"""
 		Met en place la liste des fichiers
 		"""
+		self.nettoyerWidgets( plugins = False, chaines = False, emissions = False, fichiers = False, description = True )
 		self.fichierTableView.model().changeFiles( listeFichiers )
 		self.fichierTableView.resizeColumnsToContents()
 	
@@ -471,7 +489,11 @@ class MainWindow( QtGui.QMainWindow ):
 		Affiche les informations du fichier selectionne
 		"""
 		def threadRecupererImageDescription( self, urlImage ):
-			imageData = self.navigateur.getFile( urlImage )
+			try:
+				imageData = self.navigateur.getFile( urlImage )
+			except :
+				logger.warning( "Impossible de récuperer l'image, utilisation de l'image par défaut" )
+				imageData = self.logoDefautPixmap
 			self.emit( QtCore.SIGNAL( "nouvelleImageDescription(PyQt_PyObject)" ), imageData )
 		
 		if( selected.indexes() != deselected.indexes() ):
@@ -512,7 +534,23 @@ class MainWindow( QtGui.QMainWindow ):
 		# Nombre de threads max du navigateur
 		threadMax = self.config.get( Configuration.NAVIGATEUR_THREADS )
 		self.threadSpinBox.setValue( int( threadMax ) )
-	
+
+	def nettoyerWidgets( self, plugins = False, chaines = False, emissions = False, fichiers = False, description = False ):
+		"""
+		Nettoie les widgets
+		"""
+		if( plugins ):
+			self.pluginComboBox.clear()
+		if( chaines ):
+			self.chaineIconsList.clear()
+		if( emissions ):
+			self.emissionComboBox.clear()
+		if( fichiers ):
+			self.ajouterFichiers( [] )
+		if( description ):
+			self.afficherImageDescription( self.logoDefautPixmap )
+			self.descriptionPlainTextEdit.clear()
+		
 	def enregistrerConfiguration( self, elmt, valeur ):
 		"""
 		Enregistre la configuration

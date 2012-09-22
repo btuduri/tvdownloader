@@ -15,7 +15,9 @@
 
 import os,os.path,pickle
 from tvdcore import *
-
+import sys
+sys.path.append( ".." ) 
+from base.Browser import Browser
 
 ##########
 # Classe #
@@ -41,7 +43,7 @@ from tvdcore import *
 # aurai des options).
 class Plugin(object):
 	
-	NAVIGATEUR = Navigateur()
+	NAVIGATEUR = Browser()
 	
 	## @var nom
 	# Nom du plugin
@@ -294,8 +296,8 @@ class Plugin(object):
 	# @param self le plugin courant
 	# @param url l'url de la page web
 	# @return la page web sous forme d'une chaîne ou la chaîne vide en cas d'échec
-	def getPage(self, url):
-		return Plugin.NAVIGATEUR.getPage( url )
+	def getPage(self, url, data = None ):
+		return Plugin.NAVIGATEUR.getFile( url, data )
 	
 	## Récupère des pages webs sur internet et remplace les caractères spéciaux (code HTML ou ISO).
 	# Cette méthode reste connecté au serveur si il y a plusieurs page à y télécharger,
@@ -305,6 +307,6 @@ class Plugin(object):
 	# @return un dictionnaire avec comme clé les urls et comme valeur les pages sous forme de chaîne
 	def getPages(self, urls):
 		#FIXME Navigateur (téléchargement full threadé) vraiment efficace ?
-		reponses = Plugin.NAVIGATEUR.getPages( urls )
+		reponses = Plugin.NAVIGATEUR.getFiles( urls )
 		return reponses
 

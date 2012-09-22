@@ -79,6 +79,8 @@ class Navigateur( object ):
 		# Ne doit pas gerer les cookies
 		self.navigateur.set_cookiejar( None )
 		
+		logger.warning( "La classe Navigateur a ete replacee par la classe Browser" )
+		
 	## Methode pour recuperer une page web
 	# @param  URLPage URL de la page web a charger
 	# @return Code de la page
