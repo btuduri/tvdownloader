@@ -119,7 +119,8 @@ class Browser( object ):
 		
 		# Wait the end of all threads
 		with self.noThreadRunning:
-			self.noThreadRunning.wait()
+			if( self.runningThreads != 0 ):
+				self.noThreadRunning.wait()
 		
 		return pagesDict
 
