@@ -1,0 +1,21 @@
++dev
+..+src -> src en cours de dev
+....+core -> code du module core
+....+uis -> code des UIs (les progs qui utilise les objets distribués)
+......+qt -> code de l'ui qt
+......+websrv -> code du web service
+....+other -> autre dév
+......+webapp -> code de l'appli web (HTML, JS & Co)
+......+android ou iphone ou ...
+..+mod -> modélisation UML & co
++tags -> source de tvd par version
+..+tvd -> ancienne version
+....+0.7 -> source de la 0.7
+..+core
+....+1.0 -> source de la lib version 1.0
+..+uis
+....+qt
+......+1.0
+..+other
+....+webapp
+......+1.0
