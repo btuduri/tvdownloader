@@ -162,7 +162,6 @@ class RtmpDownloader(DownloaderInterface):
 	def __init__(self, url) :
 		DownloaderInterface.__init__(self)
 		self.command = RtmpDownloader.urlToRtmpdump(url)
-		print self.command
 		self.size = 0
 		self.dled = 0
 		self.process = None
@@ -191,7 +190,6 @@ class RtmpDownloader(DownloaderInterface):
 				while len(select.select([fno],[],[], 0.5)[0]) > 0:#On vide le pipe
 					line = self.process.stderr.read(100)
 			except Exception, e:
-				print ">>>", e
 				self.stop()
 				return False
 			return True

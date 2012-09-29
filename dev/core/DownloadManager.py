@@ -38,7 +38,7 @@ class DownloadManager(threading.Thread):
 		self.downloads = []
 		self.downloadToStop = []
 		self.callbackGroup = CallbackGroup("downloadStatus")
-		self.maxDownloads = 2
+		self.maxDownloads = 3
 		self.maxSpeed = 0
 		self.stopped = False
 		self.nextNumDownload = 0
@@ -172,7 +172,9 @@ class DownloadManager(threading.Thread):
 		logger.debug("téléchargement "+str(self.nextNumDownload))
 		logger.debug(fichier.lien)
 		logger.debug(fichier.nomFichierSortie)
-		self.downloads.append(Download(fichier, self.nextNumDownload))
+		dl = Download(fichier, self.nextNumDownload)
+		self.downloads.append(dl)
+		self.callbackGroup(dl.getStatus())
 		res = self.nextNumDownload
 		self.nextNumDownload = self.nextNumDownload+1
 		return res
