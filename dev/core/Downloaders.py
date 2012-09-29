@@ -175,23 +175,25 @@ class RtmpDownloader(DownloaderInterface):
 			fcntl.fcntl( fno, fcntl.F_SETFL, fcntl.fcntl( fno, fcntl.F_GETFL ) | os.O_NDELAY )
 			select.select([fno],[],[], 0.2)#Attente le temps de la connexion au serveur
 			try:
-				descriptionFound = False
-				while len(select.select([fno],[],[], 0.5)[0]) > 0:#Recherche de la description du fichier
-					line = self.process.stderr.readline()
-					if "sampledescription:" in line:
-						descriptionFound = True
-						break
-				if descriptionFound:
-					while len(select.select([fno],[],[], 0.5)[0]) > 0:#Recherche de la taille du fichier
-						line = self.process.stderr.readline()
-						match = re.search(RtmpDownloader.LENGHT_PATTERN, line)
-						if match != None:
-							self.size = float(match.group(1))
-							break
-				while len(select.select([fno],[],[], 0.01)[0]) > 0:#On vide le pipe
-					line = self.process.stderr.readline()
+#				descriptionFound = False
+#				while len(select.select([fno],[],[], 0.5)[0]) > 0:#Recherche de la description du fichier
+#					line = self.process.stderr.read(100)
+#					if "sampledescription:" in line:
+#						descriptionFound = True
+#						break
+#				if descriptionFound:
+#					while len(select.select([fno],[],[], 0.5)[0]) > 0:#Recherche de la taille du fichier
+#						line = self.process.stderr.readline()
+#						match = re.search(RtmpDownloader.LENGHT_PATTERN, line)
+#						if match != None:
+#							self.size = float(match.group(1))
+#							break
+				while len(select.select([fno],[],[], 0.5)[0]) > 0:#On vide le pipe
+					line = self.process.stderr.read(100)
 			except Exception, e:
-				print e
+				print ">>>", e
+				self.stop()
+				return False
 			return True
 		else:
 			return False
@@ -203,11 +205,15 @@ class RtmpDownloader(DownloaderInterface):
 		try:
 			line = ""
 			while len(select.select([self.process.stderr.fileno()],[],[], 0.05)[0]) > 0:#On vide le pipe
-				line = self.process.stderr.readline()
+				newLine = self.process.stderr.read(100)
+				if len(newLine) == 0:
+					break;
+				else:
+					line = newLine
 			#Récupération de la progression pour estimation de la taille
 			match = re.search(RtmpDownloader.PROGRESS_PATTERN, line)
 			if match != None:
-				self.size = (float(match.group(1))/100)*self.dled
+				self.size = (100.0/float(match.group(1)))*self.dled
 		except:
 			pass
 		if len(select.select([self.process.stdout.fileno()],[],[], 0.2)[0]) > 0:

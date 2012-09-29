@@ -8,7 +8,7 @@ from TVDContext import TVDContext
 
 import logging
 logger = logging.getLogger( "TVDownloader" )
-#dmlogger = logger
+dmlogger = logger
 
 class DownloadManager(threading.Thread):
 	BUFFER_SIZE = 8000
@@ -132,33 +132,33 @@ class DownloadManager(threading.Thread):
 					return
 		pause = 0
 		while not(self.stopped):
-			#dmlogger.debug("Téléchargement...")
+			dmlogger.debug("Téléchargement...")
 			activeDls = retrieveDls()
 			if len(activeDls) == 0:
-				#dmlogger.debug("Pause, rien a dl")
+				dmlogger.debug("Pause, rien a dl")
 				time.sleep(0.5)#Utiliser les cond...
 			else:
 				for dl in activeDls:
 					if self.maxSpeed <= 0:
-						#dmlogger.debug("step sur téléchargement: "+str(dl.getNum()))
+						dmlogger.debug("step sur téléchargement: "+str(dl.getNum()))
 						dl.step()
 					else:
 						before = time.time()
 						success = dl.step()
 						after = time.time()
 						stepLength = dl.getLastStepLength()
-						#dmlogger.debug("step sur téléchargement "+str(dl.getNum())+": "+str(stepLength))
+						dmlogger.debug("step sur téléchargement "+str(dl.getNum())+": "+str(stepLength))
 						if self.maxSpeed > 0:
 							stepDelta = (after-before)#Temps de téléchargement du step
 							stepSpeed = stepLength/stepDelta#Vitesse de téléchargement du step
-							stepMinDelta = (1.0*stepLength)/(1.0*self.maxSpeed)#Temps minimum de téléchargement avec maxSpeed
+							stepMinDelta = (1.0*stepLength)/(1.0*self.maxSpeed)#Temps de téléchargement avec maxSpeed
 							pause = (stepMinDelta-stepDelta)#Ajout de la différence
-							#dmlogger.debug("pause: "+str(pause))
+							dmlogger.debug("pause: "+str(pause))
 							if pause > 0:
 								time.sleep(pause)
 					self.callbackGroup(dl.getStatus())
 				#if self.maxSpeed > 0 and pause > 0:
-				#	#dmlogger.debug("pause: "+str(pause))
+				#	dmlogger.debug("pause: "+str(pause))
 				#	time.sleep(pause)
 				#	pause = 0
 			stopDls(self.downloadToStop)
@@ -225,15 +225,18 @@ class Download :
 		self.lastStepLength = 0
 		data = self.dler.read(Download.STEP_SIZE)
 		if data == None:
+			logger.debug("echec de step téléchargement "+str(self.num))
 			self.status.status = DownloadStatus.FAILED
 			return False
 		dled = len(data)
 		if dled == 0:
+			logger.debug("dernière step téléchargement "+str(self.num))
 			self.status.status = DownloadStatus.COMPLETED
 			self.dler.stop()
 			return None
 		else:
 			self.lastStepLength = dled
+			logger.debug(str(dled)+" octets dans step téléchargement "+str(self.num))
 			self.status.status = DownloadStatus.DOWN
 			self.status.size = self.dler.getSize()
 			self.outfile.write(data)
