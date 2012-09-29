@@ -38,7 +38,7 @@ class Podcasts( tvdcore.Plugin ):
 	def __init__( self ):
 		tvdcore.Plugin.__init__( self, nom = "Podcasts", url = "", frequence = 0, logo = None )
 		
-		self.derniereChaine = Podcast( nom = None, urlImage = None )
+		self.derniereChaine = {}
 		self.listeFichiers  = []
 
 	def rafraichir( self ):
@@ -52,25 +52,27 @@ class Podcasts( tvdcore.Plugin ):
 	def listerEmissions( self, chaine ):
 		chaineTupleList = [ x for x in self.listePodcasts if x.nom == chaine ]
 		if( len( chaineTupleList ) == 1 ):
-			self.derniereChaine = chaineTupleList[ 0 ] 
-			listeEmissions = self.listePodcasts[ self.derniereChaine ].keys()
+			self.derniereChaine = self.listePodcasts[ chaineTupleList[ 0 ] ]
+			listeEmissions = self.derniereChaine.keys()
 			listeEmissions.sort()
 			map( lambda x : self.ajouterEmission( chaine, x ), listeEmissions )
 	
 	def listerFichiers( self, emission ):
-		if( self.listePodcasts.has_key( self.derniereChaine ) ):
-			listeEmission = self.listePodcasts[ self.derniereChaine ]
-			if( listeEmission.has_key( emission ) ):
-				# RAZ de la liste des fichiers
-				del self.listeFichiers[ : ]
-				# Recupere la page de l'emission
-				page = self.getPage( listeEmission[ emission ] )
-				# Handler
-				handler = PodcastsHandler( self.listeFichiers )
-				# Parse le fichier xml
+		if( self.derniereChaine.has_key( emission ) ):
+			# RAZ de la liste des fichiers
+			del self.listeFichiers[ : ]
+			# Recupere la page de l'emission
+			page = self.getPage( self.derniereChaine[ emission ] )
+			# Handler
+			handler = PodcastsHandler( self.listeFichiers )
+			# Parse le fichier xml
+			try:
 				xml.sax.parseString( page, handler )
-				# Ajoute les fichiers
-				map( lambda x : self.ajouterFichier( emission, x ), self.listeFichiers )
+			except:
+				logger.error( "Impossible de parser le fichier XML" )
+				return
+			# Ajoute les fichiers
+			map( lambda x : self.ajouterFichier( emission, x ), self.listeFichiers )
 
 class PodcastsHandler( xml.sax.handler.ContentHandler ):
 	"""

@@ -74,7 +74,7 @@ class FichiersTableModel( QtCore.QAbstractTableModel ):
 			elif( index.column() == 1 ):
 				date = self.listeFichiers[ index.row() ].date
 				if( isinstance( date, datetime.date ) ):
-					dateOk = date.strftime( "%a %d %b %Hh" )
+					dateOk = date.strftime( "%a %d %b" )
 				else:
 					dateOk = date
 				return QtCore.QVariant( stringToQstring( dateOk ) )

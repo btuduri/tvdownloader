@@ -474,6 +474,7 @@ class MainWindow( QtGui.QMainWindow ):
 		"""
 		self.nettoyerWidgets( plugins = False, chaines = False, emissions = False, fichiers = False, description = True )
 		self.fichierTableView.model().changeFiles( listeFichiers )
+		self.fichierTableView.sortByColumn( 1, QtCore.Qt.DescendingOrder ) # Affiche automatiquement les fichiers les plus recents
 		self.fichierTableView.resizeColumnsToContents()
 	
 	def ajouterTelechargement( self, index ):

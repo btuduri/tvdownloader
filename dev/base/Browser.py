@@ -89,7 +89,10 @@ class Browser( object ):
 				self.runningThreads += 1
 			# Get data
 			( url, data ) = pageArgs
-			page = self.getFile( url, data )
+			try:
+				page = self.getFile( url, data )
+			except:
+				page = ""
 			# Save data and thread -= 1
 			with self.lock:
 				if( data is None ):
