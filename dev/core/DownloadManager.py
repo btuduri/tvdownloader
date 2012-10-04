@@ -20,9 +20,9 @@ class DownloadManager(threading.Thread):
 	def __new__(typ, *args, **kwargs):
 		# On vérifie qu'on peut instancier
 		context = TVDContext()
-		#if not(context.isInitialized()):
-		#	logger.error("Le context n'est pas initialisé, impossible d'instancier")
-		#	return None
+		if not(context.isInitialized()):
+			logger.error("Le context n'est pas initialisé, impossible d'instancier")
+			return None
 		
 		if DownloadManager.__instance == None:#Décorateur ?
 			return super(DownloadManager, typ).__new__(typ, *args, **kwargs)
@@ -36,7 +36,9 @@ class DownloadManager(threading.Thread):
 		DownloadManager.__instance = self
 		
 		self.downloads = []
-		self.downloadToStop = []
+		self.downloadsToStop = []
+		self.downloadsToPause = []
+		self.downloadsToResume = []
 		self.callbackGroup = CallbackGroup("downloadStatus")
 		self.maxDownloads = 3
 		self.maxSpeed = 0
@@ -68,8 +70,16 @@ class DownloadManager(threading.Thread):
 		self.stopped = True
 	
 	@Synchronized
+	def pauseDownload(self, num):
+		self.downloadsToPause.append(num)
+	
+	@Synchronized
+	def resumeDownload(self, num):
+		self.downloadsToResume.append(num)
+	
+	@Synchronized
 	def stopDownload(self, num):
-		self.downloadToStop.append(num)
+		self.downloadsToStop.append(num)
 	
 	@Synchronized
 	def getDownloads(self):
@@ -90,9 +100,6 @@ class DownloadManager(threading.Thread):
 	
 	def run(self):
 		@SynchronizedWith(self)
-		def isActive(dl):
-			return dl.getStatus().getStatus() in [DownloadStatus.PAUSED, DownloadStatus.DOWN]
-		@SynchronizedWith(self)
 		def retrieveDls():
 			activeDls = []
 			for dl in self.downloads:
@@ -111,23 +118,44 @@ class DownloadManager(threading.Thread):
 					logger.debug("téléchargement en cours: "+str(newDl.getNum()))
 					activeDls.append(newDl)
 				else:
-					logger.warning("Echec de lancement du téléchargement pour \""+str(newDl.getName())+"\"")
+					logger.warning("Echec de lancement du téléchargement "+str(newDl.getNum()))
 					newDl.getStatus().status = DownloadStatus.FAILED
 				self.callbackGroup(newDl.getStatus())
 			return activeDls
 		@SynchronizedWith(self)
-		def stopDls(nums):
-			for dl in self.downloads:
-				if dl.getStatus().getNum() in nums and isActive(dl):
-					logger.debug("arrêt du téléchargement: "+str(dl.getNum()))
-					dl.interrupt()
-					self.callbackGroup(dl.getStatus())
+		def refreshStatuses():
+			for num in self.downloadsToStop:
+				stopDl(num)
+			for num in self.downloadsToPause:
+				pauseDl(num)
+			for num in self.downloadsToResume:
+				resumeDl(num)
 		@SynchronizedWith(self)
 		def stopDl(num):
 			for dl in self.downloads:
-				if dl.getStatus().getNum() == num and isActive(dl):
-					logger.debug("arrêt téléchargement: "+str(dl.getNum()))
-					dl.interrupt()
+				if dl.getStatus().getNum() == num:
+					if dl.isDownloading() or dl.isPaused():
+						logger.debug("arrêt téléchargement: "+str(dl.getNum()))
+						dl.interrupt()
+					elif dl.isQueued():
+						logger.debug("annulation téléchargement: "+str(dl.getNum()))
+						dl.cancel()
+					self.callbackGroup(dl.getStatus())
+					return
+		@SynchronizedWith(self)
+		def pauseDl(num):
+			for dl in self.downloads:
+				if dl.getStatus().getNum() == num:
+					logger.debug("pause téléchargement: "+str(dl.getNum()))
+					dl.pause()
+					self.callbackGroup(dl.getStatus())
+					return
+		@SynchronizedWith(self)
+		def resumeDl(num):
+			for dl in self.downloads:
+				if dl.getStatus().getNum() == num:
+					logger.debug("reprise téléchargement: "+str(dl.getNum()))
+					dl.resume()
 					self.callbackGroup(dl.getStatus())
 					return
 		pause = 0
@@ -139,9 +167,12 @@ class DownloadManager(threading.Thread):
 				time.sleep(0.5)#Utiliser les cond...
 			else:
 				for dl in activeDls:
-					if self.maxSpeed <= 0:
+					if dl.isPaused():
+						dmlogger.debug("téléchargement en pause: "+str(dl.getNum()))
+					elif self.maxSpeed <= 0:
 						dmlogger.debug("step sur téléchargement: "+str(dl.getNum()))
 						dl.step()
+						self.callbackGroup(dl.getStatus())
 					else:
 						before = time.time()
 						success = dl.step()
@@ -156,12 +187,12 @@ class DownloadManager(threading.Thread):
 							dmlogger.debug("pause: "+str(pause))
 							if pause > 0:
 								time.sleep(pause)
-					self.callbackGroup(dl.getStatus())
+						self.callbackGroup(dl.getStatus())
 				#if self.maxSpeed > 0 and pause > 0:
 				#	dmlogger.debug("pause: "+str(pause))
 				#	time.sleep(pause)
 				#	pause = 0
-			stopDls(self.downloadToStop)
+			refreshStatuses()
 		#Arrêt de tout les téléchargements
 		for dl in self.downloads:
 			stopDl(dl.getStatus().getNum())
@@ -212,11 +243,26 @@ class Download :
 		if self.status.status != DownloadStatus.COMPLETED:
 			self.status.status = DownloadStatus.STOPPED
 	
+	def isQueued(self):
+		return self.status.status == DownloadStatus.QUEUED
+	
+	def isPaused(self):
+		return self.status.status == DownloadStatus.PAUSED
+	
+	def isDownloading(self):
+		return self.status.status == DownloadStatus.DOWN
+	
 	def pause(self):
-		self.status.status = DownloadStatus.PAUSE
+		if self.status.status == DownloadStatus.DOWN:
+			self.status.status = DownloadStatus.PAUSED
+	
+	def cancel(self):
+		if self.status.status == DownloadStatus.QUEUED:
+			self.status.status = DownloadStatus.STOPPED
 	
 	def resume(self):
-		self.status.status = DownloadStatus.DOWN
+		if self.status.status == DownloadStatus.PAUSED:
+			self.status.status = DownloadStatus.DOWN
 	
 	def getLastStepLength(self):
 		return self.lastStepLength
@@ -234,6 +280,11 @@ class Download :
 		if dled == 0:
 			logger.debug("dernière step téléchargement "+str(self.num))
 			self.status.status = DownloadStatus.COMPLETED
+			historique = TVDContext().historique
+			if historique != None:
+				historique.ajouterHistorique(self.fichier)
+			else:
+				logger.warning("erreur d'ajout à l'historique du téléchargement "+str(self.num))
 			self.dler.stop()
 			return None
 		else:

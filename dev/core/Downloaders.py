@@ -212,6 +212,8 @@ class RtmpDownloader(DownloaderInterface):
 			match = re.search(RtmpDownloader.PROGRESS_PATTERN, line)
 			if match != None:
 				self.size = (100.0/float(match.group(1)))*self.dled
+			if self.size > 100:
+				self.size = 100
 		except:
 			pass
 		if len(select.select([self.process.stdout.fileno()],[],[], 0.2)[0]) > 0:

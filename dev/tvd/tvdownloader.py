@@ -163,7 +163,6 @@ if( __name__ == "__main__" ):
 		manager.start()
 		
 		pluginMan = context.pluginManager
-		pluginMan.pluginRafraichirAuto()
 		
 		import time
 		while launcher.hasActiveUI():
