@@ -32,6 +32,7 @@ from uis.qt.QtIconsList   import QtIconsList
 from uis.qt.QtTable       import QtTable
 from uis.qt.QtTableView   import QtTableView
 from uis.qt.QtProgressBarDelegate import QtProgressBarDelegate
+from uis.qt.WaitWindow import WaitWindow
 
 from uis.qt.models.FichiersTableModel import FichiersTableModel
 from uis.qt.models.TelechargementsTableModel import TelechargementsTableModel
@@ -82,19 +83,23 @@ class MainWindow( QtGui.QMainWindow ):
 		
 		# Liste des plugins a mettre en place
 		self.listePluginsSignal = QtCore.SIGNAL( "listePlugins(PyQt_PyObject)" )
-		QtCore.QObject.connect( self, self.listePluginsSignal , self.ajouterPlugins )
+		QtCore.QObject.connect( self, self.listePluginsSignal, self.ajouterPlugins )
 		
 		# Liste des chaines a mettre en place
 		self.listeChainesSignal = QtCore.SIGNAL( "listeChaines(PyQt_PyObject)" )
-		QtCore.QObject.connect( self, self.listeChainesSignal , self.ajouterChaines )
+		QtCore.QObject.connect( self, self.listeChainesSignal, self.ajouterChaines )
 		
 		# Liste des emissions a mettre en place
 		self.listeEmissionsSignal = QtCore.SIGNAL( "listeEmission(PyQt_PyObject)" )
-		QtCore.QObject.connect( self, self.listeEmissionsSignal , self.ajouterEmissions )
+		QtCore.QObject.connect( self, self.listeEmissionsSignal, self.ajouterEmissions )
 
 		# Liste des fichiers a mettre en place
 		self.listeFichiersSignal = QtCore.SIGNAL( "listeFichiers(PyQt_PyObject)" )
-		QtCore.QObject.connect( self, self.listeFichiersSignal , self.ajouterFichiers )
+		QtCore.QObject.connect( self, self.listeFichiersSignal, self.ajouterFichiers )
+		
+		# Affiche une nouvelle image de description
+		self.nouvelleImageDescriptionSignal = QtCore.SIGNAL( "nouvelleImageDescription(PyQt_PyObject)" )
+		QtCore.QObject.connect( self, self.nouvelleImageDescriptionSignal, self.afficherImageDescription )
 		
 		#
 		# Reglages de la fenetre
@@ -308,12 +313,17 @@ class MainWindow( QtGui.QMainWindow ):
 		self.centralGridLayout.addWidget( self.lancerPushButton, 4, 0, 1, 2 )
 		
 		#
-		# Signaux de TVDownloader
+		# Autre
 		#
-
+		
+		# Instancie la fenetre d'attente
+		self.fenetreAttente = WaitWindow( self )
 		QtCore.QObject.connect( self,
-								QtCore.SIGNAL( "nouvelleImageDescription(PyQt_PyObject)" ),
-								self.afficherImageDescription )	
+								QtCore.SIGNAL( "debutActualisation(PyQt_PyObject)" ),
+								self.fenetreAttente.ouvrirFenetreAttente )
+		QtCore.QObject.connect( self,
+								QtCore.SIGNAL( "finActualisation()" ),
+								self.fenetreAttente.fermerFenetreAttente )
 		
 		#
 		# Debut
@@ -338,18 +348,15 @@ class MainWindow( QtGui.QMainWindow ):
 		self.pluginManager   = self.tvdContext.pluginManager
 		self.downloadManager = self.tvdContext.downloadManager
 		self.navigateur      = Browser()
-		
-		# Liste les plugins
-		self.listerPlugins()
-		
 		# Variables
-		
 		
 		# Ajout une callback pour le download manager
 		self.telechargementsCallback = TelechargementsCallback( self.telechargementsWidget )
 		self.downloadManager.addDownloadCallback( self.telechargementsCallback )
 		# Demarre le download manager
 		self.downloadManager.start()
+		# Lance l'actualisation des plugins
+		self.rafraichirTousLesPlugins()
 		
 		#
 		# A deplacer
@@ -368,13 +375,34 @@ class MainWindow( QtGui.QMainWindow ):
 		# Stoppe le download manager
 		self.downloadManager.stop()
 		print "Bye bye"
+
+	def rafraichirTousLesPlugins( self ):
+		"""
+		Lance le rafraichissement de tous les plugins (si necessaire)
+		"""
+		def threadRafraichirPlugins( self ):
+			self.emit( QtCore.SIGNAL( "debutActualisation(PyQt_PyObject)" ), "tous les plugins" )
+			try:
+				self.pluginManager.pluginRafraichirAuto()
+			except:
+				logger.error( "impossible de rafraichir un des plugins" )
+			self.emit( QtCore.SIGNAL( "finActualisation()" ) )
+			self.listerPlugins()
+		
+		threading.Thread( target = threadRafraichirPlugins, args = ( self, ) ).start()
 		
 	def listerPlugins( self ):
 		"""
 		Fonction qui demande la liste des plugins
 		"""
 		def threadListerPlugins( self ):
-			listePlugins = self.pluginManager.getPluginListe()
+			self.emit( QtCore.SIGNAL( "debutActualisation(PyQt_PyObject)" ), "tous les plugins" )
+			try:
+				listePlugins = self.pluginManager.getPluginListe()
+			except:
+				listePlugins = []
+				logger.error( "impossible de récuperer la liste des plugins" )
+			self.emit( QtCore.SIGNAL( "finActualisation()" ) )
 			self.emit( self.listePluginsSignal, listePlugins )
 		
 		threading.Thread( target = threadListerPlugins, args = ( self, ) ).start()
@@ -385,14 +413,24 @@ class MainWindow( QtGui.QMainWindow ):
 		Si plugin = None, alors elle demande la liste des chaines de tous les plugins
 		"""
 		def threadListerChaines( self, plugin ):
-			listeChaines   = self.pluginManager.getPluginListeChaines( plugin )
+			self.emit( QtCore.SIGNAL( "debutActualisation(PyQt_PyObject)" ), plugin )
+			try:
+				listeChaines = self.pluginManager.getPluginListeChaines( plugin )
+			except:
+				listeChaines = []
+				logger.error( "impossible de récuperer les chaines de %s" %( plugin ) )
 			listeImagesUrl = [ x[ 1 ] for x in listeChaines ]
 			# Charge les images
 			listeImages = self.navigateur.getFiles( listeImagesUrl )
 			# Creer la liste avec les images
 			listeChainesAvecImage = []
 			for ( nom, urlImage ) in listeChaines:
-				listeChainesAvecImage.append( ( nom, listeImages[ urlImage ] ) )
+				if( listeImages.has_key( urlImage ) ):
+					image = listeImages[ urlImage ]
+				else:
+					image = None
+				listeChainesAvecImage.append( ( nom, image ) )
+			self.emit( QtCore.SIGNAL( "finActualisation()" ) )
 			self.emit( self.listeChainesSignal, listeChainesAvecImage )
 		
 		if( plugin ):
@@ -404,7 +442,13 @@ class MainWindow( QtGui.QMainWindow ):
 		Fonction qui demande la liste des emissions d'une chaine donnee
 		"""
 		def threadListerEmissions( self, plugin, chaine ):
-			listeEmissions = self.pluginManager.getPluginListeEmissions( plugin, chaine )
+			self.emit( QtCore.SIGNAL( "debutActualisation(PyQt_PyObject)" ), plugin )
+			try:
+				listeEmissions = self.pluginManager.getPluginListeEmissions( plugin, chaine )
+			except:
+				listeEmissions = []
+				logger.error( "impossible de récuperer la liste des emissions de %s (%s)" %( chaine, plugin ) )
+			self.emit( QtCore.SIGNAL( "finActualisation()" ) )
 			self.emit( self.listeEmissionsSignal, listeEmissions )
 		
 		plugin = qstringToString( self.pluginComboBox.currentText() )
@@ -415,7 +459,13 @@ class MainWindow( QtGui.QMainWindow ):
 		Fonction qui demande la liste des fichiers d'une emission donnee
 		"""		
 		def threadListerFichiers( self, plugin, emission ):
-			listeFichiers = self.pluginManager.getPluginListeFichiers( plugin, emission )
+			self.emit( QtCore.SIGNAL( "debutActualisation(PyQt_PyObject)" ), plugin )
+			try:
+				listeFichiers = self.pluginManager.getPluginListeFichiers( plugin, emission )
+			except:
+				listeFichiers = []
+				logger.error( "impossible de récuperer la liste des fichiers de %s (%s)" %( emission, plugin ) )
+			self.emit( QtCore.SIGNAL( "finActualisation()" ) )
 			self.emit( self.listeFichiersSignal, listeFichiers )
 		
 		plugin = qstringToString( self.pluginComboBox.currentText() )
@@ -495,7 +545,7 @@ class MainWindow( QtGui.QMainWindow ):
 			except :
 				logger.warning( "Impossible de récuperer l'image, utilisation de l'image par défaut" )
 				imageData = self.logoDefautPixmap
-			self.emit( QtCore.SIGNAL( "nouvelleImageDescription(PyQt_PyObject)" ), imageData )
+			self.emit( self.nouvelleImageDescriptionSignal, imageData )
 		
 		if( selected.indexes() != deselected.indexes() ):
 			fichier = self.fichierTableView.model().listeFichiers[ selected.indexes()[ 0 ].row() ]		
