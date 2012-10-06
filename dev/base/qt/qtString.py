@@ -27,7 +27,8 @@ def qstringToString( text ):
 	"""
 	Convert a Qt string to a Python string
 	"""
-	try:
-		return str( text.toUtf8() )
-	except UnicodeDecodeError:
-		return unicode( text.toUtf8(), "utf-8" )
+	return unicode( text.toUtf8(), "utf-8" )
+	# try:
+		# return str( text.toUtf8() )
+	# except UnicodeDecodeError:
+		# return unicode( text.toUtf8(), "utf-8" )

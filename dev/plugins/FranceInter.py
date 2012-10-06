@@ -11,7 +11,6 @@ import logging
 logger = logging.getLogger( "TVDownloader" )
 import os
 import re
-import unicodedata
 import xml.sax
 
 import tvdcore
@@ -52,7 +51,7 @@ class FranceInter( tvdcore.Plugin ):
 			listePagesData = self.getPages( listePagesUrl )
 			for emission in pageSoup.contents:
 				try:
-					nomEmission = unicodedata.normalize( 'NFKD', emission[ "title" ] ).encode( 'ASCII', 'ignore' )
+					nomEmission = emission[ "title" ]
 					urlPageEmission = "%s%s" %( "http://www.franceinter.fr" , emission[ "href" ] )
 					# Extrait le lien XML de la page de l'emission
 					urlXml = re.findall( "http://radiofrance-podcast.net/podcast09/rss_\d+?.xml", listePagesData[ urlPageEmission ] )[ 0 ]
