@@ -211,16 +211,18 @@ class RtmpDownloader(DownloaderInterface):
 			#Récupération de la progression pour estimation de la taille
 			match = re.search(RtmpDownloader.PROGRESS_PATTERN, line)
 			if match != None:
-				self.size = (100.0/float(match.group(1)))*self.dled
-			if self.size > 100:
-				self.size = 100
+				perc = float(match.group(1))
+				self.size = (100.0/perc)*self.dled
 		except:
 			pass
 		if len(select.select([self.process.stdout.fileno()],[],[], 0.2)[0]) > 0:
 			data = self.process.stdout.read(n)
 			self.dled = self.dled+len(data)
+			if self.dled > self.size:
+				self.size = self.dled
 			return data
 		else:
+			self.size = self.dled
 			return ""
 	
 	def stop(self):
