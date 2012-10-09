@@ -88,6 +88,7 @@ class MsdlDownloader (DownloaderInterface) :
 		DownloaderInterface.__init__(self)
 		self.url = url
 		self.size = None
+		self.stream = None
 	
 	def start(self):
 		try:
@@ -123,22 +124,36 @@ class HttpDownloader (DownloaderInterface) :
 		self.size = None
 	
 	def start(self):
-		parsed = urlparse.urlparse(self.url)
-		httpcon = httplib.HTTPConnection(parsed.netloc)
-		try:
-			if parsed.query != "":
-				httpcon.request("GET", parsed.path+"?"+parsed.query)
-			else:
-				httpcon.request("GET", parsed.path)
-		except:
-			return false
-		resp = httpcon.getresponse()
-		if resp.status != 200:
-			httpcon.close()
-			return False
-		self.stream = resp
-		if isinstance(resp.getheader("Content-Length"), str):
-			self.size = int(resp.getheader("Content-Length"))
+		moved = False
+		while True:
+			parsed = urlparse.urlparse(self.url)
+			httpcon = httplib.HTTPConnection(parsed.netloc)
+			try:
+				if parsed.query != "":
+					httpcon.request("GET", parsed.path+"?"+parsed.query)
+				else:
+					httpcon.request("GET", parsed.path)
+			except:
+				return False
+			resp = httpcon.getresponse()
+			if resp.status == 301 or resp.status == 302:
+				location = resp.getheader("Location")
+				httpcon.close()
+				if moved:
+					return False#On a déjà suivis une redirection, on arrête là pour ne pas tourner en rond
+				elif location == None:
+					return False
+				else:
+					self.url = location
+					moved = True
+					continue
+			elif resp.status != 200:
+				httpcon.close()
+				return False
+			self.stream = resp
+			if isinstance(resp.getheader("Content-Length"), str):
+				self.size = int(resp.getheader("Content-Length"))
+			break
 		return True
 	
 	def getSize(self):
