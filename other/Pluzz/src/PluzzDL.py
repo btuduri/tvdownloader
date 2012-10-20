@@ -11,6 +11,7 @@
 #
 
 import base64
+import BeautifulSoup
 import binascii
 import hashlib
 import hmac
@@ -20,6 +21,8 @@ import StringIO
 import struct
 import sys
 import threading
+import time
+import unicodedata
 import urllib
 import urllib2
 import xml.etree.ElementTree
@@ -42,10 +45,11 @@ class PluzzDL( object ):
 	Classe principale
 	"""
 	
-	def __init__( self, url, proxy = None, proxySock = False, progressFnct = lambda x : None, stopDownloadEvent = threading.Event(), outDir = "." ):
+	def __init__( self, url, proxy = None, proxySock = False, sousTitres = False, progressFnct = lambda x : None, stopDownloadEvent = threading.Event(), outDir = "." ):
 		# Options
 		self.url               = url
 		self.proxy             = proxy
+		self.sousTitres        = sousTitres
 		self.progressFnct      = progressFnct
 		self.stopDownloadEvent = stopDownloadEvent
 		self.outDir            = outDir
@@ -94,8 +98,14 @@ class PluzzDL( object ):
 			elif( self.lienMMS is not None ):
 				# Downloader
 				downloader = PluzzDLMMS( self.lienMMS )
+
+			# Recupere les sous titres si necessaire
+			if( self.sousTitres ):
+				self.telechargerSousTitres()
+
 			# Lance le téléchargement
 			downloader.telecharger()
+
 
 	def getID( self ):
 		"""
@@ -108,7 +118,54 @@ class PluzzDL( object ):
 		except :
 			logger.critical( "Impossible de récupérer l'ID de l'émission" )
 			sys.exit( -1 )
-
+	
+	def telechargerSousTitres( self ):
+		"""
+		Recupere le fichier de sous titre de la video
+		"""
+		urlSousTitres = "http://www.pluzz.fr/appftv/webservices/video/getFichierSmi.php?smi=france2/%s.smi&source=azad" %( self.id )
+		# Essaye de recuperer le sous titre
+		try:
+			sousTitresSmi = self.navigateur.getFichier( urlSousTitres )
+		except urllib2.URLError, e :
+			logger.debug( "Sous titres indisponibles" )
+			return
+		logger.debug( "Sous titres disponibles" )
+		# Enregistre le fichier de sous titres en smi
+		try :
+			( nomFichierSansExtension, extension ) = os.path.splitext( self.nomFichier )
+			# Ecrit le fichier
+			with open( "%s.smi" %( nomFichierSansExtension ), "w" ) as f:
+				f.write( sousTitresSmi )			
+		except :
+			logger.critical( "Impossible d'écrire dans le répertoire %s" %( os.getcwd() ) )
+			sys.exit( -1 )
+		logger.debug( "Fichier de sous titre smi enregistré" )
+		# Convertit le fichier de sous titres en srt
+		try:
+			with open( "%s.srt" %( nomFichierSansExtension ), "w" ) as f:
+				pageSoup = BeautifulSoup.BeautifulSoup( sousTitresSmi )
+				elmts = pageSoup.findAll( "sync" )
+				indice = 1
+				for ( elmtDebut, elmtFin ) in ( elmts[ i : i + 2 ] for i in range( 0, len( elmts ), 2 ) ):
+					# Extrait le temps de debut et le texte
+					tempsEnMs = int( elmtDebut[ "start" ] )
+					tempsDebutSrt = time.strftime( "%H:%M:%S,000", time.gmtime( int( tempsEnMs / 1000 ) ) )
+					lignes = elmtDebut.p.findAll( "span" )
+					texte = "\n".join( map( lambda x : x.contents[ 0 ].replace( "\t", "" ).replace ( "\n", "" ).replace( "  ", "" ), lignes ) )
+					# Extrait le temps de fin
+					tempsEnMs = int( elmtFin[ "start" ] )
+					tempsFinSrt = time.strftime( "%H:%M:%S,000", time.gmtime( int( tempsEnMs / 1000 ) ) )
+					# Ecrit dans le fichier
+					f.write( "%d\n" %( indice ) )
+					f.write( "%s --> %s\n" %( tempsDebutSrt, tempsFinSrt ) )
+					f.write( "%s\n\n" %( unicodedata.normalize( 'NFKD', texte ).encode( 'ascii','ignore' ) ) )
+					# Element suivant
+					indice += 1
+		except:
+			logger.error( "Impossible de convertir les sous titres en str" )
+		logger.debug( "Fichier de sous titre srt enregistré" )
+		
 	def parseInfos( self ):
 		"""
 		Parse le fichier qui contient les liens

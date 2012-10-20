@@ -37,6 +37,7 @@ if( __name__ == "__main__" ) :
 	parser.add_argument( "-p", "--proxy", dest = "proxy", metavar = "PROXY",            help = 'utilise un proxy HTTP au format suivant http://URL:PORT' )	
 	parser.add_argument( "-s", "--sock",        action = "store_true", default = False, help = 'si un proxy est fourni avec l\'option -p, un proxy SOCKS5 est utilisé au format suivant ADRESSE:PORT' )	
 	parser.add_argument( "-v", "--verbose",     action = "store_true", default = False, help = 'affiche les informations de debugage' )
+	parser.add_argument( "-t", "--soustitres",  action = "store_true", default = False, help = 'récupére le fichier de sous titre de la vidéo (si disponible)' )
 	parser.add_argument( "--nocolor",           action = 'store_true', default = False, help = 'désactive la couleur dans le terminal' )
 	parser.add_argument( "--version",           action = 'version', version = "pluzzdl %s" %( __version__ ) )
 	parser.add_argument( "urlEmission", action = "store", help = "URL de l'émission Pluzz a charger" )
@@ -83,4 +84,5 @@ if( __name__ == "__main__" ) :
 	PluzzDL( url          = args.urlEmission,
 			 proxy        = args.proxy,
 			 proxySock    = args.sock,
+			 sousTitres   = args.soustitres,
 			 progressFnct = progressFnct )

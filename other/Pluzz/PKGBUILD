@@ -1,9 +1,9 @@
 pkgname=pluzzdl
-pkgver=0.9.1
+pkgver=0.9.2
 pkgrel=1
 pkgdesc="Software to retreive videos from French website pluzz."
 url="http://code.google.com/p/tvdownloader/"
-depends=('python2' 'python2-crypto' 'python2-socksipy-branch' 'ffmpeg')
+depends=('python2' 'python2-crypto' 'python2-socksipy-branch' 'python2-beautifulsoup3' 'ffmpeg')
 license=('GPL2')
 arch=('any')
 source=(http://tvdownloader.googlecode.com/files/${pkgname}_${pkgver}.tar.gz)

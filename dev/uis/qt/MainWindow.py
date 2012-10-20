@@ -16,11 +16,9 @@ sys.path.append( ".." )
 
 import tvdcore
 from base.Browser import Browser
-
 from base.qt.QtFolderChooser import QtFolderChooser
 from base.qt.qtString        import qstringToString
 from base.qt.qtString        import stringToQstring
-
 from core.Configuration import Configuration
 import core.Constantes as Constantes
 from core.DownloadManager import DownloadCallback
@@ -33,7 +31,6 @@ from uis.qt.QtTable       import QtTable
 from uis.qt.QtTableView   import QtTableView
 from uis.qt.QtProgressBarDelegate import QtProgressBarDelegate
 from uis.qt.WaitWindow import WaitWindow
-
 from uis.qt.models.FichiersTableModel import FichiersTableModel
 from uis.qt.models.TelechargementsTableModel import TelechargementsTableModel
 
@@ -227,7 +224,7 @@ class MainWindow( QtGui.QMainWindow ):
 		# Menu clic droit sur la liste des telechargements
 		self.telechargementsWidget.setContextMenuPolicy( QtCore.Qt.ActionsContextMenu )
 		
-		# self.telechargementsWidget.addAction( QtGui.QAction( self.pauseIco, stringToQstring( "Susprendre le téléchargement" ), self.telechargementsWidget ) )
+		# self.telechargementsWidget.addAction( QtGui.QAction( self.pauseIco, stringToQstring( "Suspendre le téléchargement" ), self.telechargementsWidget ) )
 		
 		# self.telechargementsWidget.addAction( QtGui.QAction( self.startIco, stringToQstring( "Reprendre le téléchargement" ), self.telechargementsWidget ) )
 		
@@ -297,20 +294,20 @@ class MainWindow( QtGui.QMainWindow ):
 		# Barres de progression
 		#
 		
-		self.dlFichierProgressBar = QtGui.QProgressBar( self.centralWidget )
-		self.dlFichierProgressBar.setProperty( "value", 0 )
-		self.centralGridLayout.addWidget( self.dlFichierProgressBar, 2, 0, 1, 2 )
+		# self.dlFichierProgressBar = QtGui.QProgressBar( self.centralWidget )
+		# self.dlFichierProgressBar.setProperty( "value", 0 )
+		# self.centralGridLayout.addWidget( self.dlFichierProgressBar, 2, 0, 1, 2 )
 		
-		self.dlProgressBar = QtGui.QProgressBar( self.centralWidget )
-		self.dlProgressBar.setProperty( "value", 0 )
-		self.centralGridLayout.addWidget( self.dlProgressBar, 3, 0, 1, 2 )
+		# self.dlProgressBar = QtGui.QProgressBar( self.centralWidget )
+		# self.dlProgressBar.setProperty( "value", 0 )
+		# self.centralGridLayout.addWidget( self.dlProgressBar, 3, 0, 1, 2 )
 		
 		#
 		# Bouton de téléchargement
 		#
 		
-		self.lancerPushButton = QtGui.QPushButton( self.startIco, u"Lancer téléchargement", self.centralWidget )
-		self.centralGridLayout.addWidget( self.lancerPushButton, 4, 0, 1, 2 )
+		# self.lancerPushButton = QtGui.QPushButton( self.startIco, u"Lancer téléchargement", self.centralWidget )
+		# self.centralGridLayout.addWidget( self.lancerPushButton, 4, 0, 1, 2 )
 		
 		#
 		# Autre
