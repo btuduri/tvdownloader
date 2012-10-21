@@ -22,7 +22,6 @@ import struct
 import sys
 import threading
 import time
-import unicodedata
 import urllib
 import urllib2
 import xml.etree.ElementTree
@@ -98,14 +97,11 @@ class PluzzDL( object ):
 			elif( self.lienMMS is not None ):
 				# Downloader
 				downloader = PluzzDLMMS( self.lienMMS )
-
 			# Recupere les sous titres si necessaire
 			if( self.sousTitres ):
 				self.telechargerSousTitres()
-
 			# Lance le téléchargement
 			downloader.telecharger()
-
 
 	def getID( self ):
 		"""
@@ -150,16 +146,18 @@ class PluzzDL( object ):
 				for ( elmtDebut, elmtFin ) in ( elmts[ i : i + 2 ] for i in range( 0, len( elmts ), 2 ) ):
 					# Extrait le temps de debut et le texte
 					tempsEnMs = int( elmtDebut[ "start" ] )
-					tempsDebutSrt = time.strftime( "%H:%M:%S,000", time.gmtime( int( tempsEnMs / 1000 ) ) )
+					tempsDebutSrt = time.strftime( "%H:%M:%S,XXX", time.gmtime( int( tempsEnMs / 1000 ) ) )
+					tempsDebutSrt = tempsDebutSrt.replace( "XXX", str( tempsEnMs )[ -3 : ] )
 					lignes = elmtDebut.p.findAll( "span" )
-					texte = "\n".join( map( lambda x : x.contents[ 0 ].replace( "\t", "" ).replace ( "\n", "" ).replace( "  ", "" ), lignes ) )
+					texte = "\n".join( map( lambda x : x.contents[ 0 ].replace( "\t", "" ).replace ( "\n", "" ).replace( "  ", "" ), lignes ) ).replace( "\n ", "\n" )
 					# Extrait le temps de fin
 					tempsEnMs = int( elmtFin[ "start" ] )
-					tempsFinSrt = time.strftime( "%H:%M:%S,000", time.gmtime( int( tempsEnMs / 1000 ) ) )
+					tempsFinSrt = time.strftime( "%H:%M:%S,XXX", time.gmtime( int( tempsEnMs / 1000 ) ) )
+					tempsFinSrt = tempsFinSrt.replace( "XXX", str( tempsEnMs )[ -3 : ] )
 					# Ecrit dans le fichier
 					f.write( "%d\n" %( indice ) )
 					f.write( "%s --> %s\n" %( tempsDebutSrt, tempsFinSrt ) )
-					f.write( "%s\n\n" %( unicodedata.normalize( 'NFKD', texte ).encode( 'ascii','ignore' ) ) )
+					f.write( "%s\n\n" %( texte.encode( "iso-8859-1" ) ) )
 					# Element suivant
 					indice += 1
 		except:

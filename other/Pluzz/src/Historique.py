@@ -40,7 +40,14 @@ class Historique( object ):
 		if( os.name == "nt" ):
 			self.fichierCache = "pluzzdl.cache"
 		else:
-			self.fichierCache = os.path.join( os.path.expanduser( "~" ), ".cache", "pluzzdl" )
+			dossierCache = os.path.join( os.path.expanduser( "~" ), ".cache" )
+			if( not os.path.exists( dossierCache ) ):
+				logger.info( "Création du dossier %s" %( dossierCache ) )
+				try:
+					os.makedirs( dossierCache )
+				except:
+					logger.warning( "Impossible de créer le dossier %s" %( dossierCache ) )
+			self.fichierCache = os.path.join( dossierCache, "pluzzdl" )
 
 		self.charger()
 	
