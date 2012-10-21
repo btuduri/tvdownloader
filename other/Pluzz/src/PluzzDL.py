@@ -61,6 +61,7 @@ class PluzzDL( object ):
 		self.manifestURL       = None
 		self.m3u8URL           = None
 		self.drm               = None
+		self.chaine            = None
 		
 		# Liens pluzz.fr
 		if( re.match( "http://www.pluzz.fr/[^\.]+?\.html", self.url ) ):
@@ -119,7 +120,7 @@ class PluzzDL( object ):
 		"""
 		Recupere le fichier de sous titre de la video
 		"""
-		urlSousTitres = "http://www.pluzz.fr/appftv/webservices/video/getFichierSmi.php?smi=france2/%s.smi&source=azad" %( self.id )
+		urlSousTitres = "http://www.pluzz.fr/appftv/webservices/video/getFichierSmi.php?smi=%s/%s.smi&source=azad" %( self.chaine.lower().replace( " ", "" ), self.id )
 		# Essaye de recuperer le sous titre
 		try:
 			sousTitresSmi = self.navigateur.getFichier( urlSousTitres )
@@ -175,6 +176,7 @@ class PluzzDL( object ):
 			logger.debug( "URL manifest : %s" %( self.manifestURL ) )
 			logger.debug( "URL m3u8 : %s" %( self.m3u8URL ) )
 			logger.debug( "Utilisation de DRM : %s" %( self.drm ) )
+			logger.debug( "Chaine : %s" %( self.chaine ) )
 		except :
 			logger.critical( "Impossible de parser le fichier XML de l'émission" )
 			sys.exit( -1 )
@@ -527,14 +529,17 @@ class PluzzDLInfosHandler( xml.sax.handler.ContentHandler ):
 	def __init__( self, pluzzdl ):
 		self.pluzzdl = pluzzdl
 		
-		self.isUrl = False
-		self.isDRM = False
+		self.isUrl    = False
+		self.isDRM    = False
+		self.isChaine = False
 		
 	def startElement( self, name, attrs ):
 		if( name == "url" ):
 			self.isUrl = True
 		elif( name == "drm" ):
 			self.isDRM = True
+		elif( name == "chaine" ):
+			self.isChaine = True
 	
 	def characters( self, data ):
 		if( self.isUrl ):
@@ -548,9 +553,13 @@ class PluzzDLInfosHandler( xml.sax.handler.ContentHandler ):
 				self.pluzzdl.m3u8URL = data
 		elif( self.isDRM ):
 			self.pluzzdl.drm = data
+		elif( self.isChaine ):
+			self.pluzzdl.chaine = data
 			
 	def endElement( self, name ):
 		if( name == "url" ):
 			self.isUrl = False
 		elif( name == "drm" ):
 			self.isDRM = False
+		elif( name == "chaine" ):
+			self.isChaine = False
