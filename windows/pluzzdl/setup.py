@@ -25,7 +25,7 @@ for fichier in os.listdir( "ico" ):
 		listeIcones.append( "ico/" + fichier )
 
 setup( name = "pluzzdl",
-	   version = "0.8.5",
+	   version = "0.9.2",
 	   author = "Chaoswizard",
 	   url = "http://code.google.com/p/tvdownloader/",
 	   license = "GNU General Public License 2(GPL 2)",

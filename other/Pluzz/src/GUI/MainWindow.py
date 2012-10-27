@@ -129,6 +129,7 @@ class MainWindow( QtGui.QMainWindow ):
 						 proxy        = None,
 						 progressFnct = self.updateProgressBar,
 						 stopDownloadEvent = self.stopDownloadEvent,
+						 sousTitres = True,
 						 outDir = self.downloadDir )
 			except:
 				pass

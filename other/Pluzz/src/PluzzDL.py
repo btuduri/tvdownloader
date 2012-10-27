@@ -150,7 +150,7 @@ class PluzzDL( object ):
 					tempsDebutSrt = time.strftime( "%H:%M:%S,XXX", time.gmtime( int( tempsEnMs / 1000 ) ) )
 					tempsDebutSrt = tempsDebutSrt.replace( "XXX", str( tempsEnMs )[ -3 : ] )
 					lignes = elmtDebut.p.findAll( "span" )
-					texte = "\n".join( map( lambda x : x.contents[ 0 ].replace( "\t", "" ).replace ( "\n", "" ).replace( "  ", "" ), lignes ) ).replace( "\n ", "\n" )
+					texte = "\n".join( map( lambda x : x.contents[ 0 ].strip(), lignes ) )
 					# Extrait le temps de fin
 					tempsEnMs = int( elmtFin[ "start" ] )
 					tempsFinSrt = time.strftime( "%H:%M:%S,XXX", time.gmtime( int( tempsEnMs / 1000 ) ) )

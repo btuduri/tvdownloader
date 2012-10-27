@@ -62,4 +62,4 @@ tar :
 
 # Manuel:
 manual :
-	@man -t ./pluzzdl.1 | ps2pdf14 - manuel.pdf
+	@man -t ./pluzzdl.1 | ps2pdf14 - pluzzdl_manuel.pdf
