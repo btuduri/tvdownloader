@@ -59,6 +59,11 @@ class MainWindow( QtGui.QMainWindow ):
 		self.downloadInProgress  = False
 		# Open video folder button
 		self.videoPushButton     = QtGui.QPushButton( self.folderIcon, "Ouvrir", self.centralWidget )
+		# Proxy label
+		self.proxyLabel = QtGui.QLabel( u"Proxy a utiliser :", self.centralWidget )
+		# Text zone for proxy
+		self.proxyLineEdit = QtGui.QLineEdit( self.centralWidget )
+		self.proxyLineEdit.setToolTip( u"Proxy HTTP au format http://URL:PORT ou proxy SOCK5 au format ADRESSE:PORT" )
 		# Logger
 		self.logWidget = QtLogWidget( self )
 		
@@ -66,10 +71,12 @@ class MainWindow( QtGui.QMainWindow ):
 		self.gridLayout = QtGui.QGridLayout( self.centralWidget )
 		self.gridLayout.addWidget( self.urlLabel, 0, 0, 1, 1 )
 		self.gridLayout.addWidget( self.urlLineEdit, 0, 1, 1, 3 )
-		self.gridLayout.addWidget( self.downloadProgressBar, 1, 0, 1, 2 )
-		self.gridLayout.addWidget( self.startStopPushButton, 1, 2, 1, 1 )
-		self.gridLayout.addWidget( self.videoPushButton, 1, 3, 1, 1 )
-		self.gridLayout.addWidget( self.logWidget, 2, 0, 1, 4 )
+		self.gridLayout.addWidget( self.proxyLabel, 1, 0, 1, 1 )
+		self.gridLayout.addWidget( self.proxyLineEdit, 1, 1, 1, 3 )
+		self.gridLayout.addWidget( self.downloadProgressBar, 2, 0, 1, 2 )
+		self.gridLayout.addWidget( self.startStopPushButton, 2, 2, 1, 1 )
+		self.gridLayout.addWidget( self.videoPushButton, 2, 3, 1, 1 )
+		self.gridLayout.addWidget( self.logWidget, 3, 0, 1, 4 )
 		
 		# Set central widget
 		self.setCentralWidget( self.centralWidget )
@@ -123,10 +130,11 @@ class MainWindow( QtGui.QMainWindow ):
 	
 	def startDownload( self ):
 
-		def dlVideo( url ):
+		def dlVideo( url, proxy, sock ):
 			try:
 				PluzzDL( url          = url,
-						 proxy        = None,
+						 proxy        = proxy,
+						 proxySock    = sock,
 						 progressFnct = self.updateProgressBar,
 						 stopDownloadEvent = self.stopDownloadEvent,
 						 sousTitres = True,
@@ -134,9 +142,17 @@ class MainWindow( QtGui.QMainWindow ):
 			except:
 				pass
 			self.emit( QtCore.SIGNAL( "stopDownload()" ) )
-
+		
+		# Retrieve proxy
+		proxySock = False
+		proxyString = qstringToString( self.proxyLineEdit.text() )
+		if( len( proxyString ) == 0 ):
+			proxyString = None
+		elif( proxyString[ : 4 ] != "http" ):
+			proxySock = True
+		#
 		self.stopDownloadEvent.clear()
-		self.downloadThread = threading.Thread( target = dlVideo, args = ( qstringToString( self.urlLineEdit.text() ), ) )
+		self.downloadThread = threading.Thread( target = dlVideo, args = ( qstringToString( self.urlLineEdit.text() ), proxyString, proxySock ) )
 		self.downloadThread.start()
 		self.downloadInProgress = True
 		self.updateButtons()

@@ -7,7 +7,7 @@ depends=('python2' 'python2-crypto' 'python2-socksipy-branch' 'python2-beautiful
 license=('GPL2')
 arch=('any')
 source=(http://tvdownloader.googlecode.com/files/${pkgname}_${pkgver}.tar.gz)
-md5sums=('cf90ed0cc6555cbb63ee6f68f0d01dd7')
+md5sums=('22bd6386a0c0769e14ca6a6d6ed59b72')
 
 build() {
     cd ${srcdir}/${pkgname}-${pkgver}
