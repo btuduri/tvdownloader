@@ -7,7 +7,7 @@
 
 __author__  = "Chaoswizard"
 __license__ = "GPL 2"
-__version__ = "0.9.2"
+__version__ = "0.9.3"
 __url__     = "http://code.google.com/p/tvdownloader/"
 
 #
@@ -59,7 +59,10 @@ if( __name__ == "__main__" ) :
 	logger.debug( "pluzzdl %s avec Python %s" %( __version__, platform.python_version() ) )
 	
 	# Verification de l'URL
-	if( re.match( "http://www.pluzz.fr/[^\.]+?\.html", args.urlEmission ) is None ):
+	if( ( re.match( "http://www.pluzz.fr/[^\.]+?\.html", args.urlEmission ) is None )
+		and
+		( re.match( "http://pluzz.francetv.fr/videos/[^\.]+?\.html", args.urlEmission ) is None )
+	  ):
 		logger.error( "L'URL \"%s\" n'est pas valide" %( args.urlEmission ) )
 		sys.exit( -1 )
 	

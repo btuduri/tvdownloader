@@ -62,31 +62,30 @@ class PluzzDL( object ):
 		self.m3u8URL           = None
 		self.drm               = None
 		self.chaine            = None
-		
+			
+		# Recupere l'ID de l'emission
+		self.getID()
+		# Recupere la page d'infos de l'emission
+		self.pageInfos = self.navigateur.getFichier( "http://www.pluzz.fr/appftv/webservices/video/getInfosOeuvre.php?mode=zeri&id-diffusion=%s" %( self.id ) )
+		# Parse la page d'infos
+		self.parseInfos()
+		# Petit message en cas de DRM
+		if( self.drm == "oui" ):
+			logger.warning( "La vidéo posséde un DRM ; elle sera sans doute illisible" )
+		# Verification qu'un lien existe
+		if( self.m3u8URL is None and
+			self.manifestURL is None and
+			self.lienRTMP is None and
+			self.lienMMS is None ):
+			logger.critical( "Aucun lien vers la vidéo" )
+			sys.exit( -1 )
 		# Liens pluzz.fr
 		if( re.match( "http://www.pluzz.fr/[^\.]+?\.html", self.url ) ):
-			# Recupere l'ID de l'emission
-			self.getID()
-			# Recupere la page d'infos de l'emission
-			self.pageInfos = self.navigateur.getFichier( "http://www.pluzz.fr/appftv/webservices/video/getInfosOeuvre.php?mode=zeri&id-diffusion=%s" %( self.id ) )
-			# Parse la page d'infos
-			self.parseInfos()
-			# Petit message en cas de DRM
-			if( self.drm == "oui" ):
-				logger.warning( "La vidéo posséde un DRM ; elle sera sans doute illisible" )
-			# Verification qu'un lien existe
-			if( self.m3u8URL is None and
-				self.manifestURL is None and
-				self.lienRTMP is None and
-				self.lienMMS is None ):
-				logger.critical( "Aucun lien vers la vidéo" )
-				sys.exit( -1 )			
-			# Telechargement de la video
 			if( self.manifestURL is not None ):
 				# Nom du fichier
 				self.nomFichier = os.path.join( self.outDir, "%s.flv" %( re.findall( "http://www.pluzz.fr/([^\.]+?)\.html", self.url )[ 0 ] ) )
 				# Downloader
-				downloader = PluzzDLF4M( self.manifestURL, self.nomFichier, self.navigateur, self.stopDownloadEvent, self.progressFnct )			
+				downloader = PluzzDLF4M( self.manifestURL, self.nomFichier, self.navigateur, self.stopDownloadEvent, self.progressFnct )	
 			elif( self.m3u8URL is not None ):
 				# Nom du fichier
 				self.nomFichier = os.path.join( self.outDir, "%s.ts" %( re.findall( "http://www.pluzz.fr/([^\.]+?)\.html", self.url )[ 0 ] ) )
@@ -98,11 +97,18 @@ class PluzzDL( object ):
 			elif( self.lienMMS is not None ):
 				# Downloader
 				downloader = PluzzDLMMS( self.lienMMS )
-			# Recupere les sous titres si necessaire
-			if( self.sousTitres ):
-				self.telechargerSousTitres()
-			# Lance le téléchargement
-			downloader.telecharger()
+		# Lien pluzz.francetv.fr
+		elif( re.match( "http://pluzz.francetv.fr/videos/[^\.]+?\.html", self.url ) ):
+			if( self.manifestURL is not None ):
+				# Nom du fichier
+				self.nomFichier = os.path.join( self.outDir, "%s.flv" %( re.findall( "http://pluzz.francetv.fr/videos/([^\.]+?)\.html", self.url )[ 0 ] ) )
+				# Downloader
+				downloader = PluzzDLF4M( self.manifestURL, self.nomFichier, self.navigateur, self.stopDownloadEvent, self.progressFnct )
+		# Recupere les sous titres si necessaire
+		if( self.sousTitres ):
+			self.telechargerSousTitres()
+		# Lance le téléchargement
+		downloader.telecharger()
 
 	def getID( self ):
 		"""
