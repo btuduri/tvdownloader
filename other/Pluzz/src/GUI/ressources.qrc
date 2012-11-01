@@ -1,0 +1,8 @@
+<RCC>
+	<qresource prefix="/" >
+		<file>ico/gtk-folder.png</file>
+		<file>ico/gtk-media-play-ltr.png</file>
+		<file>ico/gtk-media-stop.png</file>
+		<file>ico/tvdownloader.png</file>
+	</qresource>
+</RCC>

@@ -17,6 +17,7 @@ from PyQt4 import QtGui
 
 from PluzzDL import PluzzDL
 
+import ressources
 from QtLogHandler import QtLogHandler
 from QtLogWidget  import QtLogWidget
 from QtString     import stringToQstring
@@ -32,10 +33,10 @@ class MainWindow( QtGui.QMainWindow ):
 		QtGui.QMainWindow.__init__( self )
 		
 		# App icons
-		self.tvdIcon    = QtGui.QIcon( "ico/tvdownloader.png" )
-		self.startIcon  = QtGui.QIcon( "ico/gtk-media-play-ltr.png" )
-		self.stopIcon   = QtGui.QIcon( "ico/gtk-media-stop.png" )
-		self.folderIcon = QtGui.QIcon( "ico/gtk-folder.png" )
+		self.tvdIcon    = QtGui.QIcon( ":/ico/tvdownloader.png" )
+		self.startIcon  = QtGui.QIcon( ":/ico/gtk-media-play-ltr.png" )
+		self.stopIcon   = QtGui.QIcon( ":/ico/gtk-media-stop.png" )
+		self.folderIcon = QtGui.QIcon( ":/ico/gtk-folder.png" )
 		
 		# Main window properties
 		self.setWindowTitle( "pluzzdl %s" %( pluzzdlVersion ) )
@@ -117,7 +118,10 @@ class MainWindow( QtGui.QMainWindow ):
 		evt.accept()
 
 	def checkUrl( self, url ):
-		if( re.match( "http://www.pluzz.fr/[^\.]+?\.html", url ) is None ):
+		if( ( re.match( "http://www.pluzz.fr/[^\.]+?\.html", url ) is None )
+			and
+			( re.match( "http://pluzz.francetv.fr/videos/[^\.]+?\.html", url ) is None )
+		  ):
 			self.startStopPushButton.setEnabled( False )
 		else:
 			self.startStopPushButton.setEnabled( True )		
