@@ -130,7 +130,7 @@ class PluzzDL( object ):
 		# Essaye de recuperer le sous titre
 		try:
 			sousTitresSmi = self.navigateur.getFichier( urlSousTitres )
-		except urllib2.URLError, e :
+		except:
 			logger.debug( "Sous titres indisponibles" )
 			return
 		logger.debug( "Sous titres disponibles" )

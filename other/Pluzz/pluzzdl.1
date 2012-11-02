@@ -1,4 +1,4 @@
-.TH pluzzdl 1 "27 octobre 2012" "0.9.2" "pluzzdl man page"
+.TH pluzzdl 1 "02 novembre 2012" "0.9.3" "pluzzdl man page"
 
 
 .SH NOM
@@ -7,12 +7,15 @@
 
 .SH UTILISATION
 .HP 1
-\fBpluzzdl [ -bv ] [ -p \fIproxy\fB [ -s ] ] \fIurlEmission\fR\fR
+\fBpluzzdl [ -bvt ] [ -p \fIproxy\fB [ -s ] ] \fIurlEmission\fR\fR
 .PP
 où \fIurlEmission\fR doit être de la forme :
 .TP
 http://www.pluzz.fr/VIDEO.html
 vidéos du site Pluzz
+.TP
+http://pluzz.francetv.fr/videos/VIDEO.html
+vidéos du site Pluzz (nouvelle version)
 
 
 .SH OPTIONS
@@ -44,8 +47,8 @@ Affiche la version actuelle de \fBpluzzdl\fR
 .SH EXEMPLE
 La plupart de téléchargements se feront avec les options suivantes
 .TP
-\fBpluzzdl\fR \fB-b\fr \fIurlEmission\fR
-La vidéo sera donc chargée en rassemblant les fragments du streaming adaptatif, en affichant la progression du téléchargement et reprenant le téléchargement s'il avait été coupé.
+\fBpluzzdl\fR \fB-bt\fr \fIurlEmission\fR
+La vidéo sera donc chargée en affichant la progression du téléchargement et en chargant les sous-titres.
 
 
 .SH BUGS
