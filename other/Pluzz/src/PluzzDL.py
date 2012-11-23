@@ -45,6 +45,7 @@ class PluzzDL( object ):
 	"""
 
 	M3U8_LINK = "http://medias2.francetv.fr//catchup-mobile/france-dom-tom/non-token/non-drm/m3u8/_FILE_NAME_.m3u8"
+	REGEX_M3U8 = "/([0-9]{4}/S[0-9]{2}/J[0-9]{1}/[0-9]*-[0-9]{6,8})-"
 
 	def __init__( self, url, proxy = None, proxySock = False, sousTitres = False, progressFnct = lambda x : None, stopDownloadEvent = threading.Event(), outDir = "." ):
 		# Options
@@ -83,10 +84,6 @@ class PluzzDL( object ):
 			sys.exit( -1 )
 		# Liens pluzz.fr
 		if( re.match( "http://www.pluzz.fr/[^\.]+?\.html", self.url ) ):
-
-			args = re.findall( "/(([0-9]{4})/S([0-9]{2})/J([0-9]{1})/([0-9]*)-([0-9]{6,8}))-", self.pageInfos )[0]
-			self.m3u8URL = self.M3U8_LINK.replace( "_FILE_NAME_", args[ 0 ] )
-			print self.m3u8URL
 			if( self.m3u8URL is not None ):
 				# Nom du fichier
 				self.nomFichier = os.path.join( self.outDir, "%s.ts" % ( re.findall( "http://www.pluzz.fr/([^\.]+?)\.html", self.url )[ 0 ] ) )
@@ -105,7 +102,12 @@ class PluzzDL( object ):
 				downloader = PluzzDLMMS( self.lienMMS )
 		# Lien pluzz.francetv.fr
 		elif( re.match( "http://pluzz.francetv.fr/videos/[^\.]+?\.html", self.url ) ):
-			if( self.manifestURL is not None ):
+			if( self.m3u8URL is not None ):
+				# Nom du fichier
+				self.nomFichier = os.path.join( self.outDir, "%s.ts" % ( re.findall( "http://pluzz.francetv.fr/videos/([^\.]+?)\.html", self.url )[ 0 ] ) )
+				# Downloader
+				downloader = PluzzDLM3U8( self.m3u8URL, self.nomFichier, self.navigateur, self.stopDownloadEvent, self.progressFnct )
+			elif( self.manifestURL is not None ):
 				# Nom du fichier
 				self.nomFichier = os.path.join( self.outDir, "%s.flv" % ( re.findall( "http://pluzz.francetv.fr/videos/([^\.]+?)\.html", self.url )[ 0 ] ) )
 				# Downloader
@@ -183,6 +185,9 @@ class PluzzDL( object ):
 		"""
 		try :
 			xml.sax.parseString( self.pageInfos, PluzzDLInfosHandler( self ) )
+			# Si le lien m3u8 n'existe pas, il faut essayer de creer celui de la plateforme mobile
+ 			if( self.m3u8URL is None ):
+ 		 		self.m3u8URL = self.M3U8_LINK.replace( "_FILE_NAME_", re.findall( self.REGEX_M3U8, self.pageInfos )[ 0 ] )
 			logger.debug( "Lien MMS : %s" % ( self.lienMMS ) )
 			logger.debug( "Lien RTMP : %s" % ( self.lienRTMP ) )
 			logger.debug( "URL manifest : %s" % ( self.manifestURL ) )
