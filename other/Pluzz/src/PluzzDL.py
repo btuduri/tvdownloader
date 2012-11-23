@@ -44,6 +44,8 @@ class PluzzDL( object ):
 	Classe principale
 	"""
 	
+	M3U8_LINK = "http://medias2.francetv.fr//catchup-mobile/france-dom-tom/non-token/non-drm/m3u8/_FILE_NAME_.m3u8"
+	
 	def __init__( self, url, proxy = None, proxySock = False, sousTitres = False, progressFnct = lambda x : None, stopDownloadEvent = threading.Event(), outDir = "." ):
 		# Options
 		self.url               = url
@@ -81,16 +83,20 @@ class PluzzDL( object ):
 			sys.exit( -1 )
 		# Liens pluzz.fr
 		if( re.match( "http://www.pluzz.fr/[^\.]+?\.html", self.url ) ):
-			if( self.manifestURL is not None ):
-				# Nom du fichier
-				self.nomFichier = os.path.join( self.outDir, "%s.flv" %( re.findall( "http://www.pluzz.fr/([^\.]+?)\.html", self.url )[ 0 ] ) )
-				# Downloader
-				downloader = PluzzDLF4M( self.manifestURL, self.nomFichier, self.navigateur, self.stopDownloadEvent, self.progressFnct )	
-			elif( self.m3u8URL is not None ):
+			
+			args = re.findall( "/(([0-9]{4})/S([0-9]{2})/J([0-9]{1})/([0-9]*)-([0-9]{6,8}))-", self.pageInfos )[0]
+			self.m3u8URL = self.M3U8_LINK.replace( "_FILE_NAME_", args[ 0 ] )
+			print self.m3u8URL
+			if( self.m3u8URL is not None ):
 				# Nom du fichier
 				self.nomFichier = os.path.join( self.outDir, "%s.ts" %( re.findall( "http://www.pluzz.fr/([^\.]+?)\.html", self.url )[ 0 ] ) )
 				# Downloader
 				downloader = PluzzDLM3U8( self.m3u8URL, self.nomFichier, self.navigateur, self.stopDownloadEvent, self.progressFnct )
+			elif( self.manifestURL is not None ):
+				# Nom du fichier
+				self.nomFichier = os.path.join( self.outDir, "%s.flv" %( re.findall( "http://www.pluzz.fr/([^\.]+?)\.html", self.url )[ 0 ] ) )
+				# Downloader
+				downloader = PluzzDLF4M( self.manifestURL, self.nomFichier, self.navigateur, self.stopDownloadEvent, self.progressFnct )	
 			elif( self.lienRTMP is not None ):
 				# Downloader
 				downloader = PluzzDLRTMP( self.lienRTMP )
@@ -244,16 +250,18 @@ class PluzzDLM3U8( object ):
 	def telecharger( self ):
 		# Recupere le fichier master.m3u8
 		self.m3u8 = self.navigateur.getFichier( self.m3u8URL )
-		# Recupere le lien avec le plus gros bitrate (toujours 1205000 ?)
+		# Extrait l'URL de base pour tous les fragments
+		self.urlBase = "/".join( self.m3u8URL.split( "/" )[ : -1 ] )
+		# Recupere le lien avec le plus gros bitrate
 		try:
-			self.listeFragmentsURL = re.findall( "http://ftvodhd-i\.akamaihd.net/.+?index_2_av\.m3u8.+", self.m3u8 )[ 0 ]
+			self.listeFragmentsURL = "%s/%s" %( self.urlBase, re.findall( ".+?\.m3u8.*", self.m3u8 )[ -1 ] )
 		except:
 			logger.critical( "Impossible de trouver le lien vers la liste des fragments" )
 			sys.exit( -1 )
 		# Recupere la liste des fragments
 		self.listeFragmentsPage = self.navigateur.getFichier( self.listeFragmentsURL )
 		# Extrait l'URL de tous les fragments
-		self.listeFragments = re.findall( "http://ftvodhd-i.akamaihd.net.+", self.listeFragmentsPage )
+		self.listeFragments = re.findall( ".+?\.ts", self.listeFragmentsPage )
 		#
 		# Creation de la video
 		#
@@ -286,7 +294,7 @@ class PluzzDLM3U8( object ):
 		try :
 			i = self.premierFragment
 			while( i <= self.nbFragMax and not self.stopDownloadEvent.isSet() ):
-				frag = self.navigateur.getFichier( self.listeFragments[ i - 1 ] )
+				frag = self.navigateur.getFichier( "%s/%s" %( self.urlBase, self.listeFragments[ i - 1 ] ) )
 				self.fichierVideo.write( frag )
 				# Affichage de la progression
 				self.progressFnct( min( int( ( i / self.nbFragMax ) * 100 ), 100 ) )
