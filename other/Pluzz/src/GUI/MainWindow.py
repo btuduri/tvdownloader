@@ -9,7 +9,7 @@ import logging
 import os
 import re
 import sys
-sys.path.append( ".." ) 
+sys.path.append( ".." )
 import threading
 
 from PyQt4 import QtCore
@@ -28,25 +28,25 @@ from QtString     import qstringToString
 #
 
 class MainWindow( QtGui.QMainWindow ):
-	
+
 	def __init__( self, pluzzdlVersion ):
 		QtGui.QMainWindow.__init__( self )
-		
+
 		# App icons
-		self.tvdIcon    = QtGui.QIcon( ":/ico/tvdownloader.png" )
-		self.startIcon  = QtGui.QIcon( ":/ico/gtk-media-play-ltr.png" )
-		self.stopIcon   = QtGui.QIcon( ":/ico/gtk-media-stop.png" )
+		self.tvdIcon = QtGui.QIcon( ":/ico/tvdownloader.png" )
+		self.startIcon = QtGui.QIcon( ":/ico/gtk-media-play-ltr.png" )
+		self.stopIcon = QtGui.QIcon( ":/ico/gtk-media-stop.png" )
 		self.folderIcon = QtGui.QIcon( ":/ico/gtk-folder.png" )
-		
+
 		# Main window properties
-		self.setWindowTitle( "pluzzdl %s" %( pluzzdlVersion ) )
+		self.setWindowTitle( "pluzzdl %s" % ( pluzzdlVersion ) )
 		self.setWindowIcon( self.tvdIcon )
 		self.resize( 570, 210 )
-		
+
 		# Central widget
 		self.centralWidget = QtGui.QWidget( self )
 		# URL label
-		self.urlLabel   = QtGui.QLabel( "Entrer une URL valide :", self.centralWidget )
+		self.urlLabel = QtGui.QLabel( "Entrer une URL valide :", self.centralWidget )
 		# Line edit
 		self.urlLineEdit = QtGui.QLineEdit( self.centralWidget )
 		# Progress bar
@@ -57,9 +57,9 @@ class MainWindow( QtGui.QMainWindow ):
 		# Start/stop button
 		self.startStopPushButton = QtGui.QPushButton( self.startIcon, "Start", self.centralWidget )
 		self.startStopPushButton.setEnabled( False )
-		self.downloadInProgress  = False
+		self.downloadInProgress = False
 		# Open video folder button
-		self.videoPushButton     = QtGui.QPushButton( self.folderIcon, "Ouvrir", self.centralWidget )
+		self.videoPushButton = QtGui.QPushButton( self.folderIcon, "Ouvrir", self.centralWidget )
 		# Proxy label
 		self.proxyLabel = QtGui.QLabel( u"Proxy a utiliser :", self.centralWidget )
 		# Text zone for proxy
@@ -67,7 +67,7 @@ class MainWindow( QtGui.QMainWindow ):
 		self.proxyLineEdit.setToolTip( u"Proxy HTTP au format http://URL:PORT ou proxy SOCK5 au format ADRESSE:PORT" )
 		# Logger
 		self.logWidget = QtLogWidget( self )
-		
+
 		# Add all widgets to a grid layout
 		self.gridLayout = QtGui.QGridLayout( self.centralWidget )
 		self.gridLayout.addWidget( self.urlLabel, 0, 0, 1, 1 )
@@ -78,12 +78,12 @@ class MainWindow( QtGui.QMainWindow ):
 		self.gridLayout.addWidget( self.startStopPushButton, 2, 2, 1, 1 )
 		self.gridLayout.addWidget( self.videoPushButton, 2, 3, 1, 1 )
 		self.gridLayout.addWidget( self.logWidget, 3, 0, 1, 4 )
-		
+
 		# Set central widget
 		self.setCentralWidget( self.centralWidget )
-		
+
 		# Set logger
-		logger  = logging.getLogger( "pluzzdl" )
+		logger = logging.getLogger( "pluzzdl" )
 		logger.setLevel( logging.INFO )
 		self.logHandler = QtLogHandler( self.logWidget )
 		logger.addHandler( self.logHandler )
@@ -91,21 +91,21 @@ class MainWindow( QtGui.QMainWindow ):
 		# Signals
 		QtCore.QObject.connect( self.urlLineEdit,
 								QtCore.SIGNAL( "textChanged(QString)" ),
-								self.checkUrl )		
+								self.checkUrl )
 		QtCore.QObject.connect( self.startStopPushButton,
 								QtCore.SIGNAL( "clicked()" ),
-								self.startStopDownload )		
+								self.startStopDownload )
 		QtCore.QObject.connect( self.videoPushButton,
 								QtCore.SIGNAL( "clicked()" ),
 								self.openVideoFolder )
-		QtCore.QObject.connect( self, 
+		QtCore.QObject.connect( self,
 								QtCore.SIGNAL( "updateProgressBar(int)" ),
 								self.downloadProgressBar.setValue )
-		QtCore.QObject.connect( self, 
+		QtCore.QObject.connect( self,
 								QtCore.SIGNAL( "stopDownload()" ),
 								self.stopDownload )
-		
-		self.downloadThread    = None 
+
+		self.downloadThread = None
 		self.stopDownloadEvent = threading.Event()
 		if( os.name == "nt" ):
 			self.downloadDir = "Videos"
@@ -124,21 +124,21 @@ class MainWindow( QtGui.QMainWindow ):
 		  ):
 			self.startStopPushButton.setEnabled( False )
 		else:
-			self.startStopPushButton.setEnabled( True )		
+			self.startStopPushButton.setEnabled( True )
 
 	def startStopDownload( self ):
 		if( self.downloadInProgress is True ):
 			self.stopDownload()
 		else:
 			self.startDownload()
-	
+
 	def startDownload( self ):
 
 		def dlVideo( url, proxy, sock ):
 			try:
-				PluzzDL( url          = url,
-						 proxy        = proxy,
-						 proxySock    = sock,
+				PluzzDL( url = url,
+						 proxy = proxy,
+						 proxySock = sock,
 						 progressFnct = self.updateProgressBar,
 						 stopDownloadEvent = self.stopDownloadEvent,
 						 sousTitres = True,
@@ -146,7 +146,7 @@ class MainWindow( QtGui.QMainWindow ):
 			except:
 				pass
 			self.emit( QtCore.SIGNAL( "stopDownload()" ) )
-		
+
 		# Retrieve proxy
 		proxySock = False
 		proxyString = qstringToString( self.proxyLineEdit.text() )
@@ -160,7 +160,7 @@ class MainWindow( QtGui.QMainWindow ):
 		self.downloadThread.start()
 		self.downloadInProgress = True
 		self.updateButtons()
-	
+
 	def stopDownload( self ):
 		self.stopDownloadEvent.set()
 		self.downloadThread.join()
@@ -173,10 +173,10 @@ class MainWindow( QtGui.QMainWindow ):
 			self.startStopPushButton.setText( "Stop" )
 		else:
 			self.startStopPushButton.setIcon( self.startIcon )
-			self.startStopPushButton.setText( "Start" )	
-	
+			self.startStopPushButton.setText( "Start" )
+
 	def openVideoFolder( self ):
 		QtGui.QDesktopServices.openUrl( QtCore.QUrl.fromLocalFile( self.downloadDir ) )
-		
+
 	def updateProgressBar( self, value ):
 		self.emit( QtCore.SIGNAL( "updateProgressBar(int)" ), value )

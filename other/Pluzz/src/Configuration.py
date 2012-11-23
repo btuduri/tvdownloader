@@ -29,7 +29,7 @@ def resourcePath( relative ):
 #
 
 class Configuration( object ):
-	
+
 	def __init__( self ):
 		# Les chemins sont differents selon l'OS utilise
 		if( os.name == "nt" ):
@@ -37,7 +37,7 @@ class Configuration( object ):
 			self.configFileName = resourcePath( "pluzzdl.cfg" )
 		else:
 			self.configDefaultFileName = os.path.join( os.path.dirname( os.path.abspath( __file__ ) ), "pluzzdl_default.cfg" )
-			self.configFileName = os.path.join( os.path.expanduser( "~" ), ".config", "pluzzdl.cfg" )		
+			self.configFileName = os.path.join( os.path.expanduser( "~" ), ".config", "pluzzdl.cfg" )
 		# Si le fichier de configuration n'est pas present dans le repertoire de l'utilisateur ou si celui par defaut est plus recent
 		if( os.path.exists( self.configDefaultFileName ) and ( ( not os.path.exists( self.configFileName ) ) or ( os.path.getmtime( self.configDefaultFileName ) > os.path.getmtime( self.configFileName ) ) ) ):
 			# Copie du fichier par defaut
@@ -49,21 +49,21 @@ class Configuration( object ):
 				sys.exit( 1 )
 		# Verifie que le fichier de configuration existe
 		if( not os.path.exists( self.configFileName ) ):
-			logger.error( "Le fichier de configuration %s n'existe pas..." %( self.configFileName ) )
+			logger.error( "Le fichier de configuration %s n'existe pas..." % ( self.configFileName ) )
 			sys.exit( 1 )
 		# Parser
 		self.configParser = ConfigParser.RawConfigParser()
 		# Options
-		self.optionsDict  = {}
+		self.optionsDict = {}
 		# Lecture de la configuration
 		self.readConfig()
-	
+
 	def __getitem__( self, key ):
 		if( self.optionsDict.has_key( key ) ):
 			return self.optionsDict[ key ]
 		else:
 			return None
-	
+
 	def __setitem__( self, key, value ):
 		self.optionsDict[ key ] = value
 
@@ -76,7 +76,7 @@ class Configuration( object ):
 		except:
 			logger.error( "Impossible de lire le fichier de configuration" )
 			sys.exit( 1 )
-		
+
 	def writeConfig( self ):
 		try:
 			# Seule l'option "player_hash" a ete modifiee

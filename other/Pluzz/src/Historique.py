@@ -17,24 +17,24 @@ logger = logging.getLogger( "pluzzdl" )
 #
 
 class Video( object ):
-	
+
 	def __init__( self, lien, fragments, finie, date = datetime.datetime.now() ):
-		self.lien      = lien
+		self.lien = lien
 		self.fragments = fragments
-		self.finie     = finie
-		self.date      = date
-		
+		self.finie = finie
+		self.date = date
+
 	def __eq__( self, other ):
 		if not isinstance( other, Video ):
 			return False
 		else:
 			return ( self.lien == other.lien )
-	
+
 	def __ne__( self, other ):
 		return not self.__eq__( other )
 
 class Historique( object ):
-	
+
 	def __init__( self ):
 		# Le chemin du fichier d'historique est different selon l'OS utilise
 		if( os.name == "nt" ):
@@ -42,18 +42,18 @@ class Historique( object ):
 		else:
 			dossierCache = os.path.join( os.path.expanduser( "~" ), ".cache" )
 			if( not os.path.exists( dossierCache ) ):
-				logger.info( "Création du dossier %s" %( dossierCache ) )
+				logger.info( "Création du dossier %s" % ( dossierCache ) )
 				try:
 					os.makedirs( dossierCache )
 				except:
-					logger.warning( "Impossible de créer le dossier %s" %( dossierCache ) )
+					logger.warning( "Impossible de créer le dossier %s" % ( dossierCache ) )
 			self.fichierCache = os.path.join( dossierCache, "pluzzdl" )
 
 		self.charger()
-	
+
 	def __del__( self ):
 		self.sauver()
-	
+
 	def charger( self ):
 		if( os.path.exists( self.fichierCache ) ):
 			try:
@@ -62,7 +62,7 @@ class Historique( object ):
 					logger.debug( "Historique chargé" )
 			except:
 				self.historique = []
-				logger.warning( "Impossible de lire le fichier d'historique %s, création d'un nouveau fichier" %( self.fichierCache ) )
+				logger.warning( "Impossible de lire le fichier d'historique %s, création d'un nouveau fichier" % ( self.fichierCache ) )
 		else:
 			self.historique = []
 			logger.info( "Fichier d'historique indisponible, création d'un nouveau fichier" )
@@ -74,7 +74,7 @@ class Historique( object ):
 				pickle.dump( self.historique, fichier )
 				logger.debug( "Historique sauvé" )
 		except:
-			logger.warning( "Impossible d'écrire le fichier d'historique %s" %( self.fichierCache ) )
+			logger.warning( "Impossible d'écrire le fichier d'historique %s" % ( self.fichierCache ) )
 
 	def nettoyer( self ):
 		# Supprimer les videos de plus de 10 jours de l'historique

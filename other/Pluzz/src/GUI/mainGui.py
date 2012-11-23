@@ -5,10 +5,10 @@
 # Infos
 #
 
-__author__  = "Chaoswizard"
+__author__ = "Chaoswizard"
 __license__ = "GPL 2"
 __version__ = "0.9.3"
-__url__     = "http://code.google.com/p/tvdownloader/"
+__url__ = "http://code.google.com/p/tvdownloader/"
 
 #
 # Modules
@@ -27,7 +27,7 @@ from MainWindow import MainWindow
 #
 
 if( __name__ == "__main__" ) :
-	
+
 	# Creation des repertoires de travail
 	if( os.name == "nt" ):
 		pluzzdlDirs = [ "Videos" ]
@@ -36,7 +36,7 @@ if( __name__ == "__main__" ) :
 	for pluzzdlDir in pluzzdlDirs:
 		if( not os.path.isdir( pluzzdlDir ) ):
 			os.makedirs( pluzzdlDir )
-	
+
 	# Lancement de la GUI
 	app = QtGui.QApplication( sys.argv )
 	window = MainWindow( __version__ )
