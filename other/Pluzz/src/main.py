@@ -17,7 +17,6 @@ __url__ = "http://code.google.com/p/tvdownloader/"
 import argparse
 import logging
 import platform
-import os
 import re
 import sys
 
@@ -55,8 +54,9 @@ if( __name__ == "__main__" ) :
 	console.setFormatter( ColorFormatter( not args.nocolor ) )
 	logger.addHandler( console )
 
-	# Affiche la version de pluzzdl et de python
-	logger.debug( "pluzzdl %s avec Python %s" % ( __version__, platform.python_version() ) )
+	# Affiche des infos sur le systeme
+	logger.debug( "pluzzdl %s avec Python %s (%s)" % ( __version__, platform.python_version(), platform.machine() ) )
+	logger.debug( "OS : %s %s" % ( platform.system(), platform.version() ) )
 
 	# Verification de l'URL
 	if( ( re.match( "http://www.pluzz.fr/[^\.]+?\.html", args.urlEmission ) is None )

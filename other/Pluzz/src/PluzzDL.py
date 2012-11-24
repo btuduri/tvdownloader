@@ -44,7 +44,7 @@ class PluzzDL( object ):
 	Classe principale
 	"""
 
-	M3U8_LINK = "http://medias2.francetv.fr//catchup-mobile/france-dom-tom/non-token/non-drm/m3u8/_FILE_NAME_.m3u8"
+	M3U8_LINK = "http://medias2.francetv.fr/catchup-mobile/france-dom-tom/non-token/non-drm/m3u8/_FILE_NAME_.m3u8"
 	REGEX_M3U8 = "/([0-9]{4}/S[0-9]{2}/J[0-9]{1}/[0-9]*-[0-9]{6,8})-"
 
 	def __init__( self, url, proxy = None, proxySock = False, sousTitres = False, progressFnct = lambda x : None, stopDownloadEvent = threading.Event(), outDir = "." ):
@@ -144,7 +144,7 @@ class PluzzDL( object ):
 		logger.debug( "Sous titres disponibles" )
 		# Enregistre le fichier de sous titres en smi
 		try :
-			( nomFichierSansExtension, extension ) = os.path.splitext( self.nomFichier )
+			( nomFichierSansExtension, _ ) = os.path.splitext( self.nomFichier )
 			# Ecrit le fichier
 			with open( "%s.smi" % ( nomFichierSansExtension ), "w" ) as f:
 				f.write( sousTitresSmi )
@@ -186,8 +186,8 @@ class PluzzDL( object ):
 		try :
 			xml.sax.parseString( self.pageInfos, PluzzDLInfosHandler( self ) )
 			# Si le lien m3u8 n'existe pas, il faut essayer de creer celui de la plateforme mobile
- 			if( self.m3u8URL is None ):
- 		 		self.m3u8URL = self.M3U8_LINK.replace( "_FILE_NAME_", re.findall( self.REGEX_M3U8, self.pageInfos )[ 0 ] )
+			if( self.m3u8URL is None ):
+				self.m3u8URL = self.M3U8_LINK.replace( "_FILE_NAME_", re.findall( self.REGEX_M3U8, self.pageInfos )[ 0 ] )
 			logger.debug( "Lien MMS : %s" % ( self.lienMMS ) )
 			logger.debug( "Lien RTMP : %s" % ( self.lienRTMP ) )
 			logger.debug( "URL manifest : %s" % ( self.manifestURL ) )
@@ -245,9 +245,11 @@ class PluzzDLM3U8( object ):
 		logger.info( "Création du fichier MKV (vidéo finale) ; veuillez attendre quelques instants" )
 		try:
 			commande = "ffmpeg -i %s -vcodec copy -acodec copy %s 1>/dev/null 2>/dev/null" % ( self.nomFichier, self.nomFichierFinal )
-			os.system( commande )
-			os.remove( self.nomFichier )
-			logger.info( "Fin !" )
+			if( os.system( commande ) == 0 ):
+				os.remove( self.nomFichier )
+				logger.info( "Fin !" )
+			else:
+				logger.warning( "Problème lors de la création du MKV avec FFmpeg ; le fichier %s est néanmoins disponible" % ( self.nomFichier ) )
 		except:
 			logger.error( "Impossible de créer la vidéo finale" )
 			sys.exit( -1 )
