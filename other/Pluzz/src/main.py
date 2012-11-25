@@ -21,7 +21,7 @@ import re
 import sys
 
 from ColorFormatter import ColorFormatter
-from PluzzDL        import PluzzDL
+from PluzzDL        import PluzzDL, PluzzDLException
 
 #
 # Main
@@ -84,8 +84,12 @@ if( __name__ == "__main__" ) :
 		progressFnct = lambda x : None
 
 	# Telechargement de la video
-	PluzzDL( url = args.urlEmission,
-			 proxy = args.proxy,
-			 proxySock = args.sock,
-			 sousTitres = args.soustitres,
-			 progressFnct = progressFnct )
+	try:
+		PluzzDL( url = args.urlEmission,
+				proxy = args.proxy,
+				proxySock = args.sock,
+				sousTitres = args.soustitres,
+				progressFnct = progressFnct )
+	except PluzzDLException, e:
+		logger.critical( e )
+		sys.exit( -1 )
